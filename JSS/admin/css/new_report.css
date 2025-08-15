@@ -1,0 +1,214 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    font-size: 15px;
+   }
+
+.print-header {
+    background-color: #f5f5f5;
+    padding: 15px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #ddd;
+}
+
+.print-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.print-button:hover {
+    background-color: #45a049;
+}
+
+.document-border {
+    border: 1px solid #000000; /* Dark blue border, adjust color as needed */
+    margin: 20px auto; /* Centers the bordered document */
+    max-width: 850px; /* Slightly larger than your content */
+    box-shadow: 0 0 15px rgba(0,0,0,0.1); /* Optional subtle shadow */
+    background: white; /* Ensures white background inside border */
+}
+        
+    .report-container {
+        max-width: 800px;
+        padding: 15px;
+        position: relative;
+        border: 1px solid #ddd; /* Inner border (optional) */
+        margin: 10px; /* Space between inner content and outer border */
+        padding: 15px;
+    }
+        
+    .school-header-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 15px;
+        position: relative;
+    }
+
+    .logo-left, .logo-right {
+        width: 250px; /* Adjust based on your logo size */
+        height: 100px; /* Adjust based on your logo size */
+        display: flex;
+        align-items: center;
+    }
+
+    .logo-left{
+        margin-left: 20px;
+    }
+
+    .logo-left img, .logo-right img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+
+    .school-header {
+        flex-grow: 1;
+        text-align: center;
+        margin: 0;
+        padding: 0 100px; /* Gives space between logos and text */
+    }
+
+    /* If you need to adjust the vertical alignment */
+    .logo-left {
+        align-self: flex-start; /* or center/flex-end */
+    }
+
+    .logo-right {
+        align-self: flex-start; /* or center/flex-end */
+    }
+        
+    .school-header .school-name {
+        font-weight: bold;
+        font-size: 18px;
+        margin-bottom: 5px;
+    }
+        
+    .school-header .school-contact {
+        font-size: 11px;
+        margin-bottom: 10px;
+    }
+        
+    .report-title {
+        text-align: center;
+        font-weight: bold;
+        text-decoration: underline;
+        margin-bottom: 15px;
+        font-size: 14px;
+    }
+        
+    .student-info {
+        margin-bottom: 15px;
+    }
+        
+    .info-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 10px;
+    }
+        
+    .info-table td {
+        padding: 3px;
+        border: 1px solid #000;
+    }
+        
+    .info-table td:first-child {
+        font-weight: bold;
+        width: 25%;
+    }
+
+    .results-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 15px;
+        font-size: 13px;
+    }
+        
+    .results-table th, .results-table td {
+        border: 1px solid #000;
+        padding: 5px;
+        text-align: center;
+    }
+        
+    .results-table th {
+        background-color: #f0f0f0;
+        font-weight: bold;
+    }
+        
+    .summary-section {
+        margin-top: 20px;
+    }
+        
+    .summary-title {
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+
+    .summary-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 15px;
+    }
+        
+    .summary-table th, .summary-table td {
+        border: 1px solid #000;
+        padding: 5px;
+        text-align: center;
+    }
+        
+    .summary-table th {
+        background-color: #f0f0f0;
+    }
+        
+    .signature-section {
+        margin-top: 20px;
+    }
+        
+    .comments {
+        margin: 15px 0;
+        font-style: italic;
+    }
+        
+    .footer {
+        margin-top: 20px;
+        text-align: center;
+        font-size: 15px;
+    }
+        
+    .motto {
+        font-weight: bold;
+        text-align: center;
+        margin-top: 10px;
+    }
+        
+    .stamp-notice {
+        text-align: center;
+        font-style: italic;
+        margin-top: 5px;
+    }
+
+    @media print {
+        .no-print {
+            display: none !important;
+        }
+        
+        .document-border {
+            margin: 0;
+            box-shadow: none;
+        }
+
+        .report-container {
+            margin: 2px;
+            padding: 10px;
+        }
+    }

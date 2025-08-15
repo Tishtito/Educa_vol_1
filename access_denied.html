@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Denied</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            background-image: radial-gradient(circle at 10% 20%, rgba(248, 249, 250, 0.9) 0%, rgba(248, 249, 250, 0.8) 90%);
+        }
+
+        /* Error Card */
+        .denied-card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            max-width: 480px;
+            padding: 40px;
+            text-align: center;
+            border-top: 5px solid #dc3545;
+            transform: translateY(0);
+            animation: cardEntrance 0.6s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Icon Styling */
+        .denied-icon {
+            font-size: 0;
+            margin-bottom: 25px;
+        }
+
+        .denied-icon svg {
+            width: 80px;
+            height: 80px;
+            fill: none;
+            stroke: #dc3545;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(0 4px 8px rgba(220, 53, 69, 0.2));
+        }
+
+        /* Content Styling */
+        .denied-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #212529;
+            margin-bottom: 15px;
+            letter-spacing: -0.5px;
+        }
+
+        .denied-message {
+            font-size: 16px;
+            color: #495057;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .denied-details {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 30px;
+            text-align: left;
+            font-size: 14px;
+            color: #6c757d;
+            border: 1px solid #e9ecef;
+        }
+
+        /* Button Styling */
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-size: 15px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 140px;
+        }
+
+        .btn-primary {
+            background-color: #dc3545;
+            color: white;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.2);
+        }
+
+        .btn-primary:hover {
+            background-color: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(220, 53, 69, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: white;
+            color: #495057;
+            border: 1px solid #dee2e6;
+        }
+
+        .btn-secondary:hover {
+            background-color: #f8f9fa;
+            border-color: #ced4da;
+            transform: translateY(-2px);
+        }
+
+        /* Animation */
+        @keyframes cardEntrance {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Decorative Elements */
+        .card-corner {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 60px;
+            height: 60px;
+            background-color: #f8d7da;
+            clip-path: polygon(0 0, 100% 100%, 100% 0);
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 576px) {
+            .denied-card {
+                padding: 30px 20px;
+            }
+            
+            .denied-title {
+                font-size: 24px;
+            }
+            
+            .denied-message {
+                font-size: 15px;
+                margin-bottom: 25px;
+            }
+            
+            .denied-icon svg {
+                width: 64px;
+                height: 64px;
+            }
+            
+            .btn {
+                padding: 10px 20px;
+                font-size: 14px;
+                min-width: 120px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="denied-card">
+        <div class="card-corner"></div>
+        
+        <div class="denied-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M19 6V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v1m14 0H5m14 0v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m14 0h-2"/>
+                <path d="M10 11v3m4-3v3"/>
+                <path d="M10 16h4"/>
+            </svg>
+        </div>
+        
+        <h1 class="denied-title">Access Denied</h1>
+        
+        <p class="denied-message">
+            You don't have permission to access this resource. Please Contact your administrator for assistance.
+        </p>
+        
+        <div class="denied-details">
+            <p><strong>Error Code:</strong> 403 Forbidden</p>
+            <p><strong>Attempted Access:</strong> /ClassTeacher/marklist</p>
+            <p><strong>Your Role:</strong> Class Teacher</p>
+            <p><strong>Required Role:</strong> Administrator</p>
+        </div>
+        
+        <div class="action-buttons">
+            <a href="">
+                <button class="btn btn-primary" href="">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
+                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                        <polyline points="10 17 15 12 10 7"></polyline>
+                        <line x1="15" y1="12" x2="3" y2="12"></line>
+                    </svg>
+                    Return to Safety
+                </button>
+            </a>
+        </div>
+    </div>
+</body>
+</html>

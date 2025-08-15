@@ -1,0 +1,163 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600&display=swap');
+
+* {
+   font-family: 'Poppins', sans-serif;
+   margin: 0;
+   padding: 0;
+   box-sizing: border-box;
+   outline: none;
+   border: none;
+   text-decoration: none;
+}
+
+.form-container {
+   min-height: 100vh;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   padding: 20px;
+   background: #eee;
+}
+
+.form-container form {
+   padding: 20px;
+   border-radius: 5px;
+   box-shadow: 0 5px 10px rgba(0, 0, 0, .1);
+   background: #fff;
+   text-align: center;
+   width: 100%;
+   max-width: 500px; /* Responsive max width */
+}
+
+.form-container form h3 {
+   font-size: 24px; /* Adjusted font size for better readability */
+   text-transform: uppercase;
+   margin-bottom: 10px;
+   color: #333;
+}
+
+.form-container form .input {
+   text-align: left;
+}
+
+.form-container form .input label {
+   color: crimson;
+   font-weight: 600;
+}
+
+.form-container form input,
+.form-container form select {
+   width: 100%;
+   padding: 10px 15px;
+   font-size: 16px;
+   margin: 8px 0;
+   background: #eee;
+   border-radius: 5px;
+}
+
+.form-container form select option {
+   background: #fff;
+}
+
+.form-container form .form-btn {
+   background: #fbd0d9;
+   color: crimson;
+   text-transform: capitalize;
+   font-size: 18px; /* Adjusted font size for better balance */
+   cursor: pointer;
+   width: 100%; /* Button will take full width */
+   padding: 12px 0; /* Increased padding for larger tap target */
+   border-radius: 5px;
+}
+
+.form-container form .form-btn:hover {
+   background: crimson;
+   color: #fff;
+}
+
+.form-container form p {
+   margin-top: 10px;
+   font-size: 18px; /* Adjusted font size for readability */
+   color: #333;
+}
+
+.form-container form p a {
+   color: crimson;
+}
+
+.form-container form .error-msg {
+   margin: 10px 0;
+   display: block;
+   background: crimson;
+   color: #fff;
+   border-radius: 5px;
+   font-size: 18px;
+   padding: 10px;
+}
+
+.form-container form .class-box .class-options {
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   text-align: left;
+}
+
+.form-container form .class-box h4 {
+   color: crimson;
+   font-weight: 600;
+   text-align: left;
+}
+
+/* Responsive media queries */
+@media screen and (max-width: 768px) {
+   .form-container form {
+      padding: 15px; /* Reduce padding on smaller screens */
+   }
+
+   .form-container form h3 {
+      font-size: 22px; /* Smaller header text */
+   }
+
+   .form-container form .form-btn {
+      font-size: 16px; /* Smaller button text */
+   }
+
+   .form-container form p {
+      font-size: 16px;
+   }
+
+   .form-container form input, 
+   .form-container form select {
+      font-size: 15px; /* Slightly smaller inputs */
+   }
+}
+
+@media screen and (max-width: 576px) {
+   .form-container {
+      padding: 10px; /* Less padding on smaller screens */
+   }
+
+   .form-container form {
+      width: 100%;
+      padding: 10px;
+   }
+
+   .form-container form h3 {
+      font-size: 20px;
+   }
+
+   .form-container form .form-btn {
+      font-size: 15px;
+      padding: 10px 0; /* Ensure button has enough space for taps */
+   }
+
+   .form-container form p {
+      font-size: 14px;
+   }
+
+   .form-container form input, 
+   .form-container form select {
+      font-size: 14px;
+      padding: 8px 10px; /* Smaller padding for better fit */
+   }
+}
