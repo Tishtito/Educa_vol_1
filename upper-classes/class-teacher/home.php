@@ -215,6 +215,22 @@
          <h3 class="title">Social Studies</h3>
          <a href="subjects/sst.php" class="inline-btn">View Marks</a>
       </div>
+
+      <div class="box">
+         <div class="thumb">
+            <img src="photos/integration.jpg" alt="">
+         </div>
+         <h3 class="title">Integraded Science</h3>
+         <a href="subjects/integrated_science.php" class="inline-btn">View Marks</a>
+      </div>
+
+      <div class="box">
+         <div class="thumb">
+            <img src="photos/ca-sst.jpeg" alt="">
+         </div>
+         <h3 class="title">CA, SST & CRE</h3>
+         <a href="subjects/ca_sst_cre.php" class="inline-btn">View Marks</a>
+      </div>
    </div>
 
    <div class="more-btn">

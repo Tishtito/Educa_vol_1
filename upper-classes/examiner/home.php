@@ -167,7 +167,9 @@
       "CRE" => ["image" => "photos/religious.jpg"],
       "science and technology" => ["image" => "photos/science.png"],
       "social studies" => ["image" => "photos/sst.png"],
-      "agriculture and nutrition" => ["image" => "photos/agriculture.jpg"]
+      "agriculture and nutrition" => ["image" => "photos/agriculture.jpg"],
+      "CA,SST,CRE" => ["image" => "photos/ca-sst.jpeg"],
+      "Integrated Science" => ["image" => "photos/integration.jpg"]
    ];
 ?>
 
