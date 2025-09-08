@@ -41,6 +41,7 @@ $stmt->close();
 $title = ucwords(str_replace('_', ' ', $class_assigned));
 
 // Compute and Store Total Marks and Rank
+// Update Total Marks - COALESCE(English, 0) + COALESCE(Math, 0) + COALESCE(Kiswahili, 0) + COALESCE(Integrated_science, 0) + COALESCE(CA_SST_CRE, 0)
 $sql = "
     UPDATE exam_results er
     JOIN (
@@ -78,6 +79,10 @@ $stmt->execute();
 $stmt->close();
 
 // Fetch student marks and performance levels
+// Additinal subjects: 
+// er.Integrated_science, (SELECT ab FROM point_boundaries WHERE er.SST BETWEEN min_marks AND max_marks LIMIT 1) AS Integrated_science,
+// er.CA_SST_CRE, (SELECT ab FROM point_boundaries WHERE er.CRE BETWEEN min_marks AND max_marks LIMIT 1) AS PL_CA_SST_CRE,
+
 $sql = "
     SELECT 
         s.student_id, s.name AS Name, 
@@ -114,6 +119,7 @@ $subject_counts = [];
 $total_score = 0;
 $total_students = 0;
 
+//$subjects = ['English', 'Math', 'Kiswahili', 'Creative', 'SciTech', 'AgricNutri', 'SST', 'CRE', 'Integrated_science', 'CA_SST_CRE'];
 $subjects = ['English', 'Math', 'Kiswahili', 'Creative', 'SciTech', 'AgricNutri', 'SST', 'CRE'];
 
 foreach ($subjects as $subject) {

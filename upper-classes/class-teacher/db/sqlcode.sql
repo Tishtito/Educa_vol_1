@@ -24,6 +24,8 @@ CREATE TABLE exam_results (
     Creative INT,
     CRE INT,
     SST INT,
+    Integrated_science INT,
+    CA_SST_CRE INT,
     total_marks INT,
     position INT,
     stream_position INT,
@@ -53,7 +55,9 @@ VALUES
 ('science and technology'),
 ('agriculture and nutrition'),
 ('social studies'),
-('CRE');
+('CRE'),
+('Integrated Science'),
+('CA, SST, CRE');
 
 CREATE TABLE examiner_subjects (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -100,6 +104,8 @@ CREATE TABLE exam_mean_scores (
     AgricNutri FLOAT DEFAULT NULL,
     SST FLOAT DEFAULT NULL,
     CRE FLOAT DEFAULT NULL,
+    Integrated_science FLOAT DEFAULT NULL,
+    CA_SST_CRE FLOAT DEFAULT NULL,
     total_mean FLOAT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (exam_id) REFERENCES exams(exam_id) ON DELETE CASCADE
