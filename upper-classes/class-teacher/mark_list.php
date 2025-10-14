@@ -80,8 +80,8 @@ $stmt->close();
 
 // Fetch student marks and performance levels
 // Additinal subjects: 
-// er.Integrated_science, (SELECT ab FROM point_boundaries WHERE er.SST BETWEEN min_marks AND max_marks LIMIT 1) AS Integrated_science,
-// er.CA_SST_CRE, (SELECT ab FROM point_boundaries WHERE er.CRE BETWEEN min_marks AND max_marks LIMIT 1) AS PL_CA_SST_CRE,
+// er.Integrated_science, (SELECT ab FROM point_boundaries WHERE er.Integrated_science BETWEEN min_marks AND max_marks LIMIT 1) AS PL_Integrated_science,
+// er.CA_SST_CRE, (SELECT ab FROM point_boundaries WHERE er.CA_SST_CRE BETWEEN min_marks AND max_marks LIMIT 1) AS PL_CA_SST_CRE,
 
 $sql = "
     SELECT 

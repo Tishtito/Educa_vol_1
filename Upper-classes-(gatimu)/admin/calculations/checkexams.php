@@ -3,7 +3,7 @@
 $servername = "localhost";
 $username = "root";
 $password = "";
-$database = "upper_classes1";
+$database = "upper_classes";
 
 $connection = new mysqli($servername, $username, $password, $database);
 

@@ -244,7 +244,7 @@
 <!--footer section -->
 <footer class="footer">
 
-   &copy; copyright @ 2024 by <span>Tishtito designer</span> | all rights reserved!
+   &copy; copyright @ 2025 by <span>Tishtito designer</span> | all rights reserved!
 
 </footer>
 

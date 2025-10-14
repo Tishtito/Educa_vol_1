@@ -160,9 +160,9 @@
 
    // Subject details: Map subject names to image files and links
    $subject_details = [
-      "kiswahili" => ["image" => "photos/kiswahili.jpg"],
-      "math" => ["image" => "photos/math.png"],
-      "english" => ["image" => "photos/english.jpg"],
+      "Kiswahili" => ["image" => "photos/kiswahili.jpg"],
+      "Math" => ["image" => "photos/math.png"],
+      "English" => ["image" => "photos/english.jpg"],
       "creative" => ["image" => "photos/creative.jpg"],
       "CRE" => ["image" => "photos/religious.jpg"],
       "science and technology" => ["image" => "photos/science.png"],

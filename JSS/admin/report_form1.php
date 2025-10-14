@@ -34,7 +34,7 @@
     $tutor = $class_teacher['name'] ?? "Not Assigned"; // Default if no teacher is found
 
     //Fetch exam's year
-    $query = "SELECT term, YEAR(date_created) AS exam_year FROM exams WHERE exam_id = ?";
+    $query = "SELECT exam_type, term, YEAR(date_created) AS exam_year FROM exams WHERE exam_id = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $exam_id);
     $stmt->execute();
@@ -47,6 +47,7 @@
 
     $term = $exam['term']; 
     $exam_year = $exam['exam_year']; // Get the year of exam creation
+    $exam_type = $exam['exam_type']; // Get the type of exam
 
     // Fetch exam results
     $query = "SELECT * FROM exam_results WHERE student_id = ? AND exam_id = ?";

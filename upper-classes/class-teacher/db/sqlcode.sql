@@ -1,21 +1,39 @@
 CREATE TABLE exams (
     exam_id INT AUTO_INCREMENT PRIMARY KEY,
     exam_name VARCHAR(255) NOT NULL,
-    exam_type ENUM ('Opener', 'Mid-term', 'End-Term'),
-    term ENUM ('Term 1', 'Term 2', 'Term 3'),
+    exam_type ENUM('Weekly-Test', 'Opener', 'Mid-term', 'End-Term'),
+    term ENUM('Term 1', 'Term 2', 'Term 3'),
+    academic_year YEAR NOT NULL,  -- Added for clarity
     date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at datetime,
+    deleted_at datetime
 );
 
 CREATE TABLE students (
     student_id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     class VARCHAR(50) NOT NULL
+    created_at datetime,
+    updated_at datetime,
+    deleted_at datetime
+);
+
+CREATE TABLE student_classes (
+    student_class_id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT NOT NULL,
+    class VARCHAR(50) NOT NULL,
+    academic_year YEAR NOT NULL,
+    created_at datetime,
+    updated_at datetime,
+    deleted_at datetime,
+    FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE
 );
 
 CREATE TABLE exam_results (
     result_id INT AUTO_INCREMENT PRIMARY KEY,
     exam_id INT,
     student_id INT,
+    student_class_id INT NOT NULL,
     Math INT,
     English INT,
     Kiswahili INT,
@@ -29,8 +47,12 @@ CREATE TABLE exam_results (
     total_marks INT,
     position INT,
     stream_position INT,
+    created_at datetime,
+    updated_at datetime,
+    deleted_at datetime,
     FOREIGN KEY (exam_id) REFERENCES exams(exam_id) ON DELETE CASCADE,
     FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE
+    FOREIGN KEY (student_class_id) REFERENCES student_classes(student_class_id) ON DELETE CASCADE
 );
 
 CREATE TABLE examiners (
@@ -39,6 +61,8 @@ CREATE TABLE examiners (
     username VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,          -- Store hashed passwords
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at datetime,
+    deleted_at datetime
 );
 
 CREATE TABLE subjects (
@@ -89,7 +113,10 @@ CREATE TABLE class_teachers (
     name VARCHAR(255) NOT NULL,
     username VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
-    class_assigned VARCHAR(255) NOT NULL
+    class_assigned VARCHAR(255) NOT NULL,
+    created_at datetime,
+    updated_at datetime,
+    deleted_at datetime
 );
 
 CREATE TABLE exam_mean_scores (
@@ -108,5 +135,7 @@ CREATE TABLE exam_mean_scores (
     CA_SST_CRE FLOAT DEFAULT NULL,
     total_mean FLOAT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at datetime,
+    deleted_at datetime,
     FOREIGN KEY (exam_id) REFERENCES exams(exam_id) ON DELETE CASCADE
 );

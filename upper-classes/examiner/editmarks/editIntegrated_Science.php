@@ -28,8 +28,8 @@ if (isset($_GET['class_name'])) {
     $_SESSION['class_name'] = htmlspecialchars($_GET['class_name']);
 }
 
-if (!isset($_SESSION["exam_id"]) || !isset($_SESSION["marks_out_of7"]) || !isset($_SESSION['class_id'])) {
-    $_SESSION['marks_out_of7'] = null;
+if (!isset($_SESSION["exam_id"]) || !isset($_SESSION["marks_out_8"]) || !isset($_SESSION['class_id'])) {
+    $_SESSION['marks_out_8'] = null;
 
     echo "<script>
         setTimeout(function() {
@@ -50,7 +50,7 @@ $exam_id      = $_SESSION["exam_id"];
 $subject_id   = $_SESSION['subject_id'];
 $class_id     = $_SESSION['class_id'];
 $class_name   = $_SESSION['class_name'] ?? '';
-$marks_out_of = $_SESSION['marks_out_of7'];
+$marks_out_of = $_SESSION['marks_out_8'];
 
 $id = "";
 $name = "";
@@ -63,13 +63,13 @@ $successMessage = "";
 // Handle GET request (load form)
 if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     if (!isset($_GET["student_id"])) {
-        header("Location: ../subjects/social studies.php");
+        header("Location: ../subjects/Integrated Science.php");
         exit;
     }
 
     $id = $_GET["student_id"];
 
-    $sql = "SELECT s.name AS Name, er.SST, sc.student_class_id
+    $sql = "SELECT s.name AS Name, er.Integrated_science, sc.student_class_id
             FROM students s
             JOIN student_classes sc ON s.student_id = sc.student_id
             LEFT JOIN exam_results er 
@@ -93,7 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     }
 
     $name = $row["Name"];
-    $marks = $row["SST"] ?? '';
+    $marks = $row["	Integrated_science"] ?? '';
     $student_class_id = $row["student_class_id"];
 
 } else {
@@ -130,12 +130,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
 
         if ($result->num_rows > 0) {
             // Update
-            $sql = "UPDATE exam_results SET SST = ?, student_id = ? WHERE student_class_id = ? AND exam_id = ?";
+            $sql = "UPDATE exam_results SET Integrated_science = ?, student_id = ? WHERE student_class_id = ? AND exam_id = ?";
             $stmt = $conn->prepare($sql);
             $stmt->bind_param("diii", $percentage_marks, $id, $student_class_id, $exam_id);
         } else {
             // Insert
-            $sql = "INSERT INTO exam_results (exam_id, student_id, student_class_id, SST) VALUES (?, ?, ?, ?)";
+            $sql = "INSERT INTO exam_results (exam_id, student_id, student_class_id, Integrated_science) VALUES (?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
             $stmt->bind_param("iiid", $exam_id, $id, $student_class_id, $percentage_marks);
         }
@@ -153,7 +153,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
                     icon: 'success',
                     button: 'OK'
                 }).then(function() {
-                    window.location.href = '../subjects/social studies.php?subject_id=" . urlencode($_SESSION['subject_id']) . "&class_id=" . urlencode($_SESSION['class_id']) . "&class_name=" . urlencode($_SESSION['class_name']) . "';
+                    window.location.href = '../subjects/Integrated Science.php?subject_id=" . urlencode($_SESSION['subject_id']) . "&class_id=" . urlencode($_SESSION['class_id']) . "&class_name=" . urlencode($_SESSION['class_name']) . "';
                 });
             }, 100);
         </script>";

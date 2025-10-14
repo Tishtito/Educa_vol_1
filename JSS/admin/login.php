@@ -108,7 +108,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         ?>
             <h3>ADMIN LOGIN</h3>
             <div class="profile mb-3">
-                <img src="images/logo.png">
+                <img src="images/logo.png" width="50px" height="50px" alt="">
             </div>
                 <input type="text" name="username" required placeholder="enter your username" class="form-control  <?php echo (!empty($username_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $username; ?>">
                 <span class="invalid-feedback"><?php echo $username_err; ?></span>

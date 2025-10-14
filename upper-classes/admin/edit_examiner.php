@@ -124,6 +124,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <label for="name">Name</label>
             <input type="text" name="name" id="name" value="<?php echo htmlspecialchars($examiner['name']); ?>" required>
 
+            <label for="name">Username</label>
+            <input type="text" name="name" id="name" value="<?php echo htmlspecialchars($examiner['username']); ?>" required>
+
             <label for="password">New Password</label>
             <input type="password" name="password" id="password" placeholder="Leave blank to keep the current password">
         </div>

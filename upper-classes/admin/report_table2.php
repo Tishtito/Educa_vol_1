@@ -1,4 +1,6 @@
 <?php
+session_start();
+
 require_once "db/database.php"; // Database connection
 
 // Get class and exam from URL

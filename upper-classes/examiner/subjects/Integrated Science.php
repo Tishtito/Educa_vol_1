@@ -139,7 +139,7 @@
          SELECT 
             students.student_id AS student_id, 
             students.name AS student_name, 
-            exam_results.Integrated Science 
+            exam_results.Integrated_science 
          FROM 
             students 
          LEFT JOIN 
@@ -173,7 +173,7 @@
                   <?php while ($row = $result->fetch_assoc()): ?>
                      <tr>
                         <td><?php echo htmlspecialchars($row['student_name']); ?></td>
-                        <td><?php echo htmlspecialchars($row['Integrated Science'] ?? '-'); ?></td>
+                        <td><?php echo htmlspecialchars($row['Integrated_science'] ?? '-'); ?></td>
                         <td>
                            <a class="option-btn" href="../editmarks/editIntegrated_Science.php?student_id=<?php echo htmlspecialchars($row['student_id']); ?>&exam_id=<?php echo htmlspecialchars($exam_id); ?>">
                               Edit
