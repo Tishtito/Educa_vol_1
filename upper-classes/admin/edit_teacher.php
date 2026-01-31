@@ -118,10 +118,6 @@
                 <input type="submit" class="form-btn" value="Update Teacher">
                 <input type="button" onclick="window.location.href='users.php'" class="form-btn" value="Cancel">
             </div>
-            
-            <input type="submit" class="form-btn" value="Update Teacher">
-            <input type="button" onclick="window.location.href='users.php'" class="form-btn" value="Cancel">
-
         </form>
     </section>
     

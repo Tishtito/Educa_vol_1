@@ -10,7 +10,7 @@ CREATE TABLE admins (
     deleted_at datetime
 );
 
-CREATE TABLE  users(
+CREATE TABLE  examiners(
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     username VARCHAR(255) NOT NULL,
@@ -24,9 +24,11 @@ CREATE TABLE  users(
 CREATE TABLE exams (
     exam_id INT AUTO_INCREMENT PRIMARY KEY,
     exam_name VARCHAR(255) NOT NULL,
-    exam_type ENUM ('Opener', 'Mid-term', 'End-Term'),
-    term ENUM ('Term 1', 'Term 2', 'Term 3'),	
+    exam_type ENUM('Weekly-Test', 'Opener', 'Mid-term', 'End-Term'),
+    academic_year YEAR NOT NULL,  -- Added for clarity
     date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at datetime,
+    deleted_at datetime
 );
 
 CREATE TABLE students (
@@ -81,17 +83,25 @@ CREATE TABLE examiners (
     username VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,          -- Store hashed passwords
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at datetime,
+    deleted_at datetime,
 );
 
 CREATE TABLE subjects (
     subject_id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL
+    name VARCHAR(255) NOT NULL,
+    created_at datetime,
+    updated_at datetime,
+    deleted_at datetime
 );
 
 CREATE TABLE examiner_subjects (
     id INT AUTO_INCREMENT PRIMARY KEY,
     examiner_id INT NOT NULL,
     subject_id INT NOT NULL,
+    created_at datetime,
+    updated_at datetime,
+    deleted_at datetime,
     FOREIGN KEY (examiner_id) REFERENCES examiners(examiner_id) ON DELETE CASCADE,
     FOREIGN KEY (subject_id) REFERENCES subjects(subject_id) ON DELETE CASCADE,
     UNIQUE (examiner_id, subject_id)         -- Ensure no duplicate assignments
@@ -100,7 +110,10 @@ CREATE TABLE examiner_subjects (
 CREATE TABLE classes (
     class_id INT AUTO_INCREMENT PRIMARY KEY,
     class_name VARCHAR(50) NOT NULL UNIQUE,
-    year YEAR
+    year YEAR,
+    created_at datetime,
+    updated_at datetime,
+    deleted_at datetime
 );
 
 CREATE TABLE examiner_classes (
@@ -141,6 +154,9 @@ CREATE TABLE exam_mean_scores (
     Religious FLOAT DEFAULT NULL,
     total_mean FLOAT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at datetime,
+    updated_at datetime,
+    deleted_at datetime,
     FOREIGN KEY (exam_id) REFERENCES exams(exam_id) ON DELETE CASCADE
 );
 
