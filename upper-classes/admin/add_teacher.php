@@ -106,9 +106,6 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             } else{
                 echo "Oops! Something went wrong. Please try again later.";
             }
-
-            // Close statement
-            mysqli_stmt_close($stmt);
         }
     }
 
@@ -146,37 +143,28 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             <span class="invalid-feedback"><?php echo $confirm_password_err; ?></span>
 
             <div class="class-box">
-                <h4>Choose Grade</h4>
-                <div class="class-options">
-                    <div class="class">
-                        <label for="male">4 Blue</label>
-                        <input type="radio" name="class" value="4_blue" checked/>
-                    </div>
+                <div class="input">
+                    <select name="class" id="class" class="form-control <?php echo (!empty($class_err)) ? 'is-invalid' : ''; ?>" required>
+                        <option value="">-- Select Class --</option>
+                        <?php
+                            // Fetch classes from the database
+                            $classes_sql = "SELECT class_id, class_name FROM classes ORDER BY grade, class_name";
+                            $classes_result = mysqli_query($conn, $classes_sql);
+                            
+                            if ($classes_result && mysqli_num_rows($classes_result) > 0) {
+                                while ($class_row = mysqli_fetch_assoc($classes_result)) {
+                                    $selected = ($class == $class_row['class_name']) ? 'selected' : '';
+                                    echo "<option value='" . htmlspecialchars($class_row['class_name']) . "' $selected>" . htmlspecialchars($class_row['class_name']) . "</option>";
+                                }
+                            } else {
+                                echo "<option value=''>No classes available</option>";
+                            }
 
-                    <div class="class">
-                        <label for="female">4 Red</label>
-                        <input type="radio" name="class" value="4_red" checked/>
-                    </div>
-                    
-                    <div class="class">
-                        <label for="female">5 Blue</label>
-                        <input type="radio" name="class" value="5_blue" checked/>
-                    </div>
-                    
-                    <div class="class">
-                        <label for="female">5 Red</label>
-                        <input type="radio" name="class" value="5_red" checked/>
-                    </div>
-
-                    <div class="class">
-                        <label for="female">6 Blue</label>
-                        <input type="radio" name="class" value="6_blue" checked/>
-                    </div>
-
-                    <div class="class">
-                        <label for="female">6 Red</label>
-                        <input type="radio" name="class" value="6_red" checked/>
-                    </div>
+                            // Close database connection
+                            $conn->close();
+                        ?>
+                    </select>
+                    <span class="invalid-feedback"><?php echo $class_err; ?></span>
                 </div>
             </div>
             

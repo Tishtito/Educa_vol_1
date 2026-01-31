@@ -81,8 +81,6 @@
                 header("Location: users.php?message=No teacher selected for editing");
                 exit();
             }
-
-            $conn->close();
         ?>
             <div class="input">
                 <label for="name">Name</label>
@@ -93,38 +91,32 @@
             </div>
 
             <div class="class-box">
-                <h4> Select Class</h4>
-                <div class="class-options">
-                    <div class="class">
-                        <label for="male">4 Blue</label>
-                        <input type="radio" name="class" value="4_blue" <?php echo ($teacher['class_assigned'] == 'grade_4') ? 'checked' : ''; ?>/>
-                    </div>
-
-                    <div class="class">
-                        <label for="male">4 Red</label>
-                        <input type="radio" name="class" value="4_red" <?php echo ($teacher['class_assigned'] == 'grade_4') ? 'checked' : ''; ?>/>
-                    </div>
-                    
-                    <div class="class">
-                        <label for="male">5 Blue</label>
-                        <input type="radio" name="class" value="5_blue" <?php echo ($teacher['class_assigned'] == 'grade_5') ? 'checked' : ''; ?>/>
-                    </div>
-                    
-                    <div class="class">
-                        <label for="male">5 Red</label>
-                        <input type="radio" name="class" value="5_red" <?php echo ($teacher['class_assigned'] == 'grade_5') ? 'checked' : ''; ?>/>
-                    </div> 
-
-                    <div class="class">
-                        <label for="male">6 Blue</label>
-                        <input type="radio" name="class" value="6_blue" <?php echo ($teacher['class_assigned'] == 'grade_6') ? 'checked' : ''; ?>/>
-                    </div>
-                    
-                    <div class="class">
-                        <label for="male">6 Red</label>
-                        <input type="radio" name="class" value="6_red" <?php echo ($teacher['class_assigned'] == 'grade_6') ? 'checked' : ''; ?>/>
-                    </div> 
+                <div class="input">
+                    <label for="class">Choose Class</label>
+                    <select name="class" id="class" class="form-control" required>
+                        <option value="">-- Select Class --</option>
+                        <?php
+                            // Fetch classes from the database
+                            $classes_sql = "SELECT class_id, class_name FROM classes ORDER BY grade, class_name";
+                            $classes_result = $conn->query($classes_sql);
+                            
+                            if ($classes_result && $classes_result->num_rows > 0) {
+                                while ($class_row = $classes_result->fetch_assoc()) {
+                                    $selected = ($teacher['class_assigned'] == $class_row['class_name']) ? 'selected' : '';
+                                    echo "<option value='" . htmlspecialchars($class_row['class_name']) . "' $selected>" . htmlspecialchars($class_row['class_name']) . "</option>";
+                                }
+                            } else {
+                                echo "<option value=''>No classes available</option>";
+                            }
+                            
+                            // Close database connection
+                            $conn->close();
+                        ?>
+                    </select>
                 </div>
+            
+                <input type="submit" class="form-btn" value="Update Teacher">
+                <input type="button" onclick="window.location.href='users.php'" class="form-btn" value="Cancel">
             </div>
             
             <input type="submit" class="form-btn" value="Update Teacher">
