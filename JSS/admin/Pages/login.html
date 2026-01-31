@@ -1,27 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+    <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login Form</title>
     <link rel="stylesheet" href="../css/form.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="form-container">
-
-        <form action="../backend/public/index.php/auth/login" method="post" class="mx-auto">
-        <div id="login-error" class="alert alert-danger" style="display:none;"></div>
+        <form action="../backend/public/index.php/auth/login" method="post">
+            <div id="login-error" class="alert alert-danger" style="display:none;"></div>
+            <div class="profile">
+                <img src="../images/logo.png" alt="School Logo">
+            </div>
             <h3>ADMIN LOGIN</h3>
-            <div class="profile mb-3">
-                <img src="../images/logo.png" width="50px" height="50px" alt="">
-            </div>
-                <input type="text" name="username" required placeholder="enter your username" class="form-control">
-                
-                <input type="password" name="password" required placeholder="enter your password" class="form-control">
-
-                <input type="submit" class="form-btn" value="Login">
-            </div>
+            <input type="text" name="username" required placeholder="Enter your username" class="form-control">
+            <input type="password" name="password" required placeholder="Enter your password" class="form-control">
+            <input type="submit" class="form-btn" value="Login">
         </form>
     </div>
     <script>

@@ -99,4 +99,26 @@ class DashboardController
 			'data' => $rows,
 		]);
 	}
+
+	public function grades(): void
+	{
+		if (!$this->requireAuth()) {
+			return;
+		}
+
+		$rows = $this->db->select('students', ['class'], [
+			'GROUP' => 'class',
+			'ORDER' => ['class' => 'ASC'],
+		]);
+
+		$grades = array_map(function ($row) {
+			return $row['class'];
+		}, $rows ?: []);
+
+		header('Content-Type: application/json');
+		echo json_encode([
+			'success' => true,
+			'data' => $grades,
+		]);
+	}
 }

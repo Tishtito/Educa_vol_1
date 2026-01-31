@@ -73,6 +73,17 @@ class AuthController
 		]);
 	}
 
+	public function logout(): void
+	{
+		$this->startSession();
+		if (session_status() !== PHP_SESSION_ACTIVE) {
+			session_start();
+		}
+
+		$this->clearSession();
+		header('Location: ' . $this->basePath() . '/Pages/index.html');
+	}
+
 	private function startSession(): void
 	{
 		if (session_status() === PHP_SESSION_ACTIVE) {

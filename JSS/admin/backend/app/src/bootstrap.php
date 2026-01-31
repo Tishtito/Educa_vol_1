@@ -4,9 +4,33 @@ declare(strict_types=1);
 
 ini_set('display_errors', '0');
 ini_set('log_errors', '1');
-ini_set('error_log', __DIR__ . '/../../logs/php_errors.log');
+
+$logDir = __DIR__ . '/../../logs';
+$logFile = $logDir . '/php_errors.log';
+if (!is_dir($logDir)) {
+    @mkdir($logDir, 0775, true);
+}
+if (!file_exists($logFile)) {
+    @file_put_contents($logFile, "");
+}
+
+ini_set('error_log', $logFile);
 error_reporting(E_ALL);
 date_default_timezone_set('Africa/Nairobi');
+
+set_error_handler(function ($severity, $message, $file, $line) use ($logFile) {
+    $entry = sprintf("[%s] PHP Error (%s) %s in %s:%d\n", date('c'), $severity, $message, $file, $line);
+    @file_put_contents($logFile, $entry, FILE_APPEND);
+    return false;
+});
+
+set_exception_handler(function ($exception) use ($logFile) {
+    $entry = sprintf("[%s] Uncaught Exception %s: %s in %s:%d\n", date('c'), get_class($exception), $exception->getMessage(), $exception->getFile(), $exception->getLine());
+    @file_put_contents($logFile, $entry, FILE_APPEND);
+    http_response_code(500);
+    header('Content-Type: application/json');
+    echo json_encode(['success' => false, 'message' => 'Server error']);
+});
 
 
 
