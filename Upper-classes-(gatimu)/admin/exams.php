@@ -20,15 +20,16 @@
                 $exam_name = $_POST['name'];
                 $exam_type = $_POST['exam_type'];
                 $term = $_POST['term'];
+                $academic_year = date('Y');
             
                 // Validate fields
                 if (empty($exam_name) || empty($exam_type) || empty($term)) {
                     echo "<script>swal('Error', 'All fields are required!', 'error');</script>";
                 } else {
                     // Insert into database
-                    $query = "INSERT INTO exams (exam_name, exam_type, term) VALUES (?, ?, ?)";
+                    $query = "INSERT INTO exams (exam_name, exam_type, term, academic_year) VALUES (?, ?, ?, ?)";
                     $stmt = mysqli_prepare($conn, $query);
-                    mysqli_stmt_bind_param($stmt, 'sss', $exam_name, $exam_type, $term);
+                    mysqli_stmt_bind_param($stmt, 'ssss', $exam_name, $exam_type, $term, $academic_year);
             
                     if (mysqli_stmt_execute($stmt)) {
                         echo "<script>swal('Success', 'Exam created successfully!', 'success').then(function() {

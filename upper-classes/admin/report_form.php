@@ -229,15 +229,29 @@
                                 <td class="text-left"><h3><?php echo $subject_name; ?></h3></td>
 
                                 <!-- Mid-Term Exam -->
-                                <td class="unit"><?php echo $exam_results['Mid-Term'][$db_column] ?? '-'; ?></td>
-                                <td class="total"><?php echo getPerformanceLevel($exam_results['Mid-Term'][$db_column] ?? 0, $performance_levels); ?></td>
+                                <td class="unit">
+                                    <?php 
+                                    $mid_term_val = (isset($exam_results['Mid-Term']) && is_array($exam_results['Mid-Term']) && isset($exam_results['Mid-Term'][$db_column])) ? $exam_results['Mid-Term'][$db_column] : null;
+                                    echo ($mid_term_val !== null) ? $mid_term_val : '-';
+                                    ?>
+                                </td>
+                                <td class="total">
+                                    <?php echo getPerformanceLevel(($mid_term_val !== null) ? $mid_term_val : 0, $performance_levels); ?>
+                                </td>
 
                                 <!-- End of Term Exam -->
-                                <td class="unit"><?php echo $exam_results['End-Term'][$db_column] ?? '-'; ?></td>
-                                <td class="total"><?php echo getPerformanceLevel($exam_results['End-Term'][$db_column] ?? 0, $performance_levels); ?></td>
+                                <td class="unit">
+                                    <?php 
+                                    $end_term_val = (isset($exam_results['End-Term']) && is_array($exam_results['End-Term']) && isset($exam_results['End-Term'][$db_column])) ? $exam_results['End-Term'][$db_column] : null;
+                                    echo ($end_term_val !== null) ? $end_term_val : '-';
+                                    ?>
+                                </td>
+                                <td class="total">
+                                    <?php echo getPerformanceLevel(($end_term_val !== null) ? $end_term_val : 0, $performance_levels); ?>
+                                </td>
                             </tr>
-                            <?php $total_marks_mid += $exam_results['Mid-Term'][$db_column]; ?>
-                            <?php $total_marks_end += $exam_results['End-Term'][$db_column]; ?>
+                            <?php $total_marks_mid += ($mid_term_val !== null) ? $mid_term_val : 0; ?>
+                            <?php $total_marks_end += ($end_term_val !== null) ? $end_term_val : 0; ?>
                         <?php endforeach; ?>
                     </tbody>
                     <tfoot>

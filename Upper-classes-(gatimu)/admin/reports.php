@@ -26,12 +26,13 @@
     <div class="sidebar">
         <a href="#" class="logo">
             <i class='bx bx-code-alt'></i>
-            <div class="logo-name"><span>JSS</span>Ngure</div>
+            <div class="logo-name"><span>Upper</span>Admin</div>
         </a>
         <ul class="side-menu">
             <li><a href="index.php"><i class='bx bxs-dashboard'></i>Dashboard</a></li>
             <li><a href="analysis.php"><i class='bx bx-analyse'></i>Analytics</a></li>
             <li><a href="users.php"><i class='bx bx-group'></i>Teachers</a></li>
+            <li><a href="students.php"><i class='bx bx-book-reader'></i>Students</a></li>
             <li class="active"><a href="reports.php"><i class='bx bxs-report'></i>Reports</a></li>
             <li><a href="settings.php"><i class='bx bx-cog'></i>Settings</a></li>
         </ul>

@@ -146,37 +146,25 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             <span class="invalid-feedback"><?php echo $confirm_password_err; ?></span>
 
             <div class="class-box">
-                <h4>Choose Grade</h4>
-                <div class="class-options">
-                    <div class="class">
-                        <label for="male">4 East</label>
-                        <input type="radio" name="class" value="grade_4east" checked/>
-                    </div>
-
-                    <div class="class">
-                        <label for="male">4 West</label>
-                        <input type="radio" name="class" value="grade_4west" checked/>
-                    </div>
-
-                    <div class="class">
-                        <label for="female">5 East</label>
-                        <input type="radio" name="class" value="grade_5east" checked/>
-                    </div>
-                    
-                    <div class="class">
-                        <label for="female">5 West</label>
-                        <input type="radio" name="class" value="grade_5west" checked/>
-                    </div>
-
-                    <div class="class">
-                        <label for="female">6 East</label>
-                        <input type="radio" name="class" value="grade_6east" checked/>
-                    </div>
-                    
-                    <div class="class">
-                        <label for="female">6 West</label>
-                        <input type="radio" name="class" value="grade_6west" checked/>
-                    </div> 
+                <div class="input">
+                    <select name="class" id="class" class="form-control <?php echo (!empty($class_err)) ? 'is-invalid' : ''; ?>" required>
+                        <option value="">-- Select Class --</option>
+                        <?php
+                            // Fetch classes from the database
+                            $classes_sql = "SELECT class_id, class_name FROM classes ORDER BY grade, class_name";
+                            $classes_result = mysqli_query($conn, $classes_sql);
+                            
+                            if ($classes_result && mysqli_num_rows($classes_result) > 0) {
+                                while ($class_row = mysqli_fetch_assoc($classes_result)) {
+                                    $selected = ($class == $class_row['class_name']) ? 'selected' : '';
+                                    echo "<option value='" . htmlspecialchars($class_row['class_name']) . "' $selected>" . htmlspecialchars($class_row['class_name']) . "</option>";
+                                }
+                            } else {
+                                echo "<option value=''>No classes available</option>";
+                            }
+                        ?>
+                    </select>
+                    <span class="invalid-feedback"><?php echo $class_err; ?></span>
                 </div>
             </div>
             

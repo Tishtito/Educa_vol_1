@@ -1,11 +1,27 @@
 <?php
     session_start();
-    
-    if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
+
+    if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
         header("location: login.php");
         exit;
     }
+
+    require_once 'db/database.php';
+
+    $sql = "SELECT DISTINCT class
+            FROM students
+            WHERE status = 'Active'
+            AND deleted_at IS NULL
+            ORDER BY class ASC";
+
+    $result = $conn->query($sql);
+
+    $grades = [];
+    while ($row = $result->fetch_assoc()) {
+        $grades[] = $row['class'];
+    }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -15,7 +31,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="css/style.css">
-    <title>Lower Classes Admin</title>
+    <title>Reports</title>
 </head>
 
 <body>
@@ -24,14 +40,15 @@
     <div class="sidebar">
         <a href="#" class="logo">
             <i class='bx bx-code-alt'></i>
-            <div class="logo-name"><span>Lower</span>Ngure</div>
+            <div class="logo-name"><span>JSS</span>Admin</div>
         </a>
         <ul class="side-menu">
             <li><a href="index.php"><i class='bx bxs-dashboard'></i>Dashboard</a></li>
             <li><a href="analysis.php"><i class='bx bx-analyse'></i>Analytics</a></li>
             <li><a href="users.php"><i class='bx bx-group'></i>Teachers</a></li>
+            <li class="active"><a href="students.php"><i class='bx bx-book-reader'></i>Students</a></li>
             <li><a href="reports.php"><i class='bx bxs-report'></i>Reports</a></li>
-            <li class="active"><a href="#"><i class='bx bx-cog'></i>Settings</a></li>
+            <li><a href="settings.php"><i class='bx bx-cog'></i>Settings</a></li>
         </ul>
         <ul class="side-menu">
             <li>
@@ -78,35 +95,30 @@
         <main>
             <div class="header">
                 <div class="left">
-                    <h1>Settings</h1>
+                <h1>Active Students</h1>
                     <ul class="breadcrumb">
                         <li><a href="#">
-                                Functions
+                                Students
                             </a></li>
                         /
-                        <li><a href="#" class="active">Shop</a></li>
+                        <li><a href="#" class="active">Active</a></li>
                     </ul>
                 </div>
             </div>
 
             <!-- Insights -->
             <ul class="insights">
-            <a href="editpoints.php">
-                <li>
-                    <i class='bx bx-message-square-dots'></i>
-                    <span class="info-2">
-                        <p>Rubric</p>
-                    </span>
-                </li>
-            </a>
 
-            <a href="exams.php">
-                <li><i class='bx bx-show-alt'></i>
-                    <span class="info-2">
-                        <p>Create Exam</p>
-                    </span>
-                </li>
-            </a>
+            <?php foreach ($grades as $grade): ?>
+                <a href="students_active_by_class.php?class=<?php echo urlencode($grade); ?>">
+                    <li>
+                        <i class='bx bx-show-alt'></i>
+                        <span class="info-2">
+                            <p><?php echo htmlspecialchars($grade); ?></p>
+                        </span>
+                    </li>
+                </a>
+            <?php endforeach; ?>
 
             <!--
                 <li><i class='bx bx-line-chart'></i>

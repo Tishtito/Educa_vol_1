@@ -9,6 +9,10 @@
    require_once "../db/database.php";
 
    $user_id = $_SESSION['id'];
+   $exam_id        = $_SESSION['exam_id'] ?? null;
+   $class_assigned = $_SESSION['class_assigned'] ?? null;
+   $class_name     = $_SESSION['class_name'] ?? null;
+   $subject        = "AgricNutri";
 
    $sql = "SELECT name FROM users WHERE id = ?";
    $stmt = $conn->prepare($sql);
@@ -89,42 +93,29 @@
 <section class="marks-table">
    <h1 class="heading">Agric & Nutri</h1>
    <?php
-   // Ensure exam_id is available
-   $exam_id = $_SESSION['exam_id'] ?? null;
-   $subject = "Agriculture & Nutrition";
+      if (!isset($_SESSION['marks_out_of6'])) {
+         $_SESSION['marks_out_of6'] = null;
+      }
 
-   // Check if marks_out_of1 is already stored in the session
-   if (!isset($_SESSION['marks_out_of6'])) {
-      $_SESSION['marks_out_of6'] = null;
-   }
-
-   // Fetch existing "Marks Out Of" from the database if it's not in session
-   if ($_SESSION['marks_out_of6'] === null) {
-      $sql = "SELECT marks_out_of FROM marks_out_of WHERE exam_id = ? AND subject = ?";
-      $stmt = $conn->prepare($sql);
-      if ($stmt) {
+      if ($_SESSION['marks_out_of6'] === null) {
+         $sql = "SELECT marks_out_of FROM marks_out_of WHERE exam_id = ? AND subject = ?";
+         $stmt = $conn->prepare($sql);
          $stmt->bind_param("is", $exam_id, $subject);
          $stmt->execute();
-         $result = $stmt->get_result();
-         if ($row = $result->fetch_assoc()) {
-            $_SESSION['marks_out_of6'] = $row['marks_out_of']; // Store in session
+         $res = $stmt->get_result();
+         if ($row = $res->fetch_assoc()) {
+            $_SESSION['marks_out_of6'] = $row['marks_out_of'];
          }
          $stmt->close();
-      } else {
-         die("Database Error: Unable to prepare statement.");
       }
-   }
 
-   // Handle form submission
-   if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['set_marks_out_of6'])) {
-      $_SESSION['marks_out_of6'] = intval($_POST['marks_out_of6']); // Store new value in session
+      if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['set_marks_out_of6'])) {
+         $_SESSION['marks_out_of6'] = (int) $_POST['marks_out_of6'];
 
-      // Insert or update value in the database
-      $sql = "INSERT INTO marks_out_of (exam_id, subject, marks_out_of) 
-            VALUES (?, ?, ?) 
-            ON DUPLICATE KEY UPDATE marks_out_of = VALUES(marks_out_of)";
-      $stmt = $conn->prepare($sql);
-      if ($stmt) {
+         $sql = "INSERT INTO marks_out_of (exam_id, subject, marks_out_of)
+                  VALUES (?, ?, ?)
+                  ON DUPLICATE KEY UPDATE marks_out_of = VALUES(marks_out_of)";
+         $stmt = $conn->prepare($sql);
          $stmt->bind_param("isi", $exam_id, $subject, $_SESSION['marks_out_of6']);
          $stmt->execute();
          $stmt->close();
@@ -140,9 +131,9 @@
                      window.location.href = '#';
                   });
                }, 100);
-         </script>";
+            </script>
+         ";
       } 
-   }
    ?>
    <form method="post">
       <h2>Marks out of: 
@@ -162,30 +153,28 @@
 
       // Query to join students and exam_results table
       $sql = "
-         SELECT 
-            students.student_id AS student_id, 
-            students.name AS student_name, 
-            exam_results.AgricNutri
-         FROM 
-            students 
-         LEFT JOIN 
-            exam_results 
-         ON 
-            students.student_id = exam_results.student_id AND exam_results.exam_id = ?
-         WHERE 
-            students.class = ?
-            ORDER BY students.name ASC
-      ";
+            SELECT
+               s.student_id,
+               s.name AS student_name,
+               sc.student_class_id,
+               er.AgricNutri
+            FROM students s
+            JOIN student_classes sc
+               ON s.student_id = sc.student_id
+            LEFT JOIN exam_results er
+               ON sc.student_class_id = er.student_class_id
+               AND er.exam_id = ?
+            WHERE sc.class = ?
+            ORDER BY s.name ASC
+         ";
 
       $stmt = $conn->prepare($sql);
-
       if (!$stmt) {
             die("Error preparing query: " . $conn->error);
-      }
-
+         }
       $stmt->bind_param("is", $exam_id, $class_assigned);
       $stmt->execute();
-      $result = $stmt->get_result();
+      $result = $stmt->get_result();    
    ?>
       <div class="box-container">
          <table class="content-table">
@@ -203,7 +192,7 @@
                         <td><?php echo htmlspecialchars($row['student_name']); ?></td>
                         <td><?php echo htmlspecialchars($row['AgricNutri'] ?? '-'); ?></td>
                         <td>
-                           <a class="option-btn" href="../editmarks/editagricnutri.php?student_id=<?php echo htmlspecialchars($row['student_id']); ?>&exam_id=<?php echo htmlspecialchars($exam_id); ?>">
+                           <a class="option-btn" href="../editmarks/editagricnutri.php?student_class_id=<?= $row['student_class_id'] ?>">
                               Edit
                            </a>
                         </td>
@@ -222,7 +211,7 @@
 
 <footer class="footer">
 
-   &copy; copyright @ 2025 by <span>T&T designer</span> | all rights reserved!
+   &copy; copyright @ 2026 by <span>T&T designer</span> | all rights reserved!
 
 </footer>
 

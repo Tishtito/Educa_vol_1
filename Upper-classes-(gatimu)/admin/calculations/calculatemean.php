@@ -4,7 +4,7 @@
     $servername = "localhost";
     $username = "root";
     $password = "";
-    $database = "upper_classes";
+    $database = "upper_classes1";
     
     $connection = new mysqli($servername, $username, $password, $database);
     

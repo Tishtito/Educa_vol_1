@@ -44,19 +44,21 @@ $title = ucwords(str_replace('_', ' ', $class_assigned));
 $sql = "
     UPDATE exam_results er
     JOIN (
-        SELECT student_id, 
-            COALESCE(English, 0) + COALESCE(Math, 0) + COALESCE(Kiswahili, 0) +
-            COALESCE(Creative, 0) + COALESCE(SciTech, 0) + COALESCE(AgricNutri, 0) + 
-            COALESCE(SST, 0) + COALESCE(CRE, 0) AS total_marks
+        SELECT student_class_id,
+            COALESCE(English,0) + COALESCE(Math,0) + COALESCE(Kiswahili,0) +
+            COALESCE(Creative,0) + COALESCE(SciTech,0) + COALESCE(AgricNutri,0) +
+            COALESCE(SST,0) + COALESCE(CRE,0) AS total_marks
         FROM exam_results
         WHERE exam_id = ?
-    ) tm ON er.student_id = tm.student_id
-    SET er.total_marks = tm.total_marks";
-
+    ) tm ON er.student_class_id = tm.student_class_id
+    SET er.total_marks = tm.total_marks
+    WHERE er.exam_id = ?
+";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $exam_id);
+$stmt->bind_param("ii", $exam_id, $exam_id);
 $stmt->execute();
 $stmt->close();
+
 
 // Initialize ranking
 $conn->query("SET @rank = 0");
@@ -65,22 +67,28 @@ $conn->query("SET @rank = 0");
 $sql = "
     UPDATE exam_results er
     JOIN (
-        SELECT student_id, total_marks, (@rank := @rank + 1) AS position
-        FROM exam_results
-        WHERE exam_id = ?
-        ORDER BY total_marks DESC
-    ) r ON er.student_id = r.student_id
-    SET er.position = r.position";
+        SELECT er.student_class_id,
+            (@rank := @rank + 1) AS position
+        FROM exam_results er
+        JOIN student_classes sc ON er.student_class_id = sc.student_class_id
+        WHERE er.exam_id = ?
+        AND sc.class = ?
+        ORDER BY er.total_marks DESC
+    ) r ON er.student_class_id = r.student_class_id
+    SET er.position = r.position
+";
 
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $exam_id);
+$stmt->bind_param("is", $exam_id, $class_assigned);
 $stmt->execute();
 $stmt->close();
 
 // Fetch student marks and performance levels
 $sql = "
     SELECT 
-        s.student_id, s.name AS Name, 
+        s.student_id,
+        s.name AS Name,
+
         er.English, (SELECT ab FROM point_boundaries WHERE er.English BETWEEN min_marks AND max_marks LIMIT 1) AS PL_English,
         er.Math, (SELECT ab FROM point_boundaries WHERE er.Math BETWEEN min_marks AND max_marks LIMIT 1) AS PL_Math,
         er.Kiswahili, (SELECT ab FROM point_boundaries WHERE er.Kiswahili BETWEEN min_marks AND max_marks LIMIT 1) AS PL_Kiswahili,
@@ -89,23 +97,25 @@ $sql = "
         er.AgricNutri, (SELECT ab FROM point_boundaries WHERE er.AgricNutri BETWEEN min_marks AND max_marks LIMIT 1) AS PL_AgricNutri,
         er.SST, (SELECT ab FROM point_boundaries WHERE er.SST BETWEEN min_marks AND max_marks LIMIT 1) AS PL_SST,
         er.CRE, (SELECT ab FROM point_boundaries WHERE er.CRE BETWEEN min_marks AND max_marks LIMIT 1) AS PL_CRE,
-        er.total_marks
-    FROM 
-        students s
-    LEFT JOIN 
-        exam_results er ON s.student_id = er.student_id AND er.exam_id = ?
-    WHERE 
-        s.class = ?
-    ORDER BY 
-        er.total_marks DESC";
+
+        er.total_marks,
+        er.position
+
+    FROM student_classes sc
+    JOIN students s 
+        ON sc.student_id = s.student_id
+    LEFT JOIN exam_results er
+        ON sc.student_class_id = er.student_class_id
+        AND er.exam_id = ?
+    WHERE sc.class = ?
+    ORDER BY er.total_marks DESC
+";
 
 $stmt = $conn->prepare($sql);
-if (!$stmt) {
-    die("Prepare failed: " . $conn->error);
-}
 $stmt->bind_param("is", $exam_id, $class_assigned);
 $stmt->execute();
 $result = $stmt->get_result();
+
 
 // Calculate mean scores
 $students = [];

@@ -107,40 +107,43 @@
          if (isset($_POST['submit'])) {
             $student_name = $_POST['name'];
 
-            // Step 1: Insert into students (with current class)
-            $sql = "INSERT INTO students (name, class) VALUES (?, ?)";
+            // timestamp for created_at
+            $now = date("Y-m-d H:i:s");
+
+            // Step 1: Insert into students (with current class) and created_at
+            $sql = "INSERT INTO students (name, class, created_at) VALUES (?, ?, ?)";
             $stmt = $conn->prepare($sql);
             if ($stmt === false) {
                   die("Error preparing statement: " . $conn->error);
             }
 
-            $stmt->bind_param("ss", $student_name, $class_assigned);
+            $stmt->bind_param("sss", $student_name, $class_assigned, $now);
 
             if ($stmt->execute()) {
                   $student_id = $conn->insert_id;
 
-                  // Step 2: Insert into student_classes (history record)
-                  $sql2 = "INSERT INTO student_classes (student_id, class, academic_year) VALUES (?, ?, ?)";
+                  // Step 2: Insert into student_classes (history record) with created_at
+                  $sql2 = "INSERT INTO student_classes (student_id, class, academic_year, created_at) VALUES (?, ?, ?, ?)";
                   $stmt2 = $conn->prepare($sql2);
                   if ($stmt2 === false) {
                      die("Error preparing student_classes statement: " . $conn->error);
                   }
 
-                  $stmt2->bind_param("isi", $student_id, $class_assigned, $academic_year);
+                  $stmt2->bind_param("isis", $student_id, $class_assigned, $academic_year, $now);
 
                   if ($stmt2->execute()) {
                      $student_class_id = $conn->insert_id;
 
-                     // Step 3: Insert into exam_results (linking to both student + student_class_id)
+                     // Step 3: Insert into exam_results (linking to both student + student_class_id) with created_at
                      $sql3 = "INSERT INTO exam_results 
-                              (student_id, student_class_id, exam_id, English, Kiswahili, Math, Creative, SciTech, AgricNutri, SST, CRE)
-                              VALUES (?, ?, ?, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)";
+                              (student_id, student_class_id, exam_id, English, Kiswahili, Math, Creative, SciTech, AgricNutri, SST, CRE, created_at)
+                              VALUES (?, ?, ?, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, ?)";
                      $stmt3 = $conn->prepare($sql3);
                      if ($stmt3 === false) {
                         die("Error preparing exam_results statement: " . $conn->error);
                      }
 
-                     $stmt3->bind_param("iii", $student_id, $student_class_id, $exam_id);
+                     $stmt3->bind_param("iiis", $student_id, $student_class_id, $exam_id, $now);
 
                      if ($stmt3->execute()) {
                         echo "<script>
@@ -175,7 +178,7 @@
 
 <footer class="footer">
 
-   &copy; copyright @ 2024 by <span>mr. web designer</span> | all rights reserved!
+   &copy; copyright @ 2026 by <span>mr. web designer</span> | all rights reserved!
 
 </footer>
 

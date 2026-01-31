@@ -9,13 +9,29 @@ CREATE TABLE exams (
 CREATE TABLE students (
     student_id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    class VARCHAR(50) NOT NULL
+    class VARCHAR(50) NOT NULL,
+    status ENUM('Active', 'Finished', 'Graduated') DEFAULT 'Active',
+    created_at datetime,
+    updated_at datetime,
+    deleted_at datetime
 ); 
+
+CREATE TABLE student_classes (
+    student_class_id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT NOT NULL,
+    class VARCHAR(50) NOT NULL,
+    academic_year YEAR NOT NULL,
+    created_at datetime,
+    updated_at datetime,
+    deleted_at datetime,
+    FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE
+);
 
 CREATE TABLE exam_results (
     result_id INT AUTO_INCREMENT PRIMARY KEY,
     exam_id INT,
     student_id INT,
+    student_class_id INT NOT NULL,
     Math INT,
     English INT,
     Kiswahili INT,
@@ -28,8 +44,12 @@ CREATE TABLE exam_results (
     total_marks INT,
     position INT,
     stream_position INT,
+    created_at datetime,
+    updated_at datetime,
+    deleted_at datetime,
     FOREIGN KEY (exam_id) REFERENCES exams(exam_id) ON DELETE CASCADE,
     FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE
+    FOREIGN KEY (student_class_id) REFERENCES student_classes(student_class_id) ON DELETE CASCADE
 );
 
 CREATE TABLE examiners (
@@ -65,6 +85,9 @@ CREATE TABLE examiner_classes (
     examiner_id INT NOT NULL,
     class_id INT NOT NULL,
     assigned_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_at datetime,
+    updated_at datetime,
+    deleted_at datetime,
     FOREIGN KEY (examiner_id) REFERENCES examiners(examiner_id) ON DELETE CASCADE,
     FOREIGN KEY (class_id) REFERENCES classes(class_id) ON DELETE CASCADE
 );
@@ -74,7 +97,10 @@ CREATE TABLE class_teachers (
     name VARCHAR(255) NOT NULL,
     username VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
-    class_assigned VARCHAR(255) NOT NULL
+    class_assigned VARCHAR(255) NOT NULL,
+    created_at datetime,
+    updated_at datetime,
+    deleted_at datetime
 );
 
 CREATE TABLE exam_mean_scores (

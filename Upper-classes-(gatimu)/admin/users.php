@@ -41,7 +41,7 @@
     <div class="sidebar">
         <a href="#" class="logo">
             <i class='bx bx-code-alt'></i>
-            <div class="logo-name"><span>Lower</span>Ngure</div>
+            <div class="logo-name"><span>upper</span>Admin</div>
         </a>
         <ul class="side-menu">
             <li><a href="index.php"><i class='bx bxs-dashboard'></i>Dashboard</a></li>

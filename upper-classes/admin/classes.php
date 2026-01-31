@@ -47,6 +47,7 @@
             <li><a href="index.php"><i class='bx bxs-dashboard'></i>Dashboard</a></li>
             <li><a href="analysis.php"><i class='bx bx-analyse'></i>Analytics</a></li>
             <li><a href="users.php"><i class='bx bx-group'></i>Teachers</a></li>
+            <li><a href="students.php"><i class='bx bx-book-reader'></i>Students</a></li>
             <li class="active"><a href="settings.php"><i class='bx bx-cog'></i>Settings</a></li>
         </ul>
         <ul class="side-menu">

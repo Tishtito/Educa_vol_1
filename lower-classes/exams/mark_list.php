@@ -47,35 +47,41 @@ $title = ucwords(str_replace('_', ' ', $class_assigned));
 // SQL Query to Fetch Student Marks and Performance Levels
 $sql = "
     SELECT 
-        students.student_id, students.name AS Name, 
-        exam_results.English, (SELECT ab FROM point_boundaries WHERE exam_results.English BETWEEN min_marks AND max_marks LIMIT 1) AS PL_English,
-        exam_results.Math, (SELECT ab FROM point_boundaries WHERE exam_results.Math BETWEEN min_marks AND max_marks LIMIT 1) AS PL_Math,
-        exam_results.Kiswahili, (SELECT ab FROM point_boundaries WHERE exam_results.Kiswahili BETWEEN min_marks AND max_marks LIMIT 1) AS PL_Kiswahili,
-        exam_results.Creative, (SELECT ab FROM point_boundaries WHERE exam_results.Creative BETWEEN min_marks AND max_marks LIMIT 1) AS PL_Creative,
-        exam_results.Enviromental, (SELECT ab FROM point_boundaries WHERE exam_results.Enviromental BETWEEN min_marks AND max_marks LIMIT 1) AS PL_Enviromental,
-        exam_results.Religious, (SELECT ab FROM point_boundaries WHERE exam_results.Religious BETWEEN min_marks AND max_marks LIMIT 1) AS PL_Religious,
+        s.student_id,
+        s.name AS Name,
 
-        -- Calculate Total Marks
-        (
-            COALESCE(exam_results.English, 0) + COALESCE(exam_results.Math, 0) + COALESCE(exam_results.Kiswahili, 0) + 
-            COALESCE(exam_results.Creative, 0) + COALESCE(exam_results.Enviromental, 0)+ COALESCE(exam_results.Religious, 0)
-        ) AS Total_marks,
+        er.English,
+        (SELECT ab FROM point_boundaries WHERE er.English BETWEEN min_marks AND max_marks LIMIT 1) AS PL_English,
 
-        -- Count subjects with marks for mean calculation
+        er.Math,
+        (SELECT ab FROM point_boundaries WHERE er.Math BETWEEN min_marks AND max_marks LIMIT 1) AS PL_Math,
+
+        er.Kiswahili,
+        (SELECT ab FROM point_boundaries WHERE er.Kiswahili BETWEEN min_marks AND max_marks LIMIT 1) AS PL_Kiswahili,
+
+        er.Creative,
+        (SELECT ab FROM point_boundaries WHERE er.Creative BETWEEN min_marks AND max_marks LIMIT 1) AS PL_Creative,
+
+        er.Enviromental,
+        (SELECT ab FROM point_boundaries WHERE er.Enviromental BETWEEN min_marks AND max_marks LIMIT 1) AS PL_Enviromental,
+
+        er.Religious,
+        (SELECT ab FROM point_boundaries WHERE er.Religious BETWEEN min_marks AND max_marks LIMIT 1) AS PL_Religious,
+
         (
-            (exam_results.English IS NOT NULL) + (exam_results.Math IS NOT NULL) + (exam_results.Kiswahili IS NOT NULL) + 
-            (exam_results.Creative IS NOT NULL) + (exam_results.Enviromental IS NOT NULL) + (exam_results.Religious IS NOT NULL)
-        ) AS subjects_with_marks
-    FROM 
-        students
-    LEFT JOIN 
-        exam_results 
-    ON 
-        students.student_id = exam_results.student_id AND exam_results.exam_id = ?
-    WHERE 
-        students.class = ?
-    ORDER BY 
-        Total_marks DESC";
+            COALESCE(er.English,0) + COALESCE(er.Math,0) + COALESCE(er.Kiswahili,0) +
+            COALESCE(er.Creative,0) + COALESCE(er.Enviromental,0) + COALESCE(er.Religious,0)
+        ) AS Total_marks
+
+    FROM student_classes sc
+    JOIN students s 
+        ON sc.student_id = s.student_id
+    LEFT JOIN exam_results er
+        ON sc.student_class_id = er.student_class_id
+        AND er.exam_id = ?
+    WHERE sc.class = ?
+    ORDER BY Total_marks DESC
+";
 
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("is", $exam_id, $class_assigned);

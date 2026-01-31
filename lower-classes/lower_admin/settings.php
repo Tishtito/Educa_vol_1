@@ -30,6 +30,8 @@
             <li><a href="index.php"><i class='bx bxs-dashboard'></i>Dashboard</a></li>
             <li><a href="analysis.php"><i class='bx bx-analyse'></i>Analytics</a></li>
             <li><a href="users.php"><i class='bx bx-group'></i>Teachers</a></li>
+            <li><a href="students.php"><i class='bx bx-book-reader'></i>Students</a></li>
+            <li><a href="reports.php"><i class='bx bxs-report'></i>Reports</a></li>
             <li class="active"><a href="#"><i class='bx bx-cog'></i>Settings</a></li>
         </ul>
         <ul class="side-menu">
@@ -103,6 +105,22 @@
                 <li><i class='bx bx-show-alt'></i>
                     <span class="info-2">
                         <p>Create Exam</p>
+                    </span>
+                </li>
+            </a>
+
+            <a href="manage_exams.php">
+                    <li><i class='bx bx-paperclip'></i>
+                        <span class="info-2">
+                            <p>Manage Exam</p>
+                        </span>
+                    </li>
+            </a>
+
+            <a href="classes.php">
+                <li><i class='bx bx-building-house'></i>
+                    <span class="info-2">
+                        <p>Manage Class</p>
                     </span>
                 </li>
             </a>

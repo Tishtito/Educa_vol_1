@@ -196,6 +196,24 @@
 
 <h1 class="heading2">List of Students</h1>
 
+<form id="graduate-form" method="post" style="display:inline;">
+    <select name="target_class" id="target_class" required>
+        <option value="">-- Select class to graduate to --</option>
+        <option value="FINISHED">Finished (End of Upper Primary)</option>
+        <?php
+        // Fetch classes from DB
+        $classes_query = $conn->query("SELECT class_id, class_name FROM classes ORDER BY grade ASC");
+        while ($class = $classes_query->fetch_assoc()): ?>
+            <option value="<?php echo $class['class_id']; ?>">
+                <?php echo htmlspecialchars($class['class_name']); ?>
+            </option>
+        <?php endwhile; ?>
+    </select>
+    <button type="submit" class="dropdown-btn inline-option-btn">
+        Graduate All Students
+    </button>
+</form>
+
 <?php
 
    if (!empty($search_term)) {
@@ -377,15 +395,59 @@
                 });
             }
         });
-    }
-});
+      }
+   });
+
+    // Handle graduate all form submission
+   document.getElementById('graduate-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      let formData = new FormData(this);
+
+      // Show loading state
+      Swal.fire({
+         title: "Processing...",
+         text: "Graduating all students, please wait.",
+         allowOutsideClick: false,
+         allowEscapeKey: false,
+         didOpen: () => {
+               Swal.showLoading();
+         }
+      });
+
+      fetch('graduate_all.php', {
+         method: 'POST',
+         body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+         Swal.fire({
+               title: data.success ? "Success!" : "Error",
+               text: data.message,
+               icon: data.success ? "success" : "error",
+               confirmButtonText: "OK"
+         }).then(() => {
+               if (data.success) {
+                  location.reload();
+               }
+         });
+      })
+      .catch(error => {
+         Swal.fire({
+               title: "Error",
+               text: "Something went wrong: " + error,
+               icon: "error",
+               confirmButtonText: "OK"
+         });
+      });
+   });
 </script>
 
 
 
 <footer class="footer">
 
-   &copy; copyright @ 2025 by <span>Tishtito</span> | all rights reserved!
+   &copy; copyright @ 2026 by <span>Tishtito</span> | all rights reserved!
 
 </footer>
 
