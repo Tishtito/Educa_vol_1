@@ -1,3 +1,5 @@
+-- Database name: lower_classes
+
 CREATE TABLE admins (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,

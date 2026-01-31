@@ -1,3 +1,5 @@
+-- Database name: upper_classes1
+
 CREATE TABLE admins (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
