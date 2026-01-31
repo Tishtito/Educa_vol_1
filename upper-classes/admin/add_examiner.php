@@ -199,25 +199,35 @@ function fetchSubjectIdByName($conn, $subject_name) {
                         <span class="checkmark"></span>
                     </label>
                         
-                    <label class="class" for="SST">Social Studies
-                        <input type="checkbox" id="SST" name="subjects[]" value="SST"/>
+                    <label class="class" for="social studies">Social Studies
+                        <input type="checkbox" id="social studies" name="subjects[]" value="social studies"/>
                         <span class="checkmark"></span>
                     </label>
                     
                     <label class="class" for="CRE">CRE
                         <input type="checkbox" id="CRE" name="subjects[]" value="CRE"/>
                         <span class="checkmark"></span>
-                    </label>                    
+                    </label>
+
+                    <label class="class" for="CA, SST & CRE (Full paper)">CA, SST & CRE
+                        <input type="checkbox" id="CA, SST & CRE (Full paper)" name="subjects[]" value="CA, SST & CRE (Full paper)"/>
+                        <span class="checkmark"></span>
+                    </label>
                 </div>
 
                 <div class="class-subjects">
-                    <label class="class" for="agricnutri">Agriculture & Nutrition
-                        <input type="checkbox" id="agricnutri" name="subjects[]" value="agricnutri"/>
+                    <label class="class" for="agriculture and nutrition">Agriculture & Nutrition
+                        <input type="checkbox" id="agriculture and nutrition" name="subjects[]" value="agriculture and nutrition"/>
                         <span class="checkmark"></span>
                     </label>
 
-                    <label class="class" for="scitech">Science & Technology
-                        <input type="checkbox" id="scitech" name="subjects[]" value="scitech"/>
+                    <label class="class" for="science and technology">Science & Technology
+                        <input type="checkbox" id="science and technology" name="subjects[]" value="science and technology"/>
+                        <span class="checkmark"></span>
+                    </label>
+
+                    <label class="class" for="Integrated Science">Integrated Science
+                        <input type="checkbox" id="Integrated Science" name="subjects[]" value="Integrated Science"/>
                         <span class="checkmark"></span>
                     </label>
                 </div>

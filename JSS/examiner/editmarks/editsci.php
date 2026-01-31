@@ -52,81 +52,84 @@ $marks = "";
 $errormessage = "";
 $successMessage = "";
 
-// Handle GET request to load the form with student data
+// Handle GET request (load form)
 if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     if (!isset($_GET["student_id"])) {
-        header("location: ../subjects/math.php");
+        header("Location: ../subjects/Science.php");
         exit;
     }
 
     $id = $_GET["student_id"];
 
-    $sql = "SELECT 
-        students.name AS Name, 
-        exam_results.Science
-    FROM 
-        students 
-    LEFT JOIN 
-        exam_results 
-    ON 
-        students.student_id = exam_results.student_id AND exam_results.exam_id = ? 
-    WHERE 
-        students.student_id = ?";
+    $sql = "SELECT s.name AS Name, er.Science, sc.student_class_id
+            FROM students s
+            JOIN student_classes sc ON s.student_id = sc.student_id
+            LEFT JOIN exam_results er 
+                ON sc.student_class_id = er.student_class_id 
+                AND er.exam_id = ?
+            WHERE s.student_id = ? AND sc.class = ?";
+        
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ii", $exam_id, $id);  // No need for class_id
+    if (!$stmt) {
+        die("Error preparing query: " . $conn->error);
+    }
+
+    $stmt->bind_param("iis", $exam_id, $id, $class_name);
     $stmt->execute();
     $result = $stmt->get_result();
     $row = $result->fetch_assoc();
 
     if (!$row) {
-    // Handle case where no results are found for this student and exam
-    echo "No marks found for this student in this exam.";
-    exit;
+        echo "No marks found for this student in this class/exam.";
+        exit;
     }
 
     $name = $row["Name"];
     $marks = $row["Science"] ?? '';
+    $student_class_id = $row["student_class_id"];
+
 } else {
-    // Handle POST request to update or insert marks
+    // Handle POST request (save marks)
     $id = $_POST["id"];
     $name = $_POST["name"];
     $marks = $_POST["marks"];
+    $student_class_id = $_POST["student_class_id"];
 
     do {
-        if (empty($id) || empty($name) || empty($marks)) {
+        if (empty($id) || empty($name) || $marks === "") {
             $errormessage = "All fields are required.";
             break;
         }
 
-        if (!is_numeric($marks) || $marks < 0 || $marks > $marks_out_of ) {
-            $errormessage = "Marks must be a valid number out of total score.";
+        if (!is_numeric($marks) || $marks < 0 || $marks > $marks_out_of) {
+            $errormessage = "Marks must be a valid number between 0 and $marks_out_of.";
             break;
         }
 
-        // Convert marks to percentage
+        // Convert to percentage
         $percentage_marks = ($marks / $marks_out_of) * 100;
 
-        // Check if the student already has an entry for this exam
-        $sql = "SELECT * FROM exam_results WHERE student_id = ? AND exam_id = ?";
+        // Check if record exists
+        $sql = "SELECT * FROM exam_results WHERE student_class_id = ? AND exam_id = ?";
         $stmt = $conn->prepare($sql);
         if (!$stmt) {
             $errormessage = "Error preparing query: " . $conn->error;
             break;
         }
-        $stmt->bind_param("ii", $id, $exam_id);
+        $stmt->bind_param("ii", $student_class_id, $exam_id);
         $stmt->execute();
         $result = $stmt->get_result();
 
         if ($result->num_rows > 0) {
-            // Update the existing record
-            $sql = "UPDATE exam_results SET Science = ? WHERE student_id = ? AND exam_id = ?";
+            // Update
+            $sql = "UPDATE exam_results SET Science = ?, student_id = ? WHERE student_class_id = ? AND exam_id = ?";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("dii", $percentage_marks, $id, $exam_id);
+            $stmt->bind_param("diii", $percentage_marks, $id, $student_class_id, $exam_id);
         } else {
-            // Insert a new record
-            $sql = "INSERT INTO exam_results (exam_id, student_id, Science) VALUES (?, ?, ?)";
+            // Insert
+            $sql = "INSERT INTO exam_results (exam_id, student_id, student_class_id, Science) VALUES (?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("iid", $exam_id, $id, $percentage_marks);
+            $stmt->bind_param("iiid", $exam_id, $id, $student_class_id, $percentage_marks);
         }
 
         if (!$stmt->execute()) {
@@ -135,18 +138,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
         }
 
         echo "<script>
-        setTimeout(function() {
-            swal({
-                title: 'Success!',
-                text: 'Marks updated successfully.',
-                icon: 'success',
-                button: 'OK'
-            }).then(function() {
-                window.location.href = '../subjects/intergrated science.php?subject_id=" . urlencode($_SESSION['subject_id']) . "&class_id=" . urlencode($_SESSION['class_id']) . "&class_name=" . urlencode($_SESSION['class_name']) . "';
-            });
-        }, 100);
-    </script>";
+            setTimeout(function() {
+                swal({
+                    title: 'Success!',
+                    text: 'Marks updated successfully.',
+                    icon: 'success',
+                    button: 'OK'
+                }).then(function() {
+                    window.location.href = '../subjects/intergrated science.php?subject_id=" . urlencode($_SESSION['subject_id']) . "&class_id=" . urlencode($_SESSION['class_id']) . "&class_name=" . urlencode($_SESSION['class_name']) . "';
+                });
+            }, 100);
+        </script>";
         exit;
+
     } while (true);
 }
 ?>
@@ -160,6 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
             </div>
         <?php endif; ?>
             <input type="hidden" name="id" value="<?php echo htmlspecialchars($id); ?>">
+            <input type="hidden" name="student_class_id" value="<?php echo htmlspecialchars($student_class_id); ?>">
             <div class="row mb-3">
                 <label class="col-sm-3 col-form-label">Name</label>
                 <div class="col-sm-6">

@@ -40,7 +40,7 @@
    $sql = "
     SELECT 
         students.student_id AS student_id, 
-        students.name, 
+        students.name,
         exam_results.English, 
         exam_results.Kiswahili, 
         exam_results.Math, 
@@ -193,6 +193,24 @@
 
 <h1 class="heading2">List of Students</h1>
 
+<form id="graduate-form" method="post" style="display:inline;">
+    <select name="target_class" id="target_class" required>
+        <option value="">-- Select class to graduate to --</option>
+        <option value="FINISHED">Finished (End of Upper Primary)</option>
+        <?php
+        // Fetch classes from DB
+        $classes_query = $conn->query("SELECT class_id, class_name FROM classes ORDER BY grade ASC");
+        while ($class = $classes_query->fetch_assoc()): ?>
+            <option value="<?php echo $class['class_id']; ?>">
+                <?php echo htmlspecialchars($class['class_name']); ?>
+            </option>
+        <?php endwhile; ?>
+    </select>
+    <button type="submit" class="dropdown-btn inline-option-btn">
+        Graduate All Students
+    </button>
+</form>
+
 <?php
 
    if (!empty($search_term)) {
@@ -236,7 +254,6 @@
                   <p>Math: <span><?php echo $student['Math']; ?></span></p>
                   <p>English: <span><?php echo $student['English']; ?></span></p>
                   <p>Kiswahili: <span><?php echo $student['Kiswahili']; ?></span></p>
-                  <p>Current Class: <span><?php echo htmlspecialchars($student['class']); ?></span></p>
                   
                   <a href="student_profile.php?id=<?php echo $student['student_id']; ?>" class="inline-btn">View Profile</a>
                   <a href="#" data-id="<?php echo $student['student_id']; ?>" class="inline-btn2">Delete Student</a>
@@ -375,6 +392,50 @@
                }
          });
       }
+   });
+
+   // Handle graduate all form submission
+   document.getElementById('graduate-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      let formData = new FormData(this);
+
+      // Show loading state
+      Swal.fire({
+         title: "Processing...",
+         text: "Graduating all students, please wait.",
+         allowOutsideClick: false,
+         allowEscapeKey: false,
+         didOpen: () => {
+               Swal.showLoading();
+         }
+      });
+
+      fetch('graduate_all.php', {
+         method: 'POST',
+         body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+         Swal.fire({
+               title: data.success ? "Success!" : "Error",
+               text: data.message,
+               icon: data.success ? "success" : "error",
+               confirmButtonText: "OK"
+         }).then(() => {
+               if (data.success) {
+                  location.reload();
+               }
+         });
+      })
+      .catch(error => {
+         Swal.fire({
+               title: "Error",
+               text: "Something went wrong: " + error,
+               icon: "error",
+               confirmButtonText: "OK"
+         });
+      });
    });
 </script>
 

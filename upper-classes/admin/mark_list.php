@@ -30,15 +30,26 @@ $title = ucwords(str_replace('_', ' ', $grade));
 $subjects = ['English', 'Math', 'Kiswahili', 'Creative', 'SciTech', 'AgricNutri', 'SST', 'CRE'];
 
 // Fetch marks and PLs
-$sql = "SELECT s.student_id, s.name AS Name";
+$sql = "SELECT s.student_id, s.name AS Name, sc.class, sc.academic_year";
+
 foreach ($subjects as $subject) {
-    $sql .= ", er.$subject, (SELECT ab FROM point_boundaries WHERE er.$subject BETWEEN min_marks AND max_marks LIMIT 1) AS PL_$subject";
+    $sql .= ",
+        er.$subject,
+        (SELECT ab FROM point_boundaries 
+         WHERE er.$subject BETWEEN min_marks AND max_marks 
+         LIMIT 1) AS PL_$subject";
 }
-$sql .= ", (" . implode(" + ", array_map(fn($s) => "COALESCE(er.$s, 0)", $subjects)) . ") AS total_marks 
-         FROM students s
-         LEFT JOIN exam_results er ON s.student_id = er.student_id AND er.exam_id = ?
-         WHERE s.class = ?
-         ORDER BY total_marks DESC";
+
+$sql .= ",
+    (" . implode(" + ", array_map(fn($s) => "COALESCE(er.$s, 0)", $subjects)) . ") AS total_marks
+    FROM students s
+    JOIN student_classes sc 
+        ON s.student_id = sc.student_id
+    LEFT JOIN exam_results er 
+        ON sc.student_class_id = er.student_class_id 
+    AND er.exam_id = ?
+    WHERE sc.class = ?
+    ORDER BY total_marks DESC";
 
 
 $stmt = $conn->prepare($sql);

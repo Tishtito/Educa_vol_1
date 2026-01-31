@@ -23,127 +23,101 @@
 <body>
 <?php
 // Ensure the necessary session variables are set
-if (!isset($_SESSION["exam_id"]) || !isset($_SESSION["marks_out_of1"])) {
-    $_SESSION['marks_out_of1'] = null;
-
+if (!isset($_SESSION["exam_id"], $_SESSION["marks_out_of1"])) {
     echo "<script>
-            setTimeout(function() {
-                  swal({
-                     title: 'Caution!',
-                     text: 'You have not set Marks out of',
-                     icon: 'warning',
-                     button: 'OK'
-                  }).then(function() {
-                     window.location.href = '../home.php';
-                  });
-            }, 100);
-         </script>";
+        swal({
+            title: 'Caution!',
+            text: 'Marks out of or exam not set.',
+            icon: 'warning'
+        }).then(() => window.location.href = '../home.php');
+    </script>";
+    exit;
 }
 
-$exam_id = $_SESSION["exam_id"];
-$student_id = $_SESSION["student_id"];
-$class_assigned = $_SESSION["class_assigned"];
-$marks_out_of = $_SESSION['marks_out_of1']; // Retrieve marks out of from session
+$exam_id      = $_SESSION["exam_id"];
+$marks_out_of = $_SESSION["marks_out_of1"];
 
-
-$id = "";
-$name = "";
+$student_class_id = "";
+$name  = "";
 $marks = "";
+$errorMessage = "";
 
-$errormessage = "";
-$successMessage = "";
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
-if ($_SERVER['REQUEST_METHOD'] == 'GET') {
-    if (!isset($_GET["student_id"])) {
-        header("location: ../subjects/creative.php");
+    if (!isset($_GET["student_class_id"])) {
+        header("Location: ../subjects/Creative.php");
         exit;
     }
 
-    $id = $_GET["student_id"];
+    $student_class_id = (int) $_GET["student_class_id"];
 
-    // Fetch the student name and existing marks from the database
-    $sql = "SELECT 
-                students.name AS Name, 
-                exam_results.Creative 
-            FROM 
-                students 
-            LEFT JOIN 
-                exam_results 
-            ON 
-                students.student_id = exam_results.student_id AND exam_results.exam_id = ?
-            WHERE 
-                students.student_id = ? AND students.class = ?";
+    $sql = "
+        SELECT s.name, er.Creative, sc.class
+        FROM student_classes sc
+        JOIN students s ON sc.student_id = s.student_id
+        LEFT JOIN exam_results er
+            ON sc.student_class_id = er.student_class_id
+            AND er.exam_id = ?
+        WHERE sc.student_class_id = ?
+    ";
+
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("iis", $exam_id, $id, $class_assigned);
+    $stmt->bind_param("ii", $exam_id, $student_class_id);
     $stmt->execute();
-    $result = $stmt->get_result();
-    $row = $result->fetch_assoc();
+    $row = $stmt->get_result()->fetch_assoc();
+
+    $class_name = $row['class']; 
 
     if (!$row) {
-        header("location: ../subjects/Creative.php");
-        exit;
+        die("Student record not found.");
     }
 
-    $name = $row["Name"];
-    $marks = $row["Creative"] ?? '';
-} else {
-    $id = $_POST["id"];
-    $name = $_POST["name"];
+    $name  = $row["name"];
+    $marks = $row["Creative"] ?? "";
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $student_class_id = (int) $_POST["student_class_id"];
     $marks = $_POST["marks"];
 
-    do {
-        if (empty($id) || empty($name) || empty($marks)) {
-            $errormessage = "All the fields are required";
-            break;
-        }
+    if (!is_numeric($marks) || $marks < 0 || $marks > $marks_out_of) {
+        $errorMessage = "Marks must be between 0 and $marks_out_of.";
+    } else {
 
-        if (!is_numeric($marks) || $marks < 0 || $marks > $marks_out_of ) {
-            $errormessage = "Marks must be a valid number out of total score.";
-            break;
-        }
+        $percentage = ($marks / $marks_out_of) * 100;
 
-        // Convert marks to percentage
-        $percentage_marks = ($marks / $marks_out_of) * 100;
-
-        // Check if the student already has an entry for this exam
-        $sql = "SELECT * FROM exam_results WHERE student_id = ? AND exam_id = ?";
+        // Check if record exists
+        $sql = "SELECT 1 FROM exam_results WHERE student_class_id = ? AND exam_id = ?";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ii", $id, $exam_id);
+        $stmt->bind_param("ii", $student_class_id, $exam_id);
         $stmt->execute();
-        $result = $stmt->get_result();
+        $exists = $stmt->get_result()->num_rows > 0;
 
-        if ($result->num_rows > 0) {
-            // Update the existing record
-            $sql = "UPDATE exam_results SET Creative = ? WHERE student_id = ? AND exam_id = ?";
+        if ($exists) {
+            $sql = "UPDATE exam_results
+                    SET Creative = ?
+                    WHERE student_class_id = ? AND exam_id = ?";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("dii", $percentage_marks, $id, $exam_id);
+            $stmt->bind_param("dii", $percentage, $student_class_id, $exam_id);
         } else {
-            // Insert a new record
-            $sql = "INSERT INTO exam_results (exam_id, student_id, Creative) VALUES (?, ?, ?)";
+            $sql = "INSERT INTO exam_results (exam_id, student_class_id, Creative)
+                    VALUES (?, ?, ?)";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("iid", $exam_id, $id, $percentage_marks);
+            $stmt->bind_param("iid", $exam_id, $student_class_id, $percentage);
         }
 
-        if (!$stmt->execute()) {
-            $errormessage = "Error updating marks: " . $stmt->error;
-            break;
-        }
-
-       // Redirect with JavaScript SweetAlert to avoid header issues
-        echo "<script>
-            setTimeout(function() {
+        if ($stmt->execute()) {
+            echo "<script>
                 swal({
                     title: 'Success!',
                     text: 'Marks updated successfully.',
-                    icon: 'success',
-                    button: 'OK'
-                }).then(function() {
-                    window.location.href = '../subjects/creative.php?. exam_id=" . urlencode($_SESSION['exam_id']) . "';
-                });
-            }, 100);
-        </script>";
-        exit;
-    } while (true);
+                    icon: 'success'
+                }).then(() => window.location.href = '../subjects/creative.php');
+            </script>";
+            exit;
+        }
+
+        $errorMessage = "Database error: " . $stmt->error;
+    }
 }
 ?>
     <div class="container my-5">
@@ -155,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
                 <button type='button' class='btn-close' data-bs-dismiss='alert' aria-label='Close'></button>
             </div>
         <?php endif; ?>
-            <input type="hidden" name="id" value="<?php echo htmlspecialchars($id); ?>">
+            <input type="hidden" name="student_class_id" value="<?= htmlspecialchars($student_class_id) ?>">
             <div class="row mb-3">
                 <label class="col-sm-3 col-form-label">Name</label>
                 <div class="col-sm-6">

@@ -32,6 +32,7 @@
             <li><a href="index.php"><i class='bx bxs-dashboard'></i>Dashboard</a></li>
             <li><a href="analysis.php"><i class='bx bx-analyse'></i>Analytics</a></li>
             <li><a href="users.php"><i class='bx bx-group'></i>Teachers</a></li>
+            <li><a href="students.php"><i class='bx bx-book-reader'></i>Students</a></li>
             <li class="active"><a href="reports.php"><i class='bx bxs-report'></i>Reports</a></li>
             <li><a href="settings.php"><i class='bx bx-cog'></i>Settings</a></li>
         </ul>
@@ -99,6 +100,42 @@
             <div class="bottom-data">
             <!-- Reminders -->
 
+                <!-- weekly card -->
+                <div class="reminders">
+                    <?php
+                        $query = "SELECT exam_id, exam_name, exam_type FROM exams WHERE exam_type = 'Weekly' ORDER BY date_created DESC";
+                        $result = mysqli_query($conn, $query);
+                        
+                        $exams = [];
+                        while ($row = mysqli_fetch_assoc($result)) {
+                            $exams[] = $row;
+                        }
+                    ?>
+                    <div class="header">
+                        <i class='bx bx-note'></i>
+                        <h3>Opener Reports</h3>
+                        <i class='bx bx-filter'></i>
+                    </div>
+                    
+                    <ul class="task-list">   
+                        <?php if (empty($exams)): ?>
+                            <li class="no-task">No Opener Exams Found</li>
+                        <?php else: ?>
+                            <?php foreach ($exams as $exam): ?>
+                                <a href="report_select2.php?exam_id=<?php echo urlencode($exam['exam_id']); ?>&exam_type=<?php echo urlencode($exam['exam_type']); ?>">
+                                    <li class="completed">
+                                        <div class="task-title">
+                                            <i class='bx bx-book'></i>
+                                            <p><?php echo htmlspecialchars($exam['exam_name']); ?><span></span></p>
+                                        </div>
+                                        <i class='bx bx-dots-vertical-rounded'></i>
+                                    </li>
+                                </a>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </ul>
+                </div>
+
                 <!-- Opener Report Card -->
                 <div class="reminders">
                     <?php
@@ -112,7 +149,7 @@
                     ?>
                     <div class="header">
                         <i class='bx bx-note'></i>
-                        <h3>Opener Reports</h3>
+                        <h3>Weekly Test Reports</h3>
                         <i class='bx bx-filter'></i>
                     </div>
                     

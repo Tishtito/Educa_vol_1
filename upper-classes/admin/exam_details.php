@@ -8,9 +8,26 @@
 
     require_once 'db/database.php';
 
-    // Fetch unique grades from the students table
-    $sql = "SELECT DISTINCT class FROM students ORDER BY class ASC";
-    $result = $conn->query($sql);
+    // Get the exam ID from the query parameter
+    $exam_id = isset($_GET['exam_id']) ? intval($_GET['exam_id']) : 0;
+
+    if ($exam_id === 0) {
+        die("Invalid or missing exam ID.");
+    }
+
+    // Fetch unique classes from student_classes instead of students
+    $sql = "
+        SELECT DISTINCT sc.class, sc.academic_year
+        FROM student_classes sc
+        JOIN exam_results er ON sc.student_class_id = er.student_class_id
+        WHERE er.exam_id = ?
+        ORDER BY sc.academic_year DESC, sc.class ASC
+    ";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $exam_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
     if (!$result) {
         die("Query failed: " . $conn->error);
@@ -18,15 +35,9 @@
 
     $grades = [];
     while ($row = $result->fetch_assoc()) {
-        $grades[] = $row['class'];
+        $grades[] = $row;
     }
-
-    // Get the exam ID from the query parameter
-    $exam_id = isset($_GET['exam_id']) ? intval($_GET['exam_id']) : 0;
-
-    if ($exam_id === 0) {
-        die("Invalid or missing exam ID.");
-    }
+    
 ?>
 
 <!DOCTYPE html>
@@ -115,11 +126,11 @@
             <ul class="insights">
 
             <?php foreach ($grades as $grade): ?>
-                <a href="mark_list.php?exam_id=<?php echo urlencode($exam_id); ?>&grade=<?php echo urlencode($grade); ?>">
+                <a href="mark_list.php?exam_id=<?php echo urlencode($exam_id); ?>&grade=<?php echo urlencode($grade['class']); ?>&year=<?php echo urlencode($grade['academic_year']); ?>">
                     <li>
                         <i class='bx bx-show-alt'></i>
                         <span class="info-2">
-                            <p><?php echo htmlspecialchars($grade); ?></p>
+                            <p><?php echo htmlspecialchars($grade['class']) . " (" . htmlspecialchars($grade['academic_year']) . ")"; ?></p>
                         </span>
                     </li>
                 </a>

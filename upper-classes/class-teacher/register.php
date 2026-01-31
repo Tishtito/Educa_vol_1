@@ -95,82 +95,90 @@
 <section class="form-container">
 
    <form action="" method="post">
-   <?php
-    $class_assigned = $_SESSION['class_assigned'] ?? null;
-    $exam_id = $_SESSION['exam_id'] ?? null;
-    
-    if (!$exam_id) {
-        die("Error: No exam selected.");
-    }
-    
-    // Handle the form submission
-    if (isset($_POST['submit'])) {
-        $student_name = $_POST['name'];
-    
-        // Step 1: Insert the new student into the `students` table
-        $sql = "INSERT INTO students (name, class) VALUES (?, ?)";
-        $stmt = $conn->prepare($sql);
-    
-        if ($stmt === false) {
-            die("Error preparing statement: " . $conn->error);
-        }
-    
-        $stmt->bind_param("ss", $student_name, $class_assigned);
-    
-        if ($stmt->execute()) {
-            // Step 2: Get the last inserted student ID
-            $student_id = $conn->insert_id;
-    
-            // Debug: Check if the student ID was retrieved correctly
-            if (!$student_id) {
-                die("Error retrieving student ID: " . $conn->error);
-            }
-    
-            // Step 3: Insert a new record into the `exam_results` table
-            $insertExamResults = "INSERT INTO exam_results (student_id, exam_id, English, Kiswahili, Math, Creative, SciTech, AgricNutri, SST, CRE)
-                     VALUES (?, ?, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)";
-            $stmt2 = $conn->prepare($insertExamResults);
-    
-            if ($stmt2 === false) {
-                die("Error preparing exam results statement: " . $conn->error);
-            }
-    
-            $stmt2->bind_param("ii", $student_id, $exam_id);
-    
-            // Check if the insertion into `exam_results` is successful
-            if ($stmt2->execute()) {
-                echo "<script>
-                        swal({
-                            title: 'Good job!',
-                            text: 'Student and exam results added!',
-                            icon: 'success',
-                            button: 'OK'
-                        }).then(function() {
-                            window.location.href = 'students.php';
-                        });
-                      </script>";
-            } else {
-                echo "<div class='alert-danger'>Error inserting exam results: " . $stmt2->error . "</div>";
-            }
-        } else {
-            echo "<div class='alert-danger'>Error adding student: " . $stmt->error . "</div>";
-        }
-    }
-    ?>
-    ?>
-      <h3>Add Student</h3>
-      <p>Students name <span>*</span></p>
-      <input type="text" name="name" placeholder="Enter Students name" required maxlength="50" class="box">
-      <input type="submit" value="register new" name="submit" class="btn">
-      <button class="option-btn" type="button" onclick="window.location.href = 'students.php'">Cancel</button>
-   </form>
+      <?php
+         $class_assigned = $_SESSION['class_assigned'] ?? null;
+         $exam_id = $_SESSION['exam_id'] ?? null;
+         $academic_year = date("Y"); // or fetch from exams table for accuracy
 
+         if (!$exam_id) {
+            die("Error: No exam selected.");
+         }
+
+         if (isset($_POST['submit'])) {
+            $student_name = $_POST['name'];
+
+            // timestamp for created_at
+            $now = date("Y-m-d H:i:s");
+
+            // Step 1: Insert into students (with current class) and created_at
+            $sql = "INSERT INTO students (name, class, created_at) VALUES (?, ?, ?)";
+            $stmt = $conn->prepare($sql);
+            if ($stmt === false) {
+                  die("Error preparing statement: " . $conn->error);
+            }
+
+            $stmt->bind_param("sss", $student_name, $class_assigned, $now);
+
+            if ($stmt->execute()) {
+                  $student_id = $conn->insert_id;
+
+                  // Step 2: Insert into student_classes (history record) with created_at
+                  $sql2 = "INSERT INTO student_classes (student_id, class, academic_year, created_at) VALUES (?, ?, ?, ?)";
+                  $stmt2 = $conn->prepare($sql2);
+                  if ($stmt2 === false) {
+                     die("Error preparing student_classes statement: " . $conn->error);
+                  }
+
+                  $stmt2->bind_param("isis", $student_id, $class_assigned, $academic_year, $now);
+
+                  if ($stmt2->execute()) {
+                     $student_class_id = $conn->insert_id;
+
+                     // Step 3: Insert into exam_results (linking to both student + student_class_id) with created_at
+                     $sql3 = "INSERT INTO exam_results 
+                              (student_id, student_class_id, exam_id, English, Kiswahili, Math, Creative, SciTech, AgricNutri, SST, CRE, created_at)
+                              VALUES (?, ?, ?, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, ?)";
+                     $stmt3 = $conn->prepare($sql3);
+                     if ($stmt3 === false) {
+                        die("Error preparing exam_results statement: " . $conn->error);
+                     }
+
+                     $stmt3->bind_param("iiis", $student_id, $student_class_id, $exam_id, $now);
+
+                     if ($stmt3->execute()) {
+                        echo "<script>
+                                 swal({
+                                    title: 'Good job!',
+                                    text: 'Student and exam results added!',
+                                    icon: 'success',
+                                    button: 'OK'
+                                 }).then(function() {
+                                    window.location.href = 'students.php';
+                                 });
+                              </script>";
+                     } else {
+                        echo "<div class='alert-danger'>Error inserting exam results: " . $stmt3->error . "</div>";
+                     }
+                  } else {
+                     echo "<div class='alert-danger'>Error inserting into student_classes: " . $stmt2->error . "</div>";
+                  }
+            } else {
+                  echo "<div class='alert-danger'>Error adding student: " . $stmt->error . "</div>";
+            }
+         }
+      ?>
+         <h3>Add Student</h3>
+         <p>Student's name <span>*</span></p>
+         <input type="text" name="name" placeholder="Enter Student's name" required maxlength="50" class="box">
+         <input type="submit" value="register new" name="submit" class="btn">
+         <button class="option-btn" type="button" onclick="window.location.href = 'students.php'">Cancel</button>
+   </form>
 </section>
 
 
 <footer class="footer">
 
-   &copy; copyright @ 2024 by <span>mr. web designer</span> | all rights reserved!
+   &copy; copyright @ 2026 by <span>mr. web designer</span> | all rights reserved!
 
 </footer>
 

@@ -21,7 +21,7 @@ if ($exam_id === 0 || empty($grade)) {
 $sql = "SELECT exam_name FROM exams WHERE exam_id = ?";
 $stmt = $conn->prepare($sql);
 if (!$stmt) {
-    die("Error preparing query: " . $conn->error);
+    die("Error preparing query:" . $conn->error);
 }
 $stmt->bind_param("i", $exam_id);
 $stmt->execute();
@@ -58,13 +58,17 @@ SELECT
     students.name AS Name, 
     exam_results.English, 
     exam_results.Math, 
-    exam_results.Kiswahili, 
-    exam_results.Integrated, 
+    exam_results.Kiswahili,
+    exam_results.Enviromental,
+    exam_results.Creative,
+    exam_results.Religious,  
     (
         exam_results.English + 
         exam_results.Math + 
         exam_results.Kiswahili + 
-        exam_results.Integrated
+        exam_results.Enviromental +
+        exam_results.Creative +
+        exam_results.Religious
     ) AS Total_marks
 FROM 
     students
@@ -87,7 +91,7 @@ $result = $stmt->get_result();
 
 $students = [];
 $valid_students = 0;
-$subject_totals = ["English" => 0, "Kiswahili" => 0, "Math" => 0, "Integrated" => 0];
+$subject_totals = ["English" => 0, "Kiswahili" => 0, "Math" => 0, "Enviromental" => 0, "Creative" => 0, "Religious" => 0];
 $total_valid_marks = 0;
 
 while ($row = $result->fetch_assoc()) {
@@ -145,22 +149,22 @@ if ($check_result->num_rows > 0) {
     // Update existing mean scores
     $update_sql = "
     UPDATE exam_mean_scores SET
-        English = ?, Math = ?, Kiswahili = ?, Integrated = ?, total_mean = ? 
+        English = ?, Math = ?, Kiswahili = ?, Enviromental = ?, Creative = ?, Religious = ?, total_mean = ? 
     WHERE exam_id = ? AND class = ?";
     $update_stmt = $conn->prepare($update_sql);
-    $update_stmt->bind_param("dddddis", 
+    $update_stmt->bind_param("dddddddis", 
         $mean_scores['English'], $mean_scores['Math'], $mean_scores['Kiswahili'], 
-         $mean_scores['Integrated'], $mean_total_marks, $exam_id, $grade);
+         $mean_scores['Enviromental'], $mean_scores['Creative'], $mean_scores['Religious'], $mean_total_marks, $exam_id, $grade);
     $update_stmt->execute();
 } else {
     // Insert new mean scores
     $insert_sql = "
-    INSERT INTO exam_mean_scores (exam_id, class, English, Math, Kiswahili, Integrated, total_mean)
-    VALUES (?, ?, ?, ?, ?, ?, ?)";
+    INSERT INTO exam_mean_scores (exam_id, class, English, Math, Kiswahili, Enviromental, Creative, Religious, total_mean)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $insert_stmt = $conn->prepare($insert_sql);
-    $insert_stmt->bind_param("isddddd", 
+    $insert_stmt->bind_param("isddddddd", 
         $exam_id, $grade, $mean_scores['English'], $mean_scores['Math'], 
-        $mean_scores['Kiswahili'], $mean_scores['Integrated'], $mean_total_marks);
+        $mean_scores['Kiswahili'], $mean_scores['Enviromental'], $mean_scores['Creative'], $mean_scores['Religious'], $mean_total_marks);
     $insert_stmt->execute();
 }
 

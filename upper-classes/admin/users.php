@@ -41,12 +41,13 @@
     <div class="sidebar">
         <a href="#" class="logo">
             <i class='bx bx-code-alt'></i>
-            <div class="logo-name"><span>Upper</span>Ngure</div>
+            <div class="logo-name"><span>Upper</span>Admin</div>
         </a>
         <ul class="side-menu">
             <li><a href="index.php"><i class='bx bxs-dashboard'></i>Dashboard</a></li>
             <li><a href="analysis.php"><i class='bx bx-analyse'></i>Analytics</a></li>
             <li class="active"><a href=""><i class='bx bx-group'></i>Teachers</a></li>
+            <li><a href="students.php"><i class='bx bx-book-reader'></i>Students</a></li>
             <li><a href="reports.php"><i class='bx bxs-report'></i>Reports</a></li>
             <li><a href="settings.php"><i class='bx bx-cog'></i>Settings</a></li>
         </ul>
@@ -131,7 +132,8 @@
                                         <td><p>" . htmlspecialchars($row['name']) . "</p></td>
                                         <td><p>" . htmlspecialchars($row['class_assigned']) . "</p></td>
                                         <td><a href='edit_teacher.php?id=" . htmlspecialchars($row['id']) . "'><span class='status process'>edit</span></a></td>
-                                        <td><a href='#' class='delete-link' data-id='" . htmlspecialchars($row['id']) . "'><span class='status delete'>delete</span></a></td>                                    </tr>";
+                                        <td><a href='#' class='delete-link' data-id='" . htmlspecialchars($row['id']) . "'><span class='status delete'>delete</span></a></td>                                    
+                                      </tr>";
                             }
                             ?>
                         </tbody>
