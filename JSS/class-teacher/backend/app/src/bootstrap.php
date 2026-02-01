@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-ini_set('display_errors', '0');
+ini_set('display_errors', '1');
 ini_set('log_errors', '1');
 
 $logDir = __DIR__ . '/../../logs';
@@ -49,7 +49,14 @@ set_exception_handler(function ($exception) use ($logFile) {
     @file_put_contents($logFile, $entry, FILE_APPEND);
     http_response_code(500);
     header('Content-Type: application/json');
-    echo json_encode(['success' => false, 'message' => 'Server error']);
+    // echo json_encode(['success' => false, 'message' => 'Server error']);
+    echo json_encode([
+        'success' => false, 
+        'message' => $exception->getMessage(),
+        'exception' => get_class($exception),
+        'file' => $exception->getFile(),
+        'line' => $exception->getLine()
+    ]);
 });
 
 
@@ -96,6 +103,14 @@ if (strpos($uri, '/index.php') === 0) {
     $uri = substr($uri, strlen('/index.php'));
 }
 $uri = '/' . ltrim($uri, '/');
+
+// Check if route is passed as query parameter
+if (empty($uri) || $uri === '/' || $uri === '/index.php') {
+    if (isset($_GET['route'])) {
+        $uri = $_GET['route'];
+    }
+}
+
 $httpMethod = $_SERVER['REQUEST_METHOD'];
 
 $routeInfo = $dispatcher->dispatch($httpMethod, $uri);

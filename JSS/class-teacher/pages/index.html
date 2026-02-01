@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Form</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+</head>
+<body>
+   
+    <form action="../backend/public/index.php/auth/login" method="POST" id="loginForm">
+        <div id="errorContainer"></div>
+        <h1 class="a11y-hidden">Login Form</h1>
+        <div>
+            <label class="label-email">
+            <span id="usernameError"></span>
+            <input type="text" class="text" name="username" placeholder="Username" tabindex="1" required />
+            <span class="required">Username</span>
+            </label>
+        </div>
+        <input type="checkbox" name="show-password" class="show-password a11y-hidden" id="show-password" tabindex="3" />
+        <label class="label-show-password" for="show-password">
+            <span>Show Password</span>
+        </label>
+        <div>
+            <label class="label-password">
+            <span class="required" id="passwordError"></span>
+            <input type="password" class="text" name="password" placeholder="Password" tabindex="2" required />
+            <span class="required">Password</span>
+            </label>
+        </div>
+        <input type="submit" value="Login" />
+        <div class="email">
+            <a href="#">Forgot password?</a>
+        </div>
+        <figure aria-hidden="true">
+            <img src="../photos/logo.png" alt="">
+        </figure>
+    </form>
+
+    <script>
+        // Check for error in URL and display it
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('error') && params.get('error') === '1') {
+            const errorContainer = document.getElementById('errorContainer');
+            errorContainer.innerHTML = '<div class="alert alert-danger">Invalid username or password.</div>';
+        }
+
+        // Optional: Check if user is already logged in (requires API endpoint)
+        document.addEventListener('DOMContentLoaded', function() {
+            // You can add additional client-side validation here
+            document.getElementById('loginForm').addEventListener('submit', function(e) {
+                // Clear previous errors
+                document.getElementById('usernameError').textContent = '';
+                document.getElementById('passwordError').textContent = '';
+            });
+        });
+    </script>
+
+</body>
+</html>
