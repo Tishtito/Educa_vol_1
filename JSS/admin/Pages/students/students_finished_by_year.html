@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Finished Students</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/Educa_vol_1/JSS/admin/css/style.css">
+</head>
+
+<body>
+
+<!-- Sidebar -->
+<div id="sidebar-container" data-active="students"></div>
+
+<!-- Main Content -->
+<div class="content">
+
+    <!-- Navbar -->
+    <nav>
+        <i class='bx bx-menu'></i>
+        <form action="#">
+            <div class="form-input">
+                <input type="search" placeholder="Search...">
+                <button class="search-btn" type="submit">
+                    <i class='bx bx-search'></i>
+                </button>
+            </div>
+        </form>
+        <a href="#" class="profile">
+                <img src="/Educa_vol_1/JSS/admin/images/logo.png">
+        </a>
+    </nav>
+
+    <main>
+
+        <div class="header">
+            <div class="left">
+                <h1 id="page-title">Finished Students</h1>
+                <ul class="breadcrumb">
+                    <li><a href="students_finished.html">Completed</a></li>
+                    /
+                    <li><a href="#" class="active" id="year-label">Year</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Students Table -->
+        <div class="bottom-data">
+                <div class="orders">
+                    <div class="header">
+                        <i class='bx bx-receipt'></i>
+                        <h3>List Of Students</h3>
+                        <i class='bx bx-filter'></i>
+                        <i class='bx bx-search'></i>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Name</th>
+                                <th>Class</th>
+                                <th>Finished On</th>
+                                <th rowspan="2">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="students-body">
+                            <tr>
+                                <td colspan="5" style="text-align:center;">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+        </div>
+
+
+
+
+    
+
+    </main>
+</div>
+
+    <script src="/Educa_vol_1/JSS/admin/js/index.js"></script>
+    <script src="/Educa_vol_1/JSS/admin/js/load-sidebar.js"></script>
+<script>
+    (async function () {
+        const baseUrl = "/Educa_vol_1/JSS/admin/backend/public/index.php";
+        const params = new URLSearchParams(window.location.search);
+        const year = params.get('year') || '';
+
+        if (!year.match(/^\d{4}$/)) {
+            document.getElementById('students-body').innerHTML = '<tr><td colspan="5" style="text-align:center;">Invalid year supplied.</td></tr>';
+            return;
+        }
+
+        document.getElementById('year-label').textContent = year;
+        document.getElementById('page-title').textContent = `Finished Students – ${year}`;
+
+        try {
+            const authRes = await fetch(`${baseUrl}/auth/check`, { credentials: "include" });
+            const auth = await authRes.json();
+            if (!auth.authenticated) {
+                window.location.replace("/Educa_vol_1/JSS/admin/Pages/login.html");
+                return;
+            }
+
+            const listRes = await fetch(`${baseUrl}/students/finished-by-year?year=${encodeURIComponent(year)}`, { credentials: "include" });
+            const list = await listRes.json();
+            const tbody = document.getElementById('students-body');
+            if (!list.success || (list.data || []).length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No students finished in ${year}.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = '';
+            list.data.forEach((student, index) => {
+                const finishedAt = student.finished_at ? new Date(student.finished_at) : null;
+                const finishedOn = finishedAt ? finishedAt.toLocaleDateString('en-GB', { year: 'numeric' }) : '-';
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${student.name}</td>
+                    <td>${student.class}</td>
+                    <td>${finishedOn}</td>
+                    <td><a href="student_all_results.html?student_id=${student.student_id}"><span class="status delete">All Results</span></a></td>
+                `;
+                tbody.appendChild(row);
+            });
+        } catch (error) {
+            console.error('Failed to load finished students', error);
+        }
+    })();
+</script>
+</body>
+</html>

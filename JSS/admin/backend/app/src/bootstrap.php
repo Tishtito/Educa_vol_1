@@ -19,13 +19,33 @@ error_reporting(E_ALL);
 date_default_timezone_set('Africa/Nairobi');
 
 set_error_handler(function ($severity, $message, $file, $line) use ($logFile) {
-    $entry = sprintf("[%s] PHP Error (%s) %s in %s:%d\n", date('c'), $severity, $message, $file, $line);
+    $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
+    $origin = $trace[1] ?? null;
+    $originText = '';
+    if ($origin) {
+        $originText = sprintf(
+            " | origin: %s%s() in %s:%s",
+            $origin['class'] ?? '',
+            $origin['function'] ?? 'unknown',
+            $origin['file'] ?? 'unknown',
+            $origin['line'] ?? '0'
+        );
+    }
+    $entry = sprintf("[%s] PHP Error (%s) %s in %s:%d%s\n", date('c'), $severity, $message, $file, $line, $originText);
     @file_put_contents($logFile, $entry, FILE_APPEND);
     return false;
 });
 
 set_exception_handler(function ($exception) use ($logFile) {
-    $entry = sprintf("[%s] Uncaught Exception %s: %s in %s:%d\n", date('c'), get_class($exception), $exception->getMessage(), $exception->getFile(), $exception->getLine());
+    $entry = sprintf(
+        "[%s] Uncaught Exception %s: %s in %s:%d\nStack: %s\n",
+        date('c'),
+        get_class($exception),
+        $exception->getMessage(),
+        $exception->getFile(),
+        $exception->getLine(),
+        $exception->getTraceAsString()
+    );
     @file_put_contents($logFile, $entry, FILE_APPEND);
     http_response_code(500);
     header('Content-Type: application/json');
@@ -43,7 +63,6 @@ use Auryn\Injector;
 // CORS HEADERS
 $allowed_origins = [
     "http://localhost:5173",
-    "https://clameraki.co.ke",
     "http://localhost:5174"
 ];
 

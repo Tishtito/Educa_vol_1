@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="/Educa_vol_1/JSS/admin/css/style.css">
+    <title>JSS Admin</title>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <div id="sidebar-container" data-active="reports"></div>
+    <!-- End of Sidebar -->
+
+    <!-- Main Content -->
+    <div class="content">
+        <!-- Navbar -->
+        <nav>
+            <i class='bx bx-menu'></i>
+            <form action="#">
+                <div class="form-input">
+                    <input type="search" placeholder="Search...">
+                    <button class="search-btn" type="submit"><i class='bx bx-search'></i></button>
+                </div>
+            </form>
+            <input type="checkbox" id="theme-toggle" hidden>
+            <label for="theme-toggle" class="theme-toggle"></label>
+            <a href="#" class="notif">
+                <i class='bx bx-bell'></i>
+                <span class="count">12</span>
+            </a>
+            <a href="#" class="profile">
+                <img src="/Educa_vol_1/JSS/admin/images/logo.png">
+            </a>
+        </nav>
+
+        <!-- End of Navbar -->
+
+        <main>
+            <div class="header">
+                <div class="left">
+                    <h1>Reports</h1>
+                    <ul class="breadcrumb">
+                        <li><a href="#">
+                                Reports
+                            </a></li>
+                        /
+                        <li><a href="#" class="active">Home</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Insights -->
+            
+                
+            <!-- End of Insights -->
+
+            <div class="bottom-data">
+            <!-- Reminders -->
+
+                <!-- weekly card -->
+                <div class="reminders">
+                    <div class="header">
+                        <i class='bx bx-note'></i>
+                        <h3>Weekly Test Reports</h3>
+                        <i class='bx bx-filter'></i>
+                    </div>
+                    
+                    <ul class="task-list" id="weekly-list"></ul>
+                </div>
+
+                <!-- Opener Report Card -->
+                <div class="reminders">
+                    <div class="header">
+                        <i class='bx bx-note'></i>
+                        <h3>Opener Reports</h3>
+                        <i class='bx bx-filter'></i>
+                    </div>
+                    
+                    <ul class="task-list" id="opener-list"></ul>
+                </div>
+                
+                <!-- Mid-Term Report card -->
+                <div class="reminders">
+                    <div class="header">
+                        <i class='bx bx-note'></i>
+                        <h3>Mid-Term Reports</h3>
+                        <i class='bx bx-filter'></i>
+                    </div>
+                    
+                    <ul class="task-list" id="midterm-list"></ul>
+                </div>
+
+                <div class="reminders">
+                    <div class="header">
+                        <i class='bx bx-note'></i>
+                        <h3>End of Term Report</h3>
+                        <i class='bx bx-filter'></i>
+                    </div>
+                    
+                    <ul class="task-list" id="endterm-list"></ul>
+                </div>
+            <!-- End of Reminders-->
+            </div>
+        </main>
+    </div>
+    <script src="/Educa_vol_1/JSS/admin/js/index.js"></script>
+    <script src="/Educa_vol_1/JSS/admin/js/load-sidebar.js"></script>
+    <script>
+        (async function () {
+            const baseUrl = "/Educa_vol_1/JSS/admin/backend/public/index.php";
+
+            function renderList(containerId, exams, emptyText, linkBuilder) {
+                const container = document.getElementById(containerId);
+                if (!container) return;
+                container.innerHTML = '';
+                if (!exams || exams.length === 0) {
+                    const li = document.createElement('li');
+                    li.className = 'no-task';
+                    li.textContent = emptyText;
+                    container.appendChild(li);
+                    return;
+                }
+                exams.forEach((exam) => {
+                    const link = document.createElement('a');
+                    link.href = linkBuilder(exam);
+                    link.innerHTML = `
+                        <li class="completed">
+                            <div class="task-title">
+                                <i class='bx bx-book'></i>
+                                <p>${exam.exam_name}<span></span></p>
+                            </div>
+                            <i class='bx bx-dots-vertical-rounded'></i>
+                        </li>
+                    `;
+                    container.appendChild(link);
+                });
+            }
+
+            try {
+                const authRes = await fetch(`${baseUrl}/auth/check`, { credentials: "include" });
+                const auth = await authRes.json();
+                if (!auth.authenticated) {
+                    window.location.replace("/Educa_vol_1/JSS/admin/Pages/login.html");
+                    return;
+                }
+
+                const [weeklyRes, openerRes, midtermRes, endtermRes] = await Promise.all([
+                    fetch(`${baseUrl}/reports/exams?type=Weekly`, { credentials: "include" }),
+                    fetch(`${baseUrl}/reports/exams?type=Opener`, { credentials: "include" }),
+                    fetch(`${baseUrl}/reports/exams?type=Mid-Term`, { credentials: "include" }),
+                    fetch(`${baseUrl}/reports/exams?type=End-Term`, { credentials: "include" })
+                ]);
+
+                const weekly = await weeklyRes.json();
+                const opener = await openerRes.json();
+                const midterm = await midtermRes.json();
+                const endterm = await endtermRes.json();
+
+                renderList('weekly-list', weekly.success ? weekly.data : [], 'No Weekly Exams Found',
+                    (exam) => `report_select.html?exam_id=${encodeURIComponent(exam.exam_id)}&exam_type=${encodeURIComponent(exam.exam_type)}&token=${encodeURIComponent(exam.token)}`);
+
+                renderList('opener-list', opener.success ? opener.data : [], 'No Opener Exams Found',
+                    (exam) => `report_select.html?exam_id=${encodeURIComponent(exam.exam_id)}&exam_type=${encodeURIComponent(exam.exam_type)}&token=${encodeURIComponent(exam.token)}`);
+
+                renderList('midterm-list', midterm.success ? midterm.data : [], 'No Mid-Term Exams Found',
+                    (exam) => `report_select.html?exam_id=${encodeURIComponent(exam.exam_id)}&exam_type=${encodeURIComponent(exam.exam_type)}&token=${encodeURIComponent(exam.token)}`);
+
+                renderList('endterm-list', endterm.success ? endterm.data : [], 'No End of Term Exams Found',
+                    (exam) => `report_select.html?exam_id=${encodeURIComponent(exam.exam_id)}&exam_type=${encodeURIComponent(exam.exam_type)}&token=${encodeURIComponent(exam.token)}`);
+            } catch (error) {
+                console.error('Failed to load reports', error);
+            }
+        })();
+    </script>
+</body>
+
+</html>

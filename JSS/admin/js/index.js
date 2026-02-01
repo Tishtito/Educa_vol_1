@@ -1,23 +1,38 @@
-const sideLinks = document.querySelectorAll('.sidebar .side-menu li a:not(.logout)');
+function initSidebarBehavior() {
+    const sideBar = document.querySelector('.sidebar');
+    if (!sideBar || sideBar.dataset.bound === '1') {
+        return;
+    }
 
-sideLinks.forEach(item => {
-    const li = item.parentElement;
-    item.addEventListener('click', () => {
-        sideLinks.forEach(i => {
-            i.parentElement.classList.remove('active');
+    sideBar.dataset.bound = '1';
+
+    const sideLinks = sideBar.querySelectorAll('.side-menu li a:not(.logout)');
+    sideLinks.forEach(item => {
+        const li = item.parentElement;
+        item.addEventListener('click', () => {
+            sideLinks.forEach(i => {
+                i.parentElement.classList.remove('active');
+            })
+            li.classList.add('active');
         })
-        li.classList.add('active');
-    })
-});
-
-const menuBar = document.querySelector('.content nav .bx.bx-menu');
-const sideBar = document.querySelector('.sidebar');
-
-if (menuBar && sideBar) {
-    menuBar.addEventListener('click', () => {
-        sideBar.classList.toggle('close');
     });
+
+    const menuBar = document.querySelector('.content nav .bx.bx-menu');
+    if (menuBar) {
+        menuBar.addEventListener('click', () => {
+            sideBar.classList.toggle('close');
+            document.body.classList.toggle('sidebar-collapsed', sideBar.classList.contains('close'));
+        });
+    }
+
+    if (window.innerWidth < 768) {
+        sideBar.classList.add('close');
+        document.body.classList.add('sidebar-collapsed');
+    }
 }
+
+initSidebarBehavior();
+window.initSidebarBehavior = initSidebarBehavior;
 
 const searchBtn = document.querySelector('.content nav form .form-input button');
 const searchBtnIcon = document.querySelector('.content nav form .form-input button .bx');
@@ -38,11 +53,14 @@ if (searchBtn && searchBtnIcon && searchForm) {
 }
 
 window.addEventListener('resize', () => {
+    const sideBar = document.querySelector('.sidebar');
     if (sideBar) {
         if (window.innerWidth < 768) {
             sideBar.classList.add('close');
+            document.body.classList.add('sidebar-collapsed');
         } else {
             sideBar.classList.remove('close');
+            document.body.classList.remove('sidebar-collapsed');
         }
     }
     if (searchBtnIcon && searchForm && window.innerWidth > 576) {

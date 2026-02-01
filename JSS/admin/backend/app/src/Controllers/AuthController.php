@@ -56,7 +56,7 @@ class AuthController
 		$_SESSION['username'] = $admin['username'];
 		error_log('[AUTH] Login success username=' . $admin['username']);
 
-		header('Location: ' . $this->basePath() . '/Pages/index.html');
+		header('Location: ' . $this->basePath() . '/Pages/dashboard/index.html');
 	}
 
 	public function check(): void
@@ -81,7 +81,7 @@ class AuthController
 		}
 
 		$this->clearSession();
-		header('Location: ' . $this->basePath() . '/Pages/index.html');
+		header('Location: ' . $this->basePath() . '/Pages/dashboard/index.html');
 	}
 
 	private function startSession(): void

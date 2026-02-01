@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="/Educa_vol_1/JSS/admin/css/style.css">
+    <title>Reports</title>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <div id="sidebar-container" data-active="reports"></div>
+    <!-- End of Sidebar -->
+
+    <!-- Main Content -->
+    <div class="content">
+        <!-- Navbar -->
+        <nav>
+            <i class='bx bx-menu'></i>
+            <form action="#">
+                <div class="form-input">
+                    <input type="search" placeholder="Search...">
+                    <button class="search-btn" type="submit"><i class='bx bx-search'></i></button>
+                </div>
+            </form>
+            <input type="checkbox" id="theme-toggle" hidden>
+            <label for="theme-toggle" class="theme-toggle"></label>
+            <a href="#" class="notif">
+                <i class='bx bx-bell'></i>
+                <span class="count">12</span>
+            </a>
+            <a href="#" class="profile">
+                <img src="/Educa_vol_1/JSS/admin/images/logo.png">
+            </a>
+        </nav>
+
+        <!-- End of Navbar -->
+
+        <main>
+            <div class="header">
+                <div class="left">
+                    <h1>Reports</h1>
+                    <ul class="breadcrumb">
+                        <li><a href="#">Reports</a></li>
+                        /
+                        <li><a href="#" class="active" id="report-label">Report</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Insights -->
+            <ul class="insights" id="grades-list"></ul>
+        </main>
+
+    </div>
+
+    <script src="/Educa_vol_1/JSS/admin/js/index.js"></script>
+    <script src="/Educa_vol_1/JSS/admin/js/load-sidebar.js"></script>
+    <script>
+        (async function () {
+            const baseUrl = "/Educa_vol_1/JSS/admin/backend/public/index.php";
+            const params = new URLSearchParams(window.location.search);
+            const examId = params.get('exam_id') || '';
+            const examType = params.get('exam_type') || '';
+            const examToken = params.get('token') || '';
+            const labelEl = document.getElementById('report-label');
+
+            const tableMap = {
+                'Mid-Term': 'report_table.html',
+                'End-Term': 'report_table.html',
+                'Opener': 'report_table.html',
+                'Weekly': 'report_table.html'
+            };
+
+            const labelMap = {
+                'Mid-Term': 'Mid-Term',
+                'End-Term': 'End of Term',
+                'Opener': 'Opener',
+                'Weekly': 'Weekly'
+            };
+
+            const tableTarget = tableMap[examType] || 'report_table.html';
+            const labelText = labelMap[examType] || 'Report';
+            if (labelEl) {
+                labelEl.textContent = labelText;
+            }
+
+            if (!examId || !examId.match(/^\d+$/) || !examToken) {
+                document.getElementById('grades-list').innerHTML = '<li class="no-task">Invalid or missing exam ID.</li>';
+                return;
+            }
+
+            try {
+                const authRes = await fetch(`${baseUrl}/auth/check`, { credentials: "include" });
+                const auth = await authRes.json();
+                if (!auth.authenticated) {
+                    window.location.replace("/Educa_vol_1/JSS/admin/Pages/login.html");
+                    return;
+                }
+
+                const gradesRes = await fetch(`${baseUrl}/reports/grades?exam_id=${encodeURIComponent(examId)}&token=${encodeURIComponent(examToken)}`, { credentials: "include" });
+                const grades = await gradesRes.json();
+                const list = document.getElementById('grades-list');
+                list.innerHTML = '';
+
+                if (!grades.success || (grades.data || []).length === 0) {
+                    list.innerHTML = '<li class="no-task">No grades found.</li>';
+                    return;
+                }
+
+                grades.data.forEach((grade) => {
+                    const link = document.createElement('a');
+                    link.href = `${tableTarget}?exam_id=${encodeURIComponent(examId)}&grade=${encodeURIComponent(grade.grade)}&exam_type=${encodeURIComponent(examType)}&token=${encodeURIComponent(grade.token)}&exam_token=${encodeURIComponent(examToken)}`;
+                    link.innerHTML = `
+                        <li>
+                            <i class='bx bx-show-alt'></i>
+                            <span class="info-2">
+                                <p>${grade.grade}</p>
+                            </span>
+                        </li>
+                    `;
+                    list.appendChild(link);
+                });
+            } catch (error) {
+                console.error('Failed to load grades', error);
+            }
+        })();
+    </script>
+</body>
+
+</html>

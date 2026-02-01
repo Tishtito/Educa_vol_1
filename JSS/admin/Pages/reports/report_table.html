@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="/Educa_vol_1/JSS/admin/css/style.css">
+    <style>
+        .download-all {
+            background-color: #4CAF50;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 14px;
+            margin-left: 10px;
+            transition: background-color 0.3s;
+        }
+
+        .download-all:hover {
+            background-color: #45a049;
+            color: white;
+        }
+    </style>
+    <title>Reports</title>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <div id="sidebar-container" data-active="reports"></div>
+    <!-- End of Sidebar -->
+
+    <!-- Main Content -->
+    <div class="content">
+        <!-- Navbar -->
+        <nav>
+            <i class='bx bx-menu'></i>
+            <form action="#">
+                <div class="form-input">
+                    <input type="search" placeholder="Search...">
+                    <button class="search-btn" type="submit"><i class='bx bx-search'></i></button>
+                </div>
+            </form>
+            <input type="checkbox" id="theme-toggle" hidden>
+            <label for="theme-toggle" class="theme-toggle"></label>
+            <a href="#" class="notif">
+                <i class='bx bx-bell'></i>
+                <span class="count">12</span>
+            </a>
+            <a href="#" class="profile">
+                <img src="/Educa_vol_1/JSS/admin/images/logo.png">
+            </a>
+        </nav>
+
+        <!-- End of Navbar -->
+
+        <main>
+            <div class="header">
+                <div class="left">
+                    <h1>Reports</h1>
+                    <ul class="breadcrumb">
+                        <li><a href="#">Reports</a></li>
+                        /
+                        <li><a href="#" class="active" id="report-label">Report</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="bottom-data">
+                <div class="orders">
+                    <div class="header">
+                        <i class='bx bx-receipt'></i>
+                        <h3>Students</h3>
+                        <a href="#" class="download-all" id="downloadAll">
+                            <span>Download All as PDF</span>
+                        </a>
+                        <span class="print" id="printAll">Print All</span>
+                        <i class='bx bx-filter'></i>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Name</th>
+                                <th>Class</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="students-body">
+                            <tr>
+                                <td colspan="4" style="text-align:center;">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/Educa_vol_1/JSS/admin/js/index.js"></script>
+    <script src="/Educa_vol_1/JSS/admin/js/load-sidebar.js"></script>
+    <script>
+        (async function () {
+            const baseUrl = "/Educa_vol_1/JSS/admin/backend/public/index.php";
+            const params = new URLSearchParams(window.location.search);
+            const examId = params.get('exam_id') || '';
+            const grade = params.get('grade') || '';
+            const examType = params.get('exam_type') || '';
+            const gradeToken = params.get('token') || '';
+            const examToken = params.get('exam_token') || '';
+
+            const labelMap = {
+                'Mid-Term': 'Mid-Term',
+                'End-Term': 'End of Term',
+                'Opener': 'Opener',
+                'Weekly': 'Weekly'
+            };
+
+            const reportLabel = labelMap[examType] || 'Report';
+            const labelEl = document.getElementById('report-label');
+            if (labelEl) {
+                labelEl.textContent = reportLabel;
+            }
+            document.title = `Reports - ${reportLabel}`;
+
+            const modeMap = {
+                'Mid-Term': {
+                    viewPage: 'new_report_1.html',
+                    printMode: 'download',
+                    includeExamType: false,
+                    reportFormPage: null
+                },
+                'End-Term': {
+                    viewPage: 'new_report.html',
+                    printMode: 'print',
+                    includeExamType: true,
+                    reportFormPage: 'report_form.html'
+                },
+                'Opener': {
+                    viewPage: 'new_report_opener.html',
+                    printMode: 'print',
+                    includeExamType: false,
+                    reportFormPage: 'report_form1.html'
+                },
+                'Weekly': {
+                    viewPage: 'new_report_opener.html',
+                    printMode: 'print',
+                    includeExamType: false,
+                    reportFormPage: 'report_form1.html'
+                }
+            };
+
+            const mode = modeMap[examType] || modeMap['End-Term'];
+
+            if (!examId || !grade || !gradeToken || !examToken) {
+                document.getElementById('students-body').innerHTML = '<tr><td colspan="4" style="text-align:center;">Invalid class or exam selected.</td></tr>';
+                return;
+            }
+
+            try {
+                const authRes = await fetch(`${baseUrl}/auth/check`, { credentials: "include" });
+                const auth = await authRes.json();
+                if (!auth.authenticated) {
+                    window.location.replace("/Educa_vol_1/JSS/admin/Pages/login.html");
+                    return;
+                }
+
+                const listRes = await fetch(`${baseUrl}/reports/students?exam_id=${encodeURIComponent(examId)}&grade=${encodeURIComponent(grade)}&token=${encodeURIComponent(gradeToken)}`, { credentials: "include" });
+                const list = await listRes.json();
+                const tbody = document.getElementById('students-body');
+                if (!list.success || (list.data || []).length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No students found.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = '';
+                list.data.forEach((student, index) => {
+                    const row = document.createElement('tr');
+                    let viewHref = `${mode.viewPage}?student_id=${student.student_id}&exam_id=${examId}&token=${encodeURIComponent(examToken)}`;
+                    if (mode.includeExamType && examType) {
+                        viewHref += `&exam_type=${encodeURIComponent(examType)}`;
+                    }
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${student.name}</td>
+                        <td>${student.class}</td>
+                        <td>
+                            <a href="${viewHref}" class="view-report">
+                                <span class="status process">View</span>
+                            </a>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+
+                const downloadBtn = document.getElementById('downloadAll');
+                const printBtn = document.getElementById('printAll');
+
+                if (mode.printMode === 'download') {
+                    if (downloadBtn) {
+                        downloadBtn.style.display = 'inline-block';
+                        downloadBtn.href = `${baseUrl}/reports/download?grade=${encodeURIComponent(grade)}&exam_id=${encodeURIComponent(examId)}&token=${encodeURIComponent(gradeToken)}`;
+                    }
+                    if (printBtn) {
+                        printBtn.style.display = 'none';
+                    }
+                } else {
+                    if (downloadBtn) {
+                        downloadBtn.style.display = 'none';
+                    }
+                    if (printBtn) {
+                        printBtn.style.display = 'inline-block';
+                        printBtn.addEventListener('click', () => {
+                            const students = list.data || [];
+                            if (!students.length) {
+                                alert('No students to print!');
+                                return;
+                            }
+
+                            const printFrame = document.getElementById('printFrame');
+                            const frameDoc = printFrame.contentDocument || printFrame.contentWindow.document;
+                            let content = "<html><head><title>All Reports</title>";
+                            content += '<link rel="stylesheet" href="/Educa_vol_1/JSS/admin/css/report.css">';
+                            content += "</head><body>";
+
+                            students.forEach(student => {
+                                let formHref = `${mode.reportFormPage}?student_id=${student.student_id}&exam_id=${examId}&token=${encodeURIComponent(examToken)}`;
+                                if (mode.includeExamType && examType) {
+                                    formHref += `&exam_type=${encodeURIComponent(examType)}`;
+                                }
+                                content += `<iframe src="${formHref}" style="width:100%; height:1550px; border:0;"></iframe>`;
+                                content += '<div style="page-break-before: always;"></div>';
+                            });
+
+                            content += "</body></html>";
+                            frameDoc.open();
+                            frameDoc.write(content);
+                            frameDoc.close();
+
+                            setTimeout(() => {
+                                printFrame.contentWindow.print();
+                            }, 2000);
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load students', error);
+            }
+        })();
+    </script>
+    <iframe id="printFrame" style="display: none;"></iframe>
+</body>
+
+</html>
