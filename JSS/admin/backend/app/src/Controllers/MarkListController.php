@@ -9,6 +9,7 @@ use Medoo\Medoo;
 class MarkListController
 {
 	private Medoo $db;
+	private const TOKEN_SECRET = 'educa-jss-token-v1';
 
 	public function __construct(Medoo $db)
 	{
@@ -31,6 +32,21 @@ class MarkListController
 		return true;
 	}
 
+	private function tokenKey(): string
+	{
+		return hash('sha256', session_id() . '|' . self::TOKEN_SECRET);
+	}
+
+	private function makeToken(string $payload): string
+	{
+		return hash_hmac('sha256', $payload, $this->tokenKey());
+	}
+
+	private function isValidToken(string $payload, ?string $token): bool
+	{
+		return $token !== null && $token !== '' && hash_equals($this->makeToken($payload), $token);
+	}
+
 	public function list(): void
 	{
 		if (!$this->requireAuth()) {
@@ -39,11 +55,19 @@ class MarkListController
 
 		$examId = isset($_GET['exam_id']) ? (int)$_GET['exam_id'] : 0;
 		$grade = isset($_GET['grade']) ? trim((string)$_GET['grade']) : '';
+		$token = isset($_GET['token']) ? (string)$_GET['token'] : null;
 
 		if ($examId <= 0 || $grade === '') {
 			http_response_code(400);
 			header('Content-Type: application/json');
 			echo json_encode(['success' => false, 'message' => 'Invalid or missing parameters']);
+			return;
+		}
+
+		if (!$this->isValidToken('exam:' . $examId . '|grade:' . $grade, $token)) {
+			http_response_code(403);
+			header('Content-Type: application/json');
+			echo json_encode(['success' => false, 'message' => 'Invalid or missing token']);
 			return;
 		}
 

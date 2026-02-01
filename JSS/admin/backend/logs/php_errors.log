@@ -1,1 +1,11 @@
 [2026-02-01T01:22:56+03:00] Uncaught Exception ValueError: PDOStatement::bindValue(): Argument #1 ($param) must be greater than or equal to 1 in C:\xampp\htdocs\Educa_vol_1\JSS\admin\backend\vendor\catfan\medoo\src\Medoo.php:620
+[2026-02-01T01:37:21+03:00] Uncaught Exception PDOException: SQLSTATE[HY000] [1049] Unknown database 'js' in C:\xampp\htdocs\Educa_vol_1\JSS\admin\backend\vendor\catfan\medoo\src\Medoo.php:517
+Stack: #0 C:\xampp\htdocs\Educa_vol_1\JSS\admin\backend\config\dependencies.php(17): Medoo\Medoo->__construct(Array)
+#1 C:\xampp\htdocs\Educa_vol_1\JSS\admin\backend\app\src\bootstrap.php(83): {closure}()
+#2 C:\xampp\htdocs\Educa_vol_1\JSS\admin\backend\public\index.php(7): require('C:\\xampp\\htdocs...')
+#3 {main}
+[2026-02-01T01:37:26+03:00] Uncaught Exception PDOException: SQLSTATE[HY000] [1049] Unknown database 'js' in C:\xampp\htdocs\Educa_vol_1\JSS\admin\backend\vendor\catfan\medoo\src\Medoo.php:517
+Stack: #0 C:\xampp\htdocs\Educa_vol_1\JSS\admin\backend\config\dependencies.php(17): Medoo\Medoo->__construct(Array)
+#1 C:\xampp\htdocs\Educa_vol_1\JSS\admin\backend\app\src\bootstrap.php(83): {closure}()
+#2 C:\xampp\htdocs\Educa_vol_1\JSS\admin\backend\public\index.php(7): require('C:\\xampp\\htdocs...')
+#3 {main}

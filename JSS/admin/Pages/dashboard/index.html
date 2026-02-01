@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="/Educa_vol_1/JSS/admin/css/style.css">
+    <title>JSS Admin</title>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <div id="sidebar-container" data-active="dashboard"></div>
+    <!-- End of Sidebar -->
+
+    <!-- Main Content -->
+    <div class="content">
+        <!-- Navbar -->
+        <nav>
+            <i class='bx bx-menu'></i>
+            <form action="#">
+                <div class="form-input">
+                    <input type="search" placeholder="Search...">
+                    <button class="search-btn" type="submit"><i class='bx bx-search'></i></button>
+                </div>
+            </form>
+            <input type="checkbox" id="theme-toggle" hidden>
+            <label for="theme-toggle" class="theme-toggle"></label>
+            <a href="#" class="notif">
+                <i class='bx bx-bell'></i>
+                <span class="count">12</span>
+            </a>
+            <a href="#" class="profile">
+                <img src="/Educa_vol_1/JSS/admin/images/logo.png">
+            </a>
+        </nav>
+
+        <!-- End of Navbar -->
+
+        <main>
+            <div class="header">
+                <div class="left">
+                    <h1>Dashboard</h1>
+                    <ul class="breadcrumb">
+                        <li><a href="#">
+                                Analytics
+                            </a></li>
+                        /
+                        <li><a href="#" class="active">Home</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="header">
+                <div class="left">
+                    <h2>Mean Score</h2>
+                </div>
+            </div>
+
+            <!-- Insights -->
+            <ul class="insights">
+                <li>
+                    <i class='bx bx-calendar-check'></i>
+                    <span class="info">
+                        <p>Total Number of Students</p>
+                        <h3>
+                            <span id="total-students">0</span>
+                        </h3>
+                    </span>
+                </li>
+                <li><i class='bx bx-show-alt'></i>
+                    <span class="info">
+                        <p>Total Number of Teachers</p>
+                        <h3>
+                        <span id="total-teachers">0</span>
+                        </h3>
+                    </span>
+                </li>
+            </ul>
+                
+            <!-- End of Insights -->
+
+            <div class="bottom-data">
+                <div class="orders">
+                    <div class="header">
+                        <i class='bx bx-receipt'></i>
+                        <h3>Top Students</h3>
+                        <i class='bx bx-filter'></i>
+                        <i class='bx bx-search'></i>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Exam</th>
+                                <th>Date</th>
+                                <th>Total Students</th>
+                            </tr>
+                        </thead>
+                        <tbody id="top-students-body"></tbody>
+                    </table>
+                </div>
+
+                <!-- Reminders -->
+                <div class="reminders">
+                    <div class="header">
+                        <i class='bx bx-note'></i>
+                        <h3>MSS</h3>
+                        <i class='bx bx-filter'></i>
+                        
+                    </div>
+                    <ul class="task-list" id="exam-list"></ul>
+                </div>
+
+                <!-- End of Reminders-->
+
+            </div>
+
+        </main>
+
+    </div>
+
+
+
+    <script src="/Educa_vol_1/JSS/admin/js/index.js"></script>
+    <script src="/Educa_vol_1/JSS/admin/js/load-sidebar.js"></script>
+    <script>
+        (async function () {
+            const baseUrl = "/Educa_vol_1/JSS/admin/backend/public/index.php";
+
+            try {
+                const authRes = await fetch(`${baseUrl}/auth/check`, { credentials: "include" });
+                const auth = await authRes.json();
+                if (!auth.authenticated) {
+                    window.location.replace("/Educa_vol_1/JSS/admin/Pages/login.html");
+                    return;
+                }
+
+                const summaryRes = await fetch(`${baseUrl}/dashboard/summary`, { credentials: "include" });
+                const summary = await summaryRes.json();
+                if (summary.success) {
+                    document.getElementById("total-students").textContent = summary.data.total_students;
+                    document.getElementById("total-teachers").textContent = summary.data.total_examiners;
+                }
+
+                const topRes = await fetch(`${baseUrl}/dashboard/top-exams`, { credentials: "include" });
+                const top = await topRes.json();
+                if (top.success) {
+                    const tbody = document.getElementById("top-students-body");
+                    tbody.innerHTML = "";
+                    top.data.forEach((exam) => {
+                        const tr = document.createElement("tr");
+                        tr.innerHTML = `
+                            <td>${exam.name}</td>
+                            <td>${exam.date}</td>
+                            <td>${exam.total_students}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+
+                const examsRes = await fetch(`${baseUrl}/dashboard/exams`, { credentials: "include" });
+                const exams = await examsRes.json();
+                if (exams.success) {
+                    const list = document.getElementById("exam-list");
+                    list.innerHTML = "";
+                    exams.data.forEach((exam) => {
+                        const link = document.createElement("a");
+                        link.href = `/Educa_vol_1/JSS/admin/Pages/analytics/mss-detail.html?exam_id=${encodeURIComponent(exam.exam_id)}&token=${encodeURIComponent(exam.token)}`;
+                        link.innerHTML = `
+                            <li class="completed">
+                                <div class="task-title">
+                                    <i class='bx bx-book'></i>
+                                    <p>${exam.exam_name}<span></span></p>
+                                </div>
+                                <i class='bx bx-dots-vertical-rounded'></i>
+                            </li>
+                        `;
+                        list.appendChild(link);
+                    });
+                }
+            } catch (error) {
+                console.error("Dashboard load failed", error);
+            }
+        })();
+    </script>
+</body>
+
+</html>

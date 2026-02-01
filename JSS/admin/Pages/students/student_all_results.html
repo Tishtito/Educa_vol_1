@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>All Results</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/Educa_vol_1/JSS/admin/css/style.css">
+</head>
+
+<body>
+
+<!-- Sidebar -->
+<div id="sidebar-container" data-active="students"></div>
+
+<div class="content">
+
+    <!-- Navbar -->
+    <nav>
+        <i class='bx bx-menu'></i>
+        <form action="#">
+            <div class="form-input">
+                <input type="search" placeholder="Search...">
+                <button class="search-btn" type="submit">
+                    <i class='bx bx-search'></i>
+                </button>
+            </div>
+        </form>
+        <a href="#" class="profile">
+                <img src="/Educa_vol_1/JSS/admin/images/logo.png">
+        </a>
+    </nav>
+
+    <main>
+
+        <div class="header">
+            <div class="left">
+                <h1 id="page-title">Exam Results</h1>
+                <ul class="breadcrumb">
+                    <li><a href="students_finished.html">Finished Students</a></li>
+                    /
+                    <li><a href="#" class="active" id="student-name">Student</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card">
+            <p><strong>Name:</strong> <span id="student-name-card">-</span></p>
+            <p><strong>Class:</strong> <span id="student-class">-</span></p>
+        </div>
+
+        <div class="bottom-data">
+                <div class="orders">
+                    <div class="header">
+                        <i class='bx bx-receipt'></i>
+                        <h3>List Of Results</h3>
+                        <i class='bx bx-filter'></i>
+                        <i class='bx bx-search'></i>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Exam</th>
+                                <th>Total Marks</th>
+                                <th>Position</th>
+                                <th>Stream Position</th>
+                                <th>Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results-body">
+                            <tr>
+                                <td colspan="7" style="text-align:center;">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+        </div>
+
+    </main>
+</div>
+
+    <script src="/Educa_vol_1/JSS/admin/js/index.js"></script>
+    <script src="/Educa_vol_1/JSS/admin/js/load-sidebar.js"></script>
+<script>
+    (async function () {
+        const baseUrl = "/Educa_vol_1/JSS/admin/backend/public/index.php";
+        const params = new URLSearchParams(window.location.search);
+        const studentId = params.get('student_id') || '';
+
+        if (!studentId || !studentId.match(/^\d+$/)) {
+            document.getElementById('results-body').innerHTML = '<tr><td colspan="7" style="text-align:center;">Invalid student ID.</td></tr>';
+            return;
+        }
+
+        try {
+            const authRes = await fetch(`${baseUrl}/auth/check`, { credentials: "include" });
+            const auth = await authRes.json();
+            if (!auth.authenticated) {
+                window.location.replace("/Educa_vol_1/JSS/admin/Pages/login.html");
+                return;
+            }
+
+            const studentRes = await fetch(`${baseUrl}/students/detail?student_id=${encodeURIComponent(studentId)}`, { credentials: "include" });
+            const student = await studentRes.json();
+            if (student.success) {
+                document.getElementById('student-name').textContent = student.data.name;
+                document.getElementById('student-name-card').textContent = student.data.name;
+                document.getElementById('student-class').textContent = student.data.class;
+                document.getElementById('page-title').textContent = `Exam Results - ${student.data.name}`;
+            }
+
+            const resultsRes = await fetch(`${baseUrl}/students/results?student_id=${encodeURIComponent(studentId)}`, { credentials: "include" });
+            const results = await resultsRes.json();
+            const tbody = document.getElementById('results-body');
+            if (!results.success || (results.data || []).length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No exam results found for this student.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            results.data.forEach((row, index) => {
+                const createdAt = row.created_at ? new Date(row.created_at) : null;
+                const dateText = createdAt ? createdAt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${row.exam_name || 'N/A'}</td>
+                    <td>${row.total_marks ?? '-'}</td>
+                    <td>${row.position ?? '-'}</td>
+                    <td>${row.stream_position ?? '-'}</td>
+                    <td>${dateText}</td>
+                    <td><a href="student_exam_breakdown.html?result_id=${row.result_id}"><span class='status process'>view</span></a></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } catch (error) {
+            console.error('Failed to load results', error);
+        }
+    })();
+</script>
+</body>
+</html>

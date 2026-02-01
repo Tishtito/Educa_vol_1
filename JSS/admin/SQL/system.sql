@@ -164,3 +164,4 @@ CREATE TABLE marks_out_of (
     UNIQUE KEY unique_exam_subject (exam_id, subject),
     FOREIGN KEY (exam_id) REFERENCES exams(exam_id) ON DELETE CASCADE
 );
+

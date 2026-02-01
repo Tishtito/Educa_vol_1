@@ -6,16 +6,24 @@
 
     const activeKey = host.getAttribute("data-active");
 
-    fetch("components/sidebar.html")
+    const basePath = "/Educa_vol_1/JSS/admin/Pages";
+
+    fetch(`${basePath}/components/sidebar.html`)
         .then((res) => res.text())
         .then((html) => {
             host.innerHTML = html;
             if (!activeKey) {
+                if (window.initSidebarBehavior) {
+                    window.initSidebarBehavior();
+                }
                 return;
             }
             const activeItem = host.querySelector(`[data-key="${activeKey}"]`);
             if (activeItem) {
                 activeItem.classList.add("active");
+            }
+            if (window.initSidebarBehavior) {
+                window.initSidebarBehavior();
             }
         })
         .catch((error) => {

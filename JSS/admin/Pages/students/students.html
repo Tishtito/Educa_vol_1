@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="/Educa_vol_1/JSS/admin/css/style.css">
+    <title>Students</title>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <div id="sidebar-container" data-active="students"></div>
+    <!-- End of Sidebar -->
+
+    <!-- Main Content -->
+    <div class="content">
+        <!-- Navbar -->
+        <nav>
+            <i class='bx bx-menu'></i>
+            <form action="#">
+                <div class="form-input">
+                    <input type="search" placeholder="Search...">
+                    <button class="search-btn" type="submit"><i class='bx bx-search'></i></button>
+                </div>
+            </form>
+            <input type="checkbox" id="theme-toggle" hidden>
+            <label for="theme-toggle" class="theme-toggle"></label>
+            <a href="#" class="notif">
+                <i class='bx bx-bell'></i>
+                <span class="count">12</span>
+            </a>
+            <a href="#" class="profile">
+                <img src="/Educa_vol_1/JSS/admin/images/logo.png">
+            </a>
+        </nav>
+
+        <!-- End of Navbar -->
+
+        <main>
+            <div class="header">
+                <div class="left">
+                    <h1>Students</h1>
+                    <ul class="breadcrumb">
+                        <li><a href="#">Students</a></li>
+                        /
+                        <li><a href="#" class="active">Home</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="bottom-data">
+                <!-- Students card -->
+                <div class="reminders">
+                    <div class="header">
+                        <i class='bx bx-note'></i>
+                        <h3>Students</h3>
+                        <i class='bx bx-filter'></i>
+                    </div>
+
+                    <ul class="task-list">
+                        <a href="students_active.html">
+                            <li class="completed">
+                                <div class="task-title">
+                                    <i class='bx bx-user'></i>
+                                    <p>Active Students: <span id="active-count">0</span></p>
+                                </div>
+                                <i class='bx bx-chevron-right'></i>
+                            </li>
+                        </a>
+
+                        <a href="students_finished.html">
+                            <li class="completed">
+                                <div class="task-title">
+                                    <i class='bx bx-flag'></i>
+                                    <p>Finished Students: <span id="finished-count">0</span></p>
+                                </div>
+                                <i class='bx bx-chevron-right'></i>
+                            </li>
+                        </a>
+                    </ul>
+                </div>
+                <!-- End of Students card -->
+            </div>
+        </main>
+    </div>
+
+    <script src="/Educa_vol_1/JSS/admin/js/index.js"></script>
+    <script src="/Educa_vol_1/JSS/admin/js/load-sidebar.js"></script>
+    <script>
+        (async function () {
+            const baseUrl = "/Educa_vol_1/JSS/admin/backend/public/index.php";
+
+            try {
+                const authRes = await fetch(`${baseUrl}/auth/check`, { credentials: "include" });
+                const auth = await authRes.json();
+                if (!auth.authenticated) {
+                    window.location.replace("/Educa_vol_1/JSS/admin/Pages/login.html");
+                    return;
+                }
+
+                const summaryRes = await fetch(`${baseUrl}/students/summary`, { credentials: "include" });
+                const summary = await summaryRes.json();
+                if (summary.success) {
+                    document.getElementById('active-count').textContent = summary.data.active ?? 0;
+                    document.getElementById('finished-count').textContent = summary.data.finished ?? 0;
+                }
+            } catch (error) {
+                console.error('Failed to load students summary', error);
+            }
+        })();
+    </script>
+</body>
+
+</html>

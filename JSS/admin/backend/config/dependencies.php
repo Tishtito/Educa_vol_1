@@ -6,7 +6,7 @@ return function (): Injector {
     // --- PHP error logging & timezone (runs early) ---
     ini_set('display_errors', '0');
     ini_set('log_errors', '1');
-    ini_set('error_log', __DIR__ . '/../../logs/php_errors.log');
+    ini_set('error_log', __DIR__ . '/../login-logs/php_login.log');
     error_reporting(E_ALL);
     date_default_timezone_set('Africa/Nairobi'); // PHP time in Nairobi
 

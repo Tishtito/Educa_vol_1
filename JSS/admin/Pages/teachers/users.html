@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="/Educa_vol_1/JSS/admin/css/style.css">
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <title>JSS Admin</title>
+    <style>
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal {
+            width: min(520px, 90vw);
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        .modal-large {
+            width: min(800px, 95vw);
+        }
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .modal-close {
+            background: transparent;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .modal-body label {
+            display: block;
+            margin: 10px 0 6px;
+        }
+        .modal-body input,
+        .modal-body select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 16px;
+        }
+        .modal-section {
+            margin-top: 16px;
+        }
+        .modal-section h4 {
+            margin: 0 0 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 8px;
+            max-height: 220px;
+            overflow: auto;
+            padding: 10px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background: #f9fafb;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            border-radius: 6px;
+            background: #fff;
+            border: 1px solid #eef2f7;
+        }
+        .btn {
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background: #3b82f6;
+            color: #fff;
+        }
+        .btn-secondary {
+            background: #e5e7eb;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <div id="sidebar-container" data-active="teachers"></div>
+    <!-- End of Sidebar -->
+
+    <!-- Main Content -->
+    <div class="content">
+        <!-- Navbar -->
+        <nav>
+            <i class='bx bx-menu'></i>
+            <form action="#">
+                <div class="form-input">
+                    <input type="search" placeholder="Search...">
+                    <button class="search-btn" type="submit"><i class='bx bx-search'></i></button>
+                </div>
+            </form>
+            <input type="checkbox" id="theme-toggle" hidden>
+            <label for="theme-toggle" class="theme-toggle"></label>
+            <a href="#" class="notif">
+                <i class='bx bx-bell'></i>
+                <span class="count">12</span>
+            </a>
+            <a href="#" class="profile">
+                <img src="/Educa_vol_1/JSS/admin/images/logo.png">
+            </a>
+        </nav>
+
+        <!-- End of Navbar -->
+
+        <main>
+            <div class="header">
+                <div class="left">
+                    <h1>Teachers</h1>
+                    <ul class="breadcrumb">
+                        <li><a href="#">
+                                Analytics
+                            </a></li>
+                        /
+                        <li><a href="#" class="active">class</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!--Table for teachers-->
+            <div class="bottom-data">
+                <div class="orders">
+                    <div class="header">
+                        <i class='bx bx-receipt'></i>
+                        <h3>List Of Class Teachers</h3>
+                        <i class='bx bx-filter'></i>
+                        <i class='bx bx-search'></i>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Class Teacher</th>
+                                <th>Class</th>
+                                <th rowspan="2">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teachers-body"></tbody>
+                    </table>
+                </div>
+
+                <!-- Reminders -->
+                <div class="reminders">
+                    <div class="header">
+                        <i class='bx bx-note'></i>
+                        <h3>Add New Teacher</h3>
+                        <i class='bx bx-filter'></i>
+                        
+                    </div>
+    
+                    <ul class="task-list">
+                        <a href="#" id="add-teacher-open">
+                            <li class="completed">
+                                <div class="task-title">
+                                    <i class='bx bx-plus'></i>
+                                    <p>Add<span></span></p>
+                                </div>
+                                <i class='bx bx-dots-vertical-rounded'></i>
+                            </li>
+                        </a>
+                    </ul>
+                </div>
+                <!-- End of Reminders-->
+
+                <!-- Table for Examiners-->
+                <div class="orders">
+                    <div class="header">
+                        <i class='bx bx-receipt'></i>
+                        <h3>List Of Examiners</h3>
+                        <i class='bx bx-filter'></i>
+                        <i class='bx bx-search'></i>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Examiners</th>
+                                <th>Subjects</th>
+                                <th colspan="2">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="examiners-body"></tbody>
+                    </table>
+
+                </div>
+
+                <!-- Reminders -->
+                <div class="reminders">
+                    <div class="header">
+                        <i class='bx bx-note'></i>
+                        <h3>Add New Examiner</h3>
+                        <i class='bx bx-filter'></i>
+                        
+                    </div>
+    
+                    <ul class="task-list">
+                        <a href="#" id="add-examiner-open">
+                            <li class="completed">
+                                <div class="task-title">
+                                    <i class='bx bx-plus'></i>
+                                    <p>Add<span></span></p>
+                                </div>
+                                <i class='bx bx-dots-vertical-rounded'></i>
+                            </li>
+                        </a>
+                    </ul>
+                </div>
+
+            </div>
+
+        </main>
+
+    </div>
+
+    <div class="modal-overlay" id="edit-teacher-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Edit Teacher</div>
+                <button class="modal-close" type="button" id="edit-teacher-close">&times;</button>
+            </div>
+            <form id="edit-teacher-form" class="modal-body">
+                <input type="hidden" id="edit-teacher-id" name="id">
+
+                <label for="edit-teacher-name">Name</label>
+                <input type="text" id="edit-teacher-name" name="name" required>
+
+                <label for="edit-teacher-class">Class</label>
+                <select id="edit-teacher-class" name="class_assigned" required></select>
+
+                <label for="edit-teacher-password">New Password</label>
+                <input type="password" id="edit-teacher-password" name="password" placeholder="leave blank to keep current password">
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="edit-teacher-cancel">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="add-teacher-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Add Teacher</div>
+                <button class="modal-close" type="button" id="add-teacher-close">&times;</button>
+            </div>
+            <form id="add-teacher-form" class="modal-body">
+                <label for="add-teacher-name">Name</label>
+                <input type="text" id="add-teacher-name" name="name" required>
+
+                <label for="add-teacher-username">Username</label>
+                <input type="text" id="add-teacher-username" name="username" required>
+
+                <label for="add-teacher-class">Class</label>
+                <select id="add-teacher-class" name="class_assigned" required></select>
+
+                <label for="add-teacher-password">Password</label>
+                <input type="password" id="add-teacher-password" name="password" required>
+
+                <label for="add-teacher-confirm">Confirm Password</label>
+                <input type="password" id="add-teacher-confirm" name="confirm_password" required>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="add-teacher-cancel">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="edit-examiner-modal">
+        <div class="modal modal-large">
+            <div class="modal-header">
+                <div class="modal-title">Edit Examiner</div>
+                <button class="modal-close" type="button" id="edit-examiner-close">&times;</button>
+            </div>
+            <form id="edit-examiner-form" class="modal-body">
+                <input type="hidden" id="edit-examiner-id" name="examiner_id">
+
+                <label for="edit-examiner-name">Name</label>
+                <input type="text" id="edit-examiner-name" name="name" required>
+
+                <label for="edit-examiner-password">New Password</label>
+                <input type="password" id="edit-examiner-password" name="password" placeholder="leave blank to keep current password">
+
+                <div class="modal-section">
+                    <h4>Assign Subjects</h4>
+                    <div class="checkbox-grid" id="edit-examiner-subjects"></div>
+                </div>
+
+                <div class="modal-section">
+                    <h4>Assign Classes</h4>
+                    <div class="checkbox-grid" id="edit-examiner-classes"></div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="edit-examiner-cancel">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="add-examiner-modal">
+        <div class="modal modal-large">
+            <div class="modal-header">
+                <div class="modal-title">Add Examiner</div>
+                <button class="modal-close" type="button" id="add-examiner-close">&times;</button>
+            </div>
+            <form id="add-examiner-form" class="modal-body">
+                <label for="add-examiner-name">Name</label>
+                <input type="text" id="add-examiner-name" name="name" required>
+
+                <label for="add-examiner-username">Username</label>
+                <input type="text" id="add-examiner-username" name="username" required>
+
+                <label for="add-examiner-password">Password</label>
+                <input type="password" id="add-examiner-password" name="password" required>
+
+                <label for="add-examiner-confirm">Confirm Password</label>
+                <input type="password" id="add-examiner-confirm" name="confirm_password" required>
+
+                <div class="modal-section">
+                    <h4>Assign Subjects</h4>
+                    <div class="checkbox-grid" id="add-examiner-subjects"></div>
+                </div>
+
+                <div class="modal-section">
+                    <h4>Assign Classes</h4>
+                    <div class="checkbox-grid" id="add-examiner-classes"></div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="add-examiner-cancel">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/Educa_vol_1/JSS/admin/js/index.js"></script>
+    <script src="/Educa_vol_1/JSS/admin/js/load-sidebar.js"></script>
+    <script>
+        (async function () {
+            const baseUrl = "/Educa_vol_1/JSS/admin/backend/public/index.php";
+
+            let subjectsData = [];
+            let classesData = [];
+
+            function renderCheckboxes(container, items, name, valueKey, labelKey, idPrefix) {
+                container.innerHTML = items.map(item => {
+                    const value = item[valueKey];
+                    const label = item[labelKey];
+                    const id = `${idPrefix}-${value}`;
+                    return `
+                        <label class="checkbox-item" for="${id}">
+                            <input type="checkbox" id="${id}" name="${name}[]" value="${value}">
+                            <span>${label}</span>
+                        </label>
+                    `;
+                }).join('');
+            }
+
+            function setChecked(container, selected) {
+                const selectedSet = new Set((selected || []).map(String));
+                container.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+                    input.checked = selectedSet.has(input.value);
+                });
+            }
+
+            try {
+                const authRes = await fetch(`${baseUrl}/auth/check`, { credentials: "include" });
+                const auth = await authRes.json();
+                if (!auth.authenticated) {
+                    window.location.replace("/Educa_vol_1/JSS/admin/Pages/login.html");
+                    return;
+                }
+
+                const classesRes = await fetch(`${baseUrl}/classes`, { credentials: "include" });
+                const classes = await classesRes.json();
+                const editClassSelect = document.getElementById("edit-teacher-class");
+                const addClassSelect = document.getElementById("add-teacher-class");
+                if (classes.success) {
+                    classesData = classes.data || [];
+                    const optionsHtml = ['<option value="">-- Select Class --</option>']
+                        .concat(classes.data.map(item => `<option value="${item.class_name}">${item.class_name}</option>`))
+                        .join('');
+                    editClassSelect.innerHTML = optionsHtml;
+                    addClassSelect.innerHTML = optionsHtml;
+                }
+
+                const subjectsRes = await fetch(`${baseUrl}/subjects`, { credentials: "include" });
+                const subjects = await subjectsRes.json();
+                if (subjects.success) {
+                    subjectsData = subjects.data || [];
+                }
+
+                const examinerSubjectsContainer = document.getElementById('edit-examiner-subjects');
+                const examinerClassesContainer = document.getElementById('edit-examiner-classes');
+                const addExaminerSubjectsContainer = document.getElementById('add-examiner-subjects');
+                const addExaminerClassesContainer = document.getElementById('add-examiner-classes');
+                renderCheckboxes(examinerSubjectsContainer, subjectsData, 'subjects', 'subject_id', 'name', 'examiner-subject');
+                renderCheckboxes(examinerClassesContainer, classesData, 'classes', 'class_id', 'class_name', 'examiner-class');
+                renderCheckboxes(addExaminerSubjectsContainer, subjectsData, 'subjects', 'subject_id', 'name', 'add-examiner-subject');
+                renderCheckboxes(addExaminerClassesContainer, classesData, 'classes', 'class_id', 'class_name', 'add-examiner-class');
+
+                const teachersRes = await fetch(`${baseUrl}/teachers`, { credentials: "include" });
+                const teachers = await teachersRes.json();
+                if (teachers.success) {
+                    const tbody = document.getElementById("teachers-body");
+                    tbody.innerHTML = "";
+                    teachers.data.forEach((teacher) => {
+                        const row = document.createElement("tr");
+                        row.innerHTML = `
+                            <td><p>${teacher.name}</p></td>
+                            <td><p>${teacher.class_assigned}</p></td>
+                            <td><a href="#" class="edit-teacher" data-id="${teacher.id}" data-name="${teacher.name}" data-class="${teacher.class_assigned}"><span class='status process'>edit</span></a></td>
+                            <td><a href="#" class="delete-teacher" data-id="${teacher.id}"><span class='status delete'>delete</span></a></td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                }
+
+                const examinersRes = await fetch(`${baseUrl}/examiners`, { credentials: "include" });
+                const examiners = await examinersRes.json();
+                if (examiners.success) {
+                    const tbody = document.getElementById("examiners-body");
+                    tbody.innerHTML = "";
+                    if (examiners.data.length === 0) {
+                        const row = document.createElement("tr");
+                        row.innerHTML = '<td colspan="4">No examiners found.</td>';
+                        tbody.appendChild(row);
+                    } else {
+                        examiners.data.forEach((examiner) => {
+                            const subjects = examiner.subjects || 'No Subjects Assigned';
+                            const row = document.createElement("tr");
+                            row.innerHTML = `
+                                <td>${examiner.name}</td>
+                                <td>${subjects}</td>
+                                <td>
+                                    <a href="#" class="edit-examiner" data-id="${examiner.examiner_id}">
+                                        <span class="status process">edit</span>
+                                    </a>
+                                </td>
+                                <td>
+                                    <a href="#" class="delete-examiner" data-id="${examiner.examiner_id}">
+                                        <span class="status delete">delete</span>
+                                    </a>
+                                </td>
+                            `;
+                            tbody.appendChild(row);
+                        });
+                    }
+                }
+
+                document.querySelectorAll('.delete-teacher').forEach(function(link) {
+                    link.addEventListener('click', function(event) {
+                        event.preventDefault();
+                        var teacherId = this.getAttribute('data-id');
+                        swal({
+                            title: "Caution!",
+                            text: "Are you sure you want to delete?",
+                            icon: "warning",
+                            buttons: true,
+                            dangerMode: true,
+                        }).then(async function(isConfirmed) {
+                            if (isConfirmed) {
+                                const formData = new FormData();
+                                formData.append('id', teacherId);
+                                const response = await fetch(`${baseUrl}/teachers/delete`, {
+                                    method: 'POST',
+                                    body: formData,
+                                    credentials: 'include',
+                                });
+                                const result = await response.json();
+                                if (result.success) {
+                                    swal({
+                                        title: 'Deleted',
+                                        text: 'Teacher removed successfully.',
+                                        icon: 'success',
+                                        button: 'OK',
+                                    }).then(() => {
+                                        window.location.reload();
+                                    });
+                                } else {
+                                    swal({
+                                        title: 'Error',
+                                        text: result.message || 'Failed to delete teacher.',
+                                        icon: 'error',
+                                        button: 'OK',
+                                    });
+                                }
+                            }
+                        });
+                    });
+                });
+
+                document.querySelectorAll('.delete-examiner').forEach(function(link) {
+                    link.addEventListener('click', function(event) {
+                        event.preventDefault();
+                        var examinerId = this.getAttribute('data-id');
+                        swal({
+                            title: "Caution!",
+                            text: "Are you sure you want to delete?",
+                            icon: "warning",
+                            buttons: true,
+                            dangerMode: true,
+                        }).then(async function(isConfirmed) {
+                            if (isConfirmed) {
+                                const formData = new FormData();
+                                formData.append('examiner_id', examinerId);
+                                const response = await fetch(`${baseUrl}/examiners/delete`, {
+                                    method: 'POST',
+                                    body: formData,
+                                    credentials: 'include',
+                                });
+                                const result = await response.json();
+                                if (result.success) {
+                                    swal({
+                                        title: 'Deleted',
+                                        text: 'Examiner removed successfully.',
+                                        icon: 'success',
+                                        button: 'OK',
+                                    }).then(() => {
+                                        window.location.reload();
+                                    });
+                                } else {
+                                    swal({
+                                        title: 'Error',
+                                        text: result.message || 'Failed to delete examiner.',
+                                        icon: 'error',
+                                        button: 'OK',
+                                    });
+                                }
+                            }
+                        });
+                    });
+                });
+
+                const modal = document.getElementById('edit-teacher-modal');
+                const closeBtn = document.getElementById('edit-teacher-close');
+                const cancelBtn = document.getElementById('edit-teacher-cancel');
+                const form = document.getElementById('edit-teacher-form');
+
+                const addModal = document.getElementById('add-teacher-modal');
+                const addOpen = document.getElementById('add-teacher-open');
+                const addClose = document.getElementById('add-teacher-close');
+                const addCancel = document.getElementById('add-teacher-cancel');
+                const addForm = document.getElementById('add-teacher-form');
+
+                const examinerModal = document.getElementById('edit-examiner-modal');
+                const examinerClose = document.getElementById('edit-examiner-close');
+                const examinerCancel = document.getElementById('edit-examiner-cancel');
+                const examinerForm = document.getElementById('edit-examiner-form');
+
+                const addExaminerModal = document.getElementById('add-examiner-modal');
+                const addExaminerOpen = document.getElementById('add-examiner-open');
+                const addExaminerClose = document.getElementById('add-examiner-close');
+                const addExaminerCancel = document.getElementById('add-examiner-cancel');
+                const addExaminerForm = document.getElementById('add-examiner-form');
+
+                function closeModal() {
+                    modal.classList.remove('active');
+                    form.reset();
+                }
+
+                function closeAddModal() {
+                    addModal.classList.remove('active');
+                    addForm.reset();
+                }
+
+                function closeExaminerModal() {
+                    examinerModal.classList.remove('active');
+                    examinerForm.reset();
+                    setChecked(document.getElementById('edit-examiner-subjects'), []);
+                    setChecked(document.getElementById('edit-examiner-classes'), []);
+                }
+
+                function closeAddExaminerModal() {
+                    addExaminerModal.classList.remove('active');
+                    addExaminerForm.reset();
+                    setChecked(document.getElementById('add-examiner-subjects'), []);
+                    setChecked(document.getElementById('add-examiner-classes'), []);
+                }
+
+                closeBtn.addEventListener('click', closeModal);
+                cancelBtn.addEventListener('click', closeModal);
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) closeModal();
+                });
+
+                addOpen.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    addModal.classList.add('active');
+                });
+                addClose.addEventListener('click', closeAddModal);
+                addCancel.addEventListener('click', closeAddModal);
+                addModal.addEventListener('click', (e) => {
+                    if (e.target === addModal) closeAddModal();
+                });
+
+                examinerClose.addEventListener('click', closeExaminerModal);
+                examinerCancel.addEventListener('click', closeExaminerModal);
+                examinerModal.addEventListener('click', (e) => {
+                    if (e.target === examinerModal) closeExaminerModal();
+                });
+
+                addExaminerOpen.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    addExaminerModal.classList.add('active');
+                });
+                addExaminerClose.addEventListener('click', closeAddExaminerModal);
+                addExaminerCancel.addEventListener('click', closeAddExaminerModal);
+                addExaminerModal.addEventListener('click', (e) => {
+                    if (e.target === addExaminerModal) closeAddExaminerModal();
+                });
+
+                document.querySelectorAll('.edit-teacher').forEach((link) => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        document.getElementById('edit-teacher-id').value = link.dataset.id;
+                        document.getElementById('edit-teacher-name').value = link.dataset.name;
+                        document.getElementById('edit-teacher-class').value = link.dataset.class;
+                        document.getElementById('edit-teacher-password').value = '';
+                        modal.classList.add('active');
+                    });
+                });
+
+                document.querySelectorAll('.edit-examiner').forEach((link) => {
+                    link.addEventListener('click', async (e) => {
+                        e.preventDefault();
+                        const examinerId = link.dataset.id;
+                        try {
+                            const detailRes = await fetch(`${baseUrl}/examiners/detail?examiner_id=${examinerId}`, { credentials: "include" });
+                            const detail = await detailRes.json();
+                            if (!detail.success) {
+                                swal({
+                                    title: 'Error',
+                                    text: detail.message || 'Failed to load examiner.',
+                                    icon: 'error',
+                                    button: 'OK',
+                                });
+                                return;
+                            }
+
+                            document.getElementById('edit-examiner-id').value = detail.data.examiner_id;
+                            document.getElementById('edit-examiner-name').value = detail.data.name;
+                            document.getElementById('edit-examiner-password').value = '';
+                            setChecked(document.getElementById('edit-examiner-subjects'), detail.data.subject_ids);
+                            setChecked(document.getElementById('edit-examiner-classes'), detail.data.class_ids);
+                            examinerModal.classList.add('active');
+                        } catch (err) {
+                            console.error('Failed to load examiner', err);
+                        }
+                    });
+                });
+
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const formData = new FormData(form);
+                    const response = await fetch(`${baseUrl}/teachers/update`, {
+                        method: 'POST',
+                        body: formData,
+                        credentials: 'include',
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        swal({
+                            title: 'Success',
+                            text: 'Teacher updated successfully.',
+                            icon: 'success',
+                            button: 'OK',
+                        }).then(() => {
+                            closeModal();
+                            window.location.reload();
+                        });
+                    } else {
+                        swal({
+                            title: 'Error',
+                            text: result.message || 'Failed to update teacher.',
+                            icon: 'error',
+                            button: 'OK',
+                        });
+                    }
+                });
+
+                addForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const formData = new FormData(addForm);
+                    const response = await fetch(`${baseUrl}/teachers/create`, {
+                        method: 'POST',
+                        body: formData,
+                        credentials: 'include',
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        swal({
+                            title: 'Success',
+                            text: 'Teacher created successfully.',
+                            icon: 'success',
+                            button: 'OK',
+                        }).then(() => {
+                            closeAddModal();
+                            window.location.reload();
+                        });
+                    } else {
+                        swal({
+                            title: 'Error',
+                            text: result.message || 'Failed to create teacher.',
+                            icon: 'error',
+                            button: 'OK',
+                        });
+                    }
+                });
+
+                examinerForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const formData = new FormData(examinerForm);
+                    const response = await fetch(`${baseUrl}/examiners/update`, {
+                        method: 'POST',
+                        body: formData,
+                        credentials: 'include',
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        swal({
+                            title: 'Success',
+                            text: 'Examiner updated successfully.',
+                            icon: 'success',
+                            button: 'OK',
+                        }).then(() => {
+                            closeExaminerModal();
+                            window.location.reload();
+                        });
+                    } else {
+                        swal({
+                            title: 'Error',
+                            text: result.message || 'Failed to update examiner.',
+                            icon: 'error',
+                            button: 'OK',
+                        });
+                    }
+                });
+
+                addExaminerForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const formData = new FormData(addExaminerForm);
+                    const response = await fetch(`${baseUrl}/examiners/create`, {
+                        method: 'POST',
+                        body: formData,
+                        credentials: 'include',
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        swal({
+                            title: 'Success',
+                            text: 'Examiner created successfully.',
+                            icon: 'success',
+                            button: 'OK',
+                        }).then(() => {
+                            closeAddExaminerModal();
+                            window.location.reload();
+                        });
+                    } else {
+                        swal({
+                            title: 'Error',
+                            text: result.message || 'Failed to create examiner.',
+                            icon: 'error',
+                            button: 'OK',
+                        });
+                    }
+                });
+            } catch (error) {
+                console.error("Users page load failed", error);
+            }
+        })();
+    </script>
+</body>
+
+</html>

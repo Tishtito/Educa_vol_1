@@ -9,6 +9,7 @@ use Medoo\Medoo;
 class DashboardController
 {
 	private Medoo $db;
+	private const TOKEN_SECRET = 'educa-jss-token-v1';
 
 	public function __construct(Medoo $db)
 	{
@@ -29,6 +30,16 @@ class DashboardController
 		}
 
 		return true;
+	}
+
+	private function tokenKey(): string
+	{
+		return hash('sha256', session_id() . '|' . self::TOKEN_SECRET);
+	}
+
+	private function makeToken(string $payload): string
+	{
+		return hash_hmac('sha256', $payload, $this->tokenKey());
 	}
 
 	public function summary(): void
@@ -93,10 +104,19 @@ class DashboardController
 			'ORDER' => ['date_created' => 'DESC'],
 		]);
 
+		$data = array_map(function ($row) {
+			$examId = (int)$row['exam_id'];
+			return [
+				'exam_id' => $examId,
+				'exam_name' => $row['exam_name'],
+				'token' => $this->makeToken('exam:' . $examId),
+			];
+		}, $rows ?: []);
+
 		header('Content-Type: application/json');
 		echo json_encode([
 			'success' => true,
-			'data' => $rows,
+			'data' => $data,
 		]);
 	}
 
