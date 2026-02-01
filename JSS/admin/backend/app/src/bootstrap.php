@@ -5,8 +5,8 @@ declare(strict_types=1);
 ini_set('display_errors', '0');
 ini_set('log_errors', '1');
 
-$logDir = __DIR__ . '/../../logs';
-$logFile = $logDir . '/php_errors.log';
+$logDir = __DIR__ . '/../login-logs';
+$logFile = $logDir . '/php_login.log';
 if (!is_dir($logDir)) {
     @mkdir($logDir, 0775, true);
 }
