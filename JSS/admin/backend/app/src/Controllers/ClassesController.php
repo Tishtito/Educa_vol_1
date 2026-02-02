@@ -80,7 +80,7 @@ class ClassesController
 		try {
 			$this->db->insert('classes', [
 				'class_name' => $name,
-				'year' => $grade,
+				'grade' => $grade,
 			]);
 
 			header('Content-Type: application/json');

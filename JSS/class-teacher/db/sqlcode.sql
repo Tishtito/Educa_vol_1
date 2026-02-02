@@ -38,6 +38,7 @@ CREATE TABLE students (
     pno. VARCHAR(20) UNIQUE,
     class VARCHAR(50) NOT NULL,
     status ENUM('Active', 'Finished', 'Graduated') DEFAULT 'Active',
+    finished_at YEAR,
     created_at datetime,
     updated_at datetime,
     deleted_at datetime
@@ -107,7 +108,8 @@ CREATE TABLE classes (
     year YEAR
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     updated_at datetime,
-    deleted_at datetime
+    deleted_at datetime,
+    grade INT(11)
 );
 
 CREATE TABLE examiner_classes (

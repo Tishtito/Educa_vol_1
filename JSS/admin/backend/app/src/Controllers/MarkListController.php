@@ -158,31 +158,73 @@ class MarkListController
 				'class' => $grade,
 			]);
 		} else {
+			$nextId = (int)$this->db->max('exam_mean_scores', 'id');
+			$nextId = $nextId > 0 ? $nextId + 1 : 1;
+
 			$this->db->insert('exam_mean_scores', array_merge([
+				'id' => $nextId,
 				'exam_id' => $examId,
 				'class' => $grade,
 			], $meanPayload));
 		}
 
-		$prevExamId = $this->db->get('exams', 'exam_id', [
+		$prevMeanScores = array_fill_keys($subjects, '-');
+		$prevMeanTotalMarks = '-';
+
+		$prevRow = $this->db->get('exam_mean_scores', '*', [
+			'exam_id[<]' => $examId,
+			'class' => $grade,
+			'ORDER' => ['exam_id' => 'DESC'],
+			'LIMIT' => 1,
+		]);
+		$prevExamId = $prevRow['exam_id'] ?? $this->db->get('exams', 'exam_id', [
 			'exam_id[<]' => $examId,
 			'ORDER' => ['exam_id' => 'DESC'],
 			'LIMIT' => 1,
 		]);
 
-		$prevMeanScores = array_fill_keys($subjects, '-');
-		$prevMeanTotalMarks = '-';
-
 		if ($prevExamId) {
-			$prevRow = $this->db->get('exam_mean_scores', '*', [
-				'exam_id' => $prevExamId,
-				'class' => $grade,
-			]);
 			if ($prevRow) {
 				foreach ($subjects as $subject) {
 					$prevMeanScores[$subject] = $prevRow[$subject] ?? '-';
 				}
 				$prevMeanTotalMarks = $prevRow['total_mean'] ?? '-';
+			} else {
+				$prevTotals = array_fill_keys($subjects, 0);
+				$prevCounts = array_fill_keys($subjects, 0);
+				$prevTotalScore = 0;
+				$prevTotalStudents = 0;
+
+				$prevSql = "SELECT er.*, s.student_id FROM exam_results er INNER JOIN students s ON s.student_id = er.student_id WHERE er.exam_id = :exam_id AND s.class = :grade";
+				$prevStmt = $this->db->query($prevSql, [
+					':exam_id' => $prevExamId,
+					':grade' => $grade,
+				]);
+				$prevStudents = $prevStmt ? $prevStmt->fetchAll() : [];
+
+				foreach ($prevStudents as $row) {
+					$studentTotal = 0;
+					foreach ($subjects as $subject) {
+						if ($row[$subject] !== null) {
+							$prevTotals[$subject] += (float)$row[$subject];
+							$prevCounts[$subject]++;
+							$studentTotal += (float)$row[$subject];
+						}
+					}
+
+					if ($studentTotal > 0) {
+						$prevTotalScore += $studentTotal;
+						$prevTotalStudents++;
+					}
+				}
+
+				$prevMeanScores = [];
+				foreach ($subjects as $subject) {
+					$count = $prevCounts[$subject] ?? 0;
+					$total = $prevTotals[$subject] ?? 0;
+					$prevMeanScores[$subject] = $count > 0 ? round($total / $count, 2) : '-';
+				}
+				$prevMeanTotalMarks = $prevTotalStudents > 0 ? round($prevTotalScore / $prevTotalStudents, 2) : '-';
 			}
 		}
 
