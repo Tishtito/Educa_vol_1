@@ -104,7 +104,8 @@ CREATE TABLE examiner_subjects (
 CREATE TABLE classes (
     class_id INT AUTO_INCREMENT PRIMARY KEY,
     class_name VARCHAR(50) NOT NULL UNIQUE,
-    year YEAR
+    grade INT (11),
+    year YEAR,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     updated_at datetime,
     deleted_at datetime

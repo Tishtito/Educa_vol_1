@@ -19,6 +19,7 @@ class AuthController
 	{
 		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 			http_response_code(405);
+			header('Content-Type: application/json');
 			echo json_encode(['success' => false, 'message' => 'Method not allowed']);
 			return;
 		}
@@ -32,10 +33,12 @@ class AuthController
 		$username = isset($_POST['username']) ? trim((string)$_POST['username']) : '';
 		$password = isset($_POST['password']) ? (string)$_POST['password'] : '';
 
+		header('Content-Type: application/json');
+
 		if ($username === '' || $password === '') {
 			$this->clearSession();
 			error_log('[AUTH] Empty username or password');
-			header('Location: ' . $this->basePath() . '/Pages/login.html?error=1');
+			echo json_encode(['success' => false, 'message' => 'Username and password are required.']);
 			return;
 		}
 
@@ -47,7 +50,7 @@ class AuthController
 		if (!$validPassword) {
 			$this->clearSession();
 			error_log('[AUTH] Invalid credentials for username=' . $username . ' teacherFound=' . ($hasTeacher ? '1' : '0'));
-			header('Location: ' . $this->basePath() . '/pages/login.html?error=1');
+			echo json_encode(['success' => false, 'message' => 'Invalid username or password.']);
 			return;
 		}
 
@@ -59,7 +62,7 @@ class AuthController
 		$_SESSION['class_assigned'] = $teacher['class_assigned'];
 		error_log('[AUTH] Login success username=' . $teacher['username']);
 
-		header('Location: ' . $this->basePath() . '/pages/exam.html');
+		echo json_encode(['success' => true, 'message' => 'Login successful.']);
 	}
 
 	public function check(): void
@@ -71,9 +74,10 @@ class AuthController
 
 		header('Content-Type: application/json');
 		echo json_encode([
-			'authenticated' => isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true,
+			'success' => isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true,
 			'username' => $_SESSION['username'] ?? null,
 			'name' => $_SESSION['name'] ?? null,
+			'id' => $_SESSION['id'] ?? null,
 			'class_assigned' => $_SESSION['class_assigned'] ?? null,
 		]);
 	}

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examiner Portal - Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <!-- Header -->
+            <div class="login-header">
+                <img src="../photos/logo.png" alt="Educa Logo">
+                <h1>Examiner Portal</h1>
+                <p>Assessment & Evaluation System</p>
+            </div>
+
+            <!-- Login Form -->
+            <div class="login-body">
+                <form id="login-form" autocomplete="off">
+                    <!-- Error Message -->
+                    <div id="loginError"></div>
+
+                    <!-- Username Field -->
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-user"></i>
+                            <input 
+                                type="text" 
+                                id="username" 
+                                name="username" 
+                                placeholder="Enter your username"
+                                required 
+                                autocomplete="username"
+                            />
+                        </div>
+                        <span id="usernameError" class="error-message"></span>
+                    </div>
+
+                    <!-- Password Field -->
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock"></i>
+                            <input 
+                                type="password" 
+                                id="password" 
+                                name="password" 
+                                placeholder="Enter your password"
+                                required
+                                autocomplete="current-password"
+                            />
+                        </div>
+                        <span id="passwordError" class="error-message"></span>
+                    </div>
+
+                    <!-- Show Password Toggle -->
+                    <div class="show-password-wrapper">
+                        <input type="checkbox" id="show-password">
+                        <label for="show-password">Show password</label>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="login-btn" id="submitBtn">
+                        <span id="submitText">Sign In</span>
+                    </button>
+
+                    <!-- Loading Indicator -->
+                    <div class="loading" id="loadingSpinner">
+                        <span class="spinner"></span>
+                        <span>Authenticating...</span>
+                    </div>
+
+                    <!-- Forgot Password Link -->
+                    <div class="forgot-password">
+                        <a href="#">Forgot your password?</a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Footer -->
+            <div class="login-footer">
+                <p>&copy; 2026 Educa. All rights reserved. | Education Management System</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Show/hide password toggle
+        document.getElementById('show-password').addEventListener('change', function() {
+            const passwordInput = document.getElementById('password');
+            passwordInput.type = this.checked ? 'text' : 'password';
+        });
+
+        // Handle form submission
+        document.getElementById('login-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Clear previous errors
+            document.getElementById('loginError').innerHTML = '';
+            document.getElementById('usernameError').textContent = '';
+            document.getElementById('passwordError').textContent = '';
+            
+            // Get form values
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            
+            // Validate inputs
+            let hasError = false;
+            if (username === '') {
+                document.getElementById('usernameError').textContent = 'Please enter your username.';
+                hasError = true;
+            }
+            if (password === '') {
+                document.getElementById('passwordError').textContent = 'Please enter your password.';
+                hasError = true;
+            }
+            
+            if (hasError) return;
+            
+            // Show loading state
+            document.getElementById('submitBtn').disabled = true;
+            document.getElementById('submitText').style.display = 'none';
+            document.getElementById('loadingSpinner').classList.add('show');
+            
+            try {
+                // Create form data
+                const formData = new FormData();
+                formData.append('username', username);
+                formData.append('password', password);
+                
+                // Send login request
+                const response = await fetch('../backend/public/index.php?route=/auth/login', {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Redirect to exam page
+                    window.location.href = 'exam.html';
+                } else {
+                    // Show error message
+                    document.getElementById('loginError').innerHTML = 
+                        '<div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> ' + escapeHtml(data.message) + '</div>';
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                document.getElementById('loginError').innerHTML = 
+                    '<div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> An error occurred. Please try again.</div>';
+            } finally {
+                // Hide loading state
+                document.getElementById('submitBtn').disabled = false;
+                document.getElementById('submitText').style.display = 'inline';
+                document.getElementById('loadingSpinner').classList.remove('show');
+            }
+        });
+
+        /**
+         * Escape HTML to prevent XSS
+         */
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

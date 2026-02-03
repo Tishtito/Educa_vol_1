@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subject Marks</title>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css">
+    <link rel="stylesheet" href="../css/Tpanel.css">
+    <link rel="stylesheet" href="../css/subject.css">
+</head>
+<body>
+
+<div id="headerContainer"></div>
+<div id="sidebarContainer"></div>
+
+<section class="marks-table">
+    <a href="home.html" class="back-btn">← Back to Home</a>
+    
+    <h1 class="heading">Subject Marks Management</h1>
+
+    <!-- Messages -->
+    <div class="error-message" id="errorMessage"></div>
+    <div class="success-message" id="successMessage"></div>
+
+    <!-- Subject Info -->
+    <div class="subject-info" id="subjectInfo" style="display: none;">
+        <h2 id="subjectTitle"></h2>
+        <p id="classInfo"></p>
+        <p id="examInfo"></p>
+    </div>
+
+    <!-- Marks Out Of -->
+    <div class="marks-out-of">
+        <label for="marksOutOf">Marks Out Of:</label>
+        <input type="number" id="marksOutOf" min="1" max="100" placeholder="e.g., 100">
+        <button type="button" id="setMarksBtn">Set</button>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Loading students...</p>
+    </div>
+
+    <!-- Students Table -->
+    <div id="studentsContainer" style="display: none;">
+        <table class="content-table" id="studentsTable">
+            <thead>
+                <tr>
+                    <th>Student Name</th>
+                    <th>Marks</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="studentTableBody">
+                <!-- Populated by JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- No Data Message -->
+    <div class="no-data" id="noDataMessage" style="display: none;">
+        <i class="fas fa-inbox" style="font-size: 48px; color: #ccc; margin-bottom: 20px; display: block;"></i>
+        <p>No students found for this subject and class.</p>
+    </div>
+</section>
+
+<div id="footerContainer"></div>
+
+<script src="../js/script.js"></script>
+<script src="../js/examiner-data.js"></script>
+<script src="../js/header-init.js"></script>
+<script>
+// ========================================
+// COMPONENT LOADING
+// ========================================
+async function loadComponentPromise(componentName, containerId) {
+    try {
+        const res = await fetch(`components/${componentName}.html`);
+        if (!res.ok) throw new Error(`Failed to load ${componentName}`);
+        const html = await res.text();
+        document.getElementById(containerId).innerHTML = html;
+        if (containerId === 'headerContainer') {
+            document.dispatchEvent(new Event('headerLoaded'));
+        }
+    } catch (err) {
+        console.error(`Error loading ${componentName} component:`, err);
+    }
+}
+
+// ========================================
+// API CONFIGURATION
+// ========================================
+const API_BASE_URL = '../backend/public/index.php';
+
+// ========================================
+// STATE
+// ========================================
+let subjectId = null;
+let classId = null;
+let currentSubjectName = null;
+let currentClassName = null;
+let currentExamId = null;
+
+// ========================================
+// DOM ELEMENTS
+// ========================================
+const loading = document.getElementById('loading');
+const studentsContainer = document.getElementById('studentsContainer');
+const noDataMessage = document.getElementById('noDataMessage');
+const errorMessage = document.getElementById('errorMessage');
+const successMessage = document.getElementById('successMessage');
+const studentTableBody = document.getElementById('studentTableBody');
+const subjectInfo = document.getElementById('subjectInfo');
+const marksOutOfInput = document.getElementById('marksOutOf');
+const setMarksBtn = document.getElementById('setMarksBtn');
+
+// ========================================
+// INITIALIZATION
+// ========================================
+document.addEventListener('DOMContentLoaded', async () => {
+    await Promise.all([
+        loadComponentPromise('header', 'headerContainer'),
+        loadComponentPromise('sidebar', 'sidebarContainer'),
+        loadComponentPromise('footer', 'footerContainer'),
+        loadExaminerData()
+    ]);
+
+    await checkAuth();
+    subjectId = new URLSearchParams(window.location.search).get('subject_id');
+    classId = new URLSearchParams(window.location.search).get('class_id');
+
+    if (!subjectId || !classId) {
+        showError('Missing subject or class ID. Please go back and select again.');
+        return;
+    }
+
+    await loadStudents(subjectId, classId);
+});
+
+// ========================================
+// AUTHENTICATION
+// ========================================
+async function checkAuth() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/auth/check`, { credentials: 'include' });
+        const data = await response.json();
+
+        if (data.success) {
+            document.querySelector('.name') && (document.querySelector('.name').textContent = data.name || 'User');
+        } else {
+            window.location.href = '../index.php';
+        }
+    } catch (error) {
+        console.error('Auth check failed:', error);
+        window.location.href = '../index.php';
+    }
+}
+
+// ========================================
+// LOAD STUDENTS
+// ========================================
+async function loadStudents(subjectId, classId) {
+    try {
+        showLoading(true);
+        hideMessages();
+
+        const url = `${API_BASE_URL}/subjects/students?subject_id=${subjectId}&class_id=${classId}`;
+
+        const response = await fetch(url, { credentials: 'include' });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            showError(data.message || 'Failed to load students.');
+            return;
+        }
+
+        if (data.success && data.students && data.students.length > 0) {
+            currentSubjectName = data.subject_name;
+            currentClassName = data.class_id;
+            currentExamId = data.exam_id;
+
+            displayStudents(data);
+            studentsContainer.style.display = 'block';
+            noDataMessage.style.display = 'none';
+        } else {
+            noDataMessage.style.display = 'block';
+            studentsContainer.style.display = 'none';
+            showError('No students found for this subject and class.');
+        }
+    } catch (error) {
+        console.error('Error loading students:', error);
+        showError('Failed to load students: ' + error.message);
+        noDataMessage.style.display = 'block';
+        studentsContainer.style.display = 'none';
+    } finally {
+        showLoading(false);
+    }
+}
+
+// ========================================
+// DISPLAY STUDENTS
+// ========================================
+function displayStudents(data) {
+    // Show subject info
+    document.getElementById('subjectTitle').textContent = `${data.subject_name}`;
+    document.getElementById('classInfo').textContent = `Class: ${data.class_id}`;
+    // document.getElementById('examInfo').textContent = `Exam ID: ${data.exam_id}`;
+    subjectInfo.style.display = 'block';
+
+    studentTableBody.innerHTML = '';
+
+    data.students.forEach(student => {
+        const row = document.createElement('tr');
+        const marks = student.marks ?? '-';
+
+        row.innerHTML = `
+            <td>${student.name}</td>
+            <td id="marks-${student.student_id}">
+                <div class="marks-cell">
+                    <span id="display-${student.student_id}">${marks}</span>
+                    <form class="edit-form hidden" id="form-${student.student_id}">
+                        <input type="number" class="marks-input" id="input-${student.student_id}" min="0" value="${marks === '-' ? '' : marks}" placeholder="Enter marks" required>
+                        <button type="submit" class="action-btn save-btn" style="background: #28a745;">Save</button>
+                        <button type="button" class="action-btn cancel-btn" onclick="cancelEdit(${student.student_id})">Cancel</button>
+                    </form>
+                </div>
+            </td>
+            <td>
+                <button class="action-btn" onclick="toggleEditMarks(${student.student_id})">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+            </td>
+        `;
+
+        // Append to DOM first
+        studentTableBody.appendChild(row);
+
+        // Then add form submission handler after the element is in the DOM
+        const formElement = document.getElementById(`form-${student.student_id}`);
+        if (formElement) {
+            formElement.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const inputValue = document.getElementById(`input-${student.student_id}`).value;
+                await updateMarks(student.student_id, subjectId, parseInt(inputValue));
+            });
+        }
+    });
+}
+
+// ========================================
+// EDIT MARKS
+// ========================================
+function toggleEditMarks(studentId) {
+    const displayElem = document.getElementById(`display-${studentId}`);
+    const formElem = document.getElementById(`form-${studentId}`);
+
+    displayElem.parentElement.style.display = 'none';
+    formElem.classList.remove('hidden');
+    document.getElementById(`input-${studentId}`).focus();
+}
+
+function cancelEdit(studentId) {
+    const displayElem = document.getElementById(`display-${studentId}`);
+    const formElem = document.getElementById(`form-${studentId}`);
+
+    displayElem.parentElement.style.display = 'flex';
+    formElem.classList.add('hidden');
+}
+
+// ========================================
+// UPDATE MARKS
+// ========================================
+async function updateMarks(studentId, subjectId, marks) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/subjects/students/marks`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                student_id: studentId,
+                subject_id: parseInt(subjectId),
+                marks: marks
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Update display
+            document.getElementById(`display-${studentId}`).textContent = marks;
+
+            // Close edit mode
+            cancelEdit(studentId);
+
+            // Show success message
+            showSuccess(`Marks updated for student ${studentId}`);
+        } else {
+            showError(data.message || 'Failed to update marks.');
+        }
+    } catch (error) {
+        console.error('Error updating marks:', error);
+        showError('Failed to update marks: ' + error.message);
+    }
+}
+
+// ========================================
+// SET MARKS OUT OF
+// ========================================
+setMarksBtn.addEventListener('click', () => {
+    const marksOutOf = marksOutOfInput.value;
+
+    if (!marksOutOf) {
+        showError('Please enter marks out of value.');
+        return;
+    }
+
+    // Store in localStorage for reference
+    localStorage.setItem('marksOutOf', marksOutOf);
+    showSuccess(`Marks out of set to ${marksOutOf}`);
+    marksOutOfInput.value = '';
+});
+
+// ========================================
+// UI UTILITIES
+// ========================================
+function showLoading(show) {
+    loading.classList.toggle('active', show);
+}
+
+function showError(message) {
+    console.error('ERROR:', message);
+    errorMessage.textContent = message;
+    errorMessage.classList.add('show');
+    setTimeout(() => errorMessage.classList.remove('show'), 5000);
+}
+
+function showSuccess(message) {
+    console.log('SUCCESS:', message);
+    successMessage.textContent = message;
+    successMessage.classList.add('show');
+    setTimeout(() => successMessage.classList.remove('show'), 3000);
+}
+
+function hideMessages() {
+    errorMessage.classList.remove('show');
+    successMessage.classList.remove('show');
+}
+
+
+</script>

@@ -7,9 +7,6 @@
    <title>Teacher Dashboard</title>
    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css">
    <link rel="stylesheet" href="../css/Tpanel.css">
-   <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
-   <script src="../js/script.js"></script>
-   <script src="../js/teacher-data.js"></script>
    <style>
       .search-form {
          display: none;
@@ -133,193 +130,84 @@
 <!-- Footer Component Container -->
 <div id="footerContainer"></div>
 
-<script>
-    // Initialize components and dashboard
-    document.addEventListener('DOMContentLoaded', () => {
-      // Load components first, then data
-      Promise.all([
-         loadComponentPromise('header', 'headerContainer'),
-         loadComponentPromise('sidebar', 'sidebarContainer'),
-         loadComponentPromise('sidebar', 'sidebarContainer'),
-         loadComponentPromise('footer', 'footerContainer')
-      ]).then(() => {
-         console.log('Components loaded');
-         // Initialize script listeners after components are loaded
-         // Use setTimeout to ensure DOM is painted before attaching listeners
-         setTimeout(() => {
-            initializeScriptListeners();
-            loadDashboard();
-         }, 50);
-      }).catch(err => {
-         console.error('Error loading components:', err);
-         loadDashboard(); // Still try to load data
-      });
-   });
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="../js/teacher-data.js"></script>
+<script src="../js/script.js"></script>
+<script src="../js/header-init.js"></script>
 
-   /**
-    * Wrapper for loadComponent that returns a promise
-    */
-   function loadComponentPromise(componentName, containerId) {
-      return new Promise((resolve, reject) => {
-         const container = document.getElementById(containerId);
-         if (!container) {
-            reject(new Error(`Container with id "${containerId}" not found`));
+<script>
+async function loadComponentPromise(componentName, containerId) {
+   try {
+      const res = await fetch(`components/${componentName}.html`);
+      if (!res.ok) throw new Error(`Failed to load ${componentName}`);
+      const html = await res.text();
+      document.getElementById(containerId).innerHTML = html;
+      // Trigger header re-initialization after header loads
+      if (containerId === 'headerContainer') {
+         document.dispatchEvent(new Event('headerLoaded'));
+      }
+   } catch (err) {
+      console.error(`Error loading ${componentName} component:`, err);
+   }
+}
+
+async function loadDashboard() {
+   try {
+      const response = await fetch('../backend/public/index.php/dashboard', { credentials: 'include' });
+      
+      if (!response.ok) {
+         if (response.status === 401) {
+            window.location.href = 'index.html';
             return;
          }
-
-         const componentPath = `components/${componentName}.html`;
-         
-         fetch(componentPath)
-            .then(response => {
-               if (!response.ok) throw new Error(`Failed to load ${componentName} component`);
-               return response.text();
-            })
-            .then(html => {
-               container.innerHTML = html;
-               
-               // Initialize component-specific event listeners
-               if (componentName === 'header') {
-                  initHeaderEvents();
-               } else if (componentName === 'sidebar') {
-                  initSidebarEvents();
-               }
-               
-               resolve();
-            })
-            .catch(error => {
-               console.error(`Error loading ${componentName} component:`, error);
-               reject(error);
-            });
-      });
-   }
-
-   /**
-    * Initialize header event listeners
-    */
-   function initHeaderEvents() {
-      const menuBtn = document.getElementById('menu-btn');
-      const sidebar = document.querySelector('.side-bar');
-      
-      if (menuBtn && sidebar) {
-         menuBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('active');
-         });
+         throw new Error(`Failed to load dashboard data: ${response.status}`);
       }
 
-      const userBtn = document.getElementById('user-btn');
-      const profile = document.querySelector('.header .profile');
-      
-      if (userBtn && profile) {
-         userBtn.addEventListener('click', () => {
-            profile.classList.toggle('active');
-         });
-      }
+      const data = await response.json();
 
-      const toggleBtn = document.getElementById('toggle-btn');
-      if (toggleBtn) {
-         toggleBtn.addEventListener('click', () => {
-            document.body.classList.toggle('dark');
-            localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
-         });
-         
-         // Restore saved theme
-         const savedTheme = localStorage.getItem('theme');
-         if (savedTheme === 'dark') {
-            document.body.classList.add('dark');
+      if (data.success) {
+         // Load teacher names in header and sidebar
+         await loadTeacherData();
+
+         // Update class title
+         const classTitleElement = document.getElementById('classTitle');
+         if (classTitleElement) classTitleElement.textContent = data.title || 'Class Dashboard';
+
+         // Update mean scores
+         const means = data.means || {};
+         const elements = {
+            'englishMean': means.English,
+            'kiswahiliMean': means.Kiswahili,
+            'mathMean': means.Math,
+            'creativeMean': means.Creative,
+            'religiousMean': means.Religious,
+            'agricultureMean': means.Agriculture,
+            'technicalMean': means.Technical,
+            'sstMean': means.SST,
+            'scienceMean': means.Science,
+            'mssMean': means.total_mean
+         };
+
+         for (const [id, value] of Object.entries(elements)) {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value || '-';
          }
+      } else {
+         throw new Error(data.message || 'Unknown error');
       }
+   } catch (error) {
+      console.error('Error loading dashboard:', error);
    }
+}
 
-   /**
-    * Initialize sidebar event listeners
-    */
-   function initSidebarEvents() {
-      const closeBtn = document.getElementById('close-btn');
-      const sidebar = document.querySelector('.side-bar');
-      
-      if (closeBtn && sidebar) {
-         closeBtn.addEventListener('click', () => {
-            sidebar.classList.remove('active');
-         });
-      }
-
-      // Close sidebar when a link is clicked
-      const navLinks = document.querySelectorAll('.side-bar .navbar a');
-      navLinks.forEach(link => {
-         link.addEventListener('click', () => {
-            if (sidebar) sidebar.classList.remove('active');
-         });
-      });
-   }
-
-   // Load dashboard data from backend
-   async function loadDashboard() {
-      try {
-         const response = await fetch('../backend/public/index.php/dashboard');
-         
-         if (!response.ok) {
-            if (response.status === 401) {
-               // Redirect to login if unauthorized
-               window.location.href = 'index.html';
-               return;
-            }
-            const errorText = await response.text();
-            console.error('Response status:', response.status);
-            console.error('Response text:', errorText);
-            throw new Error(`Failed to load dashboard data: ${response.status}`);
-         }
-
-         const contentType = response.headers.get('content-type');
-         if (!contentType || !contentType.includes('application/json')) {
-            const responseText = await response.text();
-            console.error('Invalid response type. Expected JSON, got:', contentType);
-            console.error('Response body:', responseText);
-            throw new Error('Invalid response type from server');
-         }
-
-         const data = await response.json();
-
-         if (data.success) {
-            // Load teacher names in header and sidebar
-            loadTeacherData();
-
-            // Update class title
-            const classTitleElement = document.getElementById('classTitle');
-            if (classTitleElement) classTitleElement.textContent = data.title || 'Class Dashboard';
-
-            // Update mean scores
-            const means = data.means || {};
-            const elements = {
-               'englishMean': means.English,
-               'kiswahiliMean': means.Kiswahili,
-               'mathMean': means.Math,
-               'creativeMean': means.Creative,
-               'religiousMean': means.Religious,
-               'agricultureMean': means.Agriculture,
-               'technicalMean': means.Technical,
-               'sstMean': means.SST,
-               'scienceMean': means.Science,
-               'mssMean': means.total_mean
-            };
-
-            for (const [id, value] of Object.entries(elements)) {
-               const el = document.getElementById(id);
-               if (el) el.textContent = value || '-';
-            }
-         } else {
-            console.error('Dashboard data error:', data.message);
-            throw new Error(data.message || 'Unknown error');
-         }
-      } catch (error) {
-         console.error('Error loading dashboard:', error);
-         swal({
-            title: 'Error!',
-            text: 'Failed to load dashboard data: ' + error.message,
-            icon: 'error',
-            button: 'OK',
-         });
-      }
-   }
+document.addEventListener('DOMContentLoaded', async () => {
+   await Promise.all([
+      loadComponentPromise('header', 'headerContainer'),
+      loadComponentPromise('sidebar', 'sidebarContainer'),
+      loadComponentPromise('footer', 'footerContainer')
+   ]);
+   await loadDashboard();
+});
 </script>
 
 </body>

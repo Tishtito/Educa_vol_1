@@ -112,9 +112,7 @@ class StudentController
         }
     }
 
-    /**
-     * Delete a student
-     */
+    /*Delete a student*/
     public function deleteStudent(): void
     {
         $this->startSession();
@@ -166,9 +164,7 @@ class StudentController
         }
     }
 
-    /**
-     * Update student class
-     */
+    /* Update student class */
     public function updateClass(): void
     {
         $this->startSession();
@@ -214,9 +210,7 @@ class StudentController
         }
     }
 
-    /**
-     * Graduate all students
-     */
+    /*Graduate all students*/
     public function graduateAll(): void
     {
         $this->startSession();
@@ -365,9 +359,7 @@ class StudentController
         }
     }
 
-    /**
-     * Create a new student
-     */
+    /*Create a new student*/
     public function createStudent(): void
     {
         $this->startSession();

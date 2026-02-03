@@ -204,9 +204,6 @@
          loadTeacherData()
       ]);
 
-      // Initialize script listeners for menu button functionality
-      initializeScriptListeners();
-
       // Load student profile
       await loadStudentProfile();
    });
@@ -224,8 +221,7 @@
             return;
          }
 
-         const response = await fetch(`../backend/public/index.php?route=/student-profile&id=${encodeURIComponent(studentId)}`, {
-            method: 'GET',
+         const response = await fetch(`../backend/public/index.php/student/${encodeURIComponent(studentId)}`, {
             credentials: 'include'
          });
 

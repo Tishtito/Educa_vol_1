@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Examiner Dashboard</title>
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css">
+   <link rel="stylesheet" href="../css/Tpanel.css">
+   <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+</head>
+<body>
+
+<div id="headerContainer"></div>
+<div id="sidebarContainer"></div>
+
+<section class="courses">
+   <div class="box-container" id="coursesContainer">
+      <p>Loading subjects...</p>
+   </div>
+</section>
+
+<div id="footerContainer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="../js/examiner-data.js"></script>
+<script src="../js/header-init.js"></script>
+<script src="../js/script.js"></script>
+
+<script>
+// Subject image mapping
+const subjectImages = {
+   "Kiswahili": "../photos/kiswahili.jpg",
+   "Math": "../photos/math.png",
+   "English": "../photos/english.jpg",
+   "creative arts": "../photos/creative.jpg",
+   "religious": "../photos/religious.jpg",
+   "intergrated science": "../photos/science.png",
+   "social studies": "../photos/sst.png",
+   "pre-technical": "../photos/technical.jpg",
+   "agriculture": "../photos/agriculture.jpg"
+};
+
+async function loadComponentPromise(componentName, containerId) {
+   try {
+      const res = await fetch(`components/${componentName}.html`);
+      if (!res.ok) throw new Error(`Failed to load ${componentName}`);
+      const html = await res.text();
+      document.getElementById(containerId).innerHTML = html;
+      if (containerId === 'headerContainer') {
+         document.dispatchEvent(new Event('headerLoaded'));
+      }
+   } catch (err) {
+      console.error(`Error loading ${componentName} component:`, err);
+   }
+}
+
+async function checkAuth() {
+   const res = await fetch('../backend/public/index.php/auth/check', { credentials: 'include' });
+   if (!res.ok) {
+      window.location.href = 'index.html';
+      return null;
+   }
+   return await res.json();
+}
+
+async function loadDashboard() {
+   const coursesContainer = document.getElementById('coursesContainer');
+   coursesContainer.innerHTML = '<p>Loading subjects...</p>';
+   
+   try {
+      const res = await fetch('../backend/public/index.php/dashboard', { credentials: 'include' });
+      
+      if (res.status === 401) {
+         window.location.href = 'index.html';
+         return;
+      }
+      
+      if (res.status === 403) {
+         const data = await res.json();
+         Swal.fire('Warning', data.message || 'No classes assigned. Visit Admin for assistance.', 'warning')
+            .then(() => {
+               window.location.href = 'exam.html';
+            });
+         return;
+      }
+      
+      const data = await res.json();
+      
+      if (!data.success) {
+         throw new Error(data.message || 'Failed to load dashboard');
+      }
+      
+      const { subjects, classes } = data;
+      
+      if (!subjects || subjects.length === 0 || !classes || classes.length === 0) {
+         coursesContainer.innerHTML = '<p>No subjects or classes assigned.</p>';
+         return;
+      }
+      
+      coursesContainer.innerHTML = '';
+      
+      // Create boxes for each subject-class combination
+      subjects.forEach(subject => {
+         classes.forEach(classItem => {
+            const box = document.createElement('div');
+            box.className = 'box';
+            const subjectName = escapeHtml(subject.name);
+            const className = escapeHtml(classItem.class_name);
+            const subjectImage = subjectImages[subject.name] || '../photos/default.jpg';
+            
+            box.innerHTML = `
+               <div class="thumb">
+                  <img src="${subjectImage}" alt="${subjectName} Image">
+               </div>
+               <h3 class="title">${subjectName} - ${className}</h3>
+               <button class="inline-btn" onclick="goToSubject('${subjectName}', ${subject.subject_id}, ${classItem.class_id}, '${className}')">View Students</button>
+            `;
+            coursesContainer.appendChild(box);
+         });
+      });
+   } catch (err) {
+      coursesContainer.innerHTML = `<p style="color:red;">${err.message}</p>`;
+      console.error('Dashboard error:', err);
+   }
+}
+
+function escapeHtml(text) {
+   const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+   return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+function goToSubject(subjectName, subjectId, classId, className) {
+   // Navigate to generic subjects.html page with subject and class IDs
+   window.location.href = `subjects.html?subject_id=${subjectId}&class_id=${classId}`;
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+   await checkAuth();
+   await Promise.all([
+      loadComponentPromise('header', 'headerContainer'),
+      loadComponentPromise('sidebar', 'sidebarContainer'),
+      loadComponentPromise('footer', 'footerContainer')
+   ]);
+   await loadExaminerData();
+   await loadDashboard();
+});
+</script>
+
+</body>
+</html>

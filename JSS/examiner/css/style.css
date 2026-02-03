@@ -1,175 +1,281 @@
-html, body {
-  align-items: center;
-  background: #f2f4f8;
-  border: 0;
-  display: flex;
-  font-family: Helvetica, Arial, sans-serif;
-  font-size: 16px;
-  height: 100%;
-  justify-content: center;
-  margin: 0;
-  padding: 0;
+/* Examiner Login Page Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-form {
-  --background: white;
-  --border: rgba(0, 0, 0, 0.125);
-  --borderDark: rgba(0, 0, 0, 0.25);
-  --borderDarker: rgba(0, 0, 0, 0.5);
-  --bgColorH: 0;
-  --bgColorS: 0%;
-  --bgColorL: 98%;
-  --fgColorH: 210;
-  --fgColorS: 50%;
-  --fgColorL: 38%;
-  --shadeDark: 0.3;
-  --shadeLight: 0.7;
-  --shadeNormal: 0.5;
-  --borderRadius: 0.125rem;
-  --highlight: #306090;
-  background: white;
-  border: 1px solid var(--border);
-  border-radius: var(--borderRadius);
-  box-shadow: 0 1rem 1rem -0.75rem var(--border);
-  display: flex;
-  flex-direction: column;
-  padding: 1rem;
-  position: relative;
-  overflow: hidden;
+body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-form .email, form .email a {
-  color: hsl(var(--fgColorH), var(--fgColorS), var(--fgColorL));
-  font-size: 0.825rem;
-  order: 4;
-  text-align: center;
-  margin-top: 0.25rem;
-  outline: 1px dashed transparent;
-  outline-offset: 2px;
-  display: inline;
+.login-container {
+    width: 100%;
+    max-width: 420px;
+    padding: 20px;
 }
 
-form a:hover {
-  color: hsl(var(--fgColorH), var(--fgColorS), calc(var(--fgColorL) * 0.85));
-  transition: color 0.25s;
+.login-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    animation: slideUp 0.5s ease-out;
 }
 
-form a:focus {
-  color: hsl(var(--fgColorH), var(--fgColorS), calc(var(--fgColorL) * 0.85));
-  outline: 1px dashed hsl(var(--fgColorH), calc(var(--fgColorS) * 2), calc(var(--fgColorL) * 1.15));
-  outline-offset: 2px;
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-form > div {
-  order: 2;
+.login-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 40px 20px 30px;
+    text-align: center;
+    color: white;
 }
 
-label {
-  display: flex;
-  flex-direction: column;
+.login-header img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 10px;
+    margin-bottom: 15px;
+    object-fit: contain;
+    transition: transform 0.3s ease;
 }
 
-.label-show-password {
-  order: 3;
+.login-header img:hover {
+    transform: scale(1.05);
 }
 
-label > span {
-  color: var(--borderDarker);
-  display: block;
-  font-size: 0.825rem;
-  margin-top: 0.625rem;
-  order: 1;
-  transition: all 0.25s;
+.login-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 5px;
 }
 
-label > span.required::after {
-  content: "*";
-  color: #dd6666;
-  margin-left: 0.125rem;
+.login-header p {
+    font-size: 14px;
+    opacity: 0.9;
+    margin: 0;
 }
 
-label input {
-  order: 2;
-  outline: none;
+.login-body {
+    padding: 40px;
 }
 
-label input::placeholder {
-  color: var(--borderDark);
+#loginError {
+    margin-bottom: 20px;
 }
 
-/* trick from https://css-tricks.com/snippets/css/password-input-bullet-alternatives/ */
-label input[name="password"] {
-  -webkit-text-security: disc;
+.alert-danger {
+    border: none;
+    border-radius: 8px;
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 12px 16px;
+    font-size: 14px;
+    animation: shake 0.3s ease;
 }
 
-input[name="show-password"]:checked ~ div label input[name="password"] {
-  -webkit-text-security: none;
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
 }
 
-label:hover span {
-  color: hsl(var(--fgColorH), var(--fgColorS), var(--fgColorL));
+.form-group {
+    margin-bottom: 20px;
+    position: relative;
 }
 
-input[type="checkbox"] + div label:hover span::before,
-label:hover input.text {
-  border-color: hsl(var(--fgColorH), var(--fgColorS), var(--fgColorL));
+.form-group label {
+    display: block;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+    font-size: 14px;
 }
 
-label input.text:focus,
-label input.text:active {
-  border-color:  hsl(var(--fgColorH), calc(var(--fgColorS) * 2), calc(var(--fgColorL) * 1.15));
-  box-shadow: 0 1px  hsl(var(--fgColorH), calc(var(--fgColorS) * 2), calc(var(--fgColorL) * 1.15));
+.form-group .input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
 }
 
-input.text:focus + span,
-input.text:active + span {
-  color:  hsl(var(--fgColorH), calc(var(--fgColorS) * 2), calc(var(--fgColorL) * 1.15));
+.form-group .input-wrapper i {
+    position: absolute;
+    left: 15px;
+    color: #667eea;
+    font-size: 16px;
 }
 
-input {
-  border: 1px solid var(--border);
-  border-radius: var(--borderRadius);
-  box-sizing: border-box;
-  font-size: 1rem;
-  height: 2.25rem;
-  line-height: 1.25rem;
-  margin-top: 0.25rem;
-  order: 2;
-  padding: 0.25rem 0.5rem;
-  width: 15rem;
-  transition: all 0.25s;
+.form-group input {
+    width: 100%;
+    padding: 12px 15px 12px 45px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    background-color: #f9f9f9;
 }
 
-input[type="submit"] {
-  color: hsl(var(--bgColorH), var(--bgColorS), var(--bgColorL));
-  background: hsl(var(--fgColorH), var(--fgColorS), var(--fgColorL));
-  font-size: 0.75rem;
-  font-weight: bold;
-  margin-top: 0.625rem;
-  order: 4;
-  outline: 1px dashed transparent;
-  outline-offset: 2px;
-  padding-left: 0;
-  text-transform: uppercase;
+.form-group input:focus {
+    outline: none;
+    border-color: #667eea;
+    background-color: white;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-input[type="checkbox"]:focus + label span::before,
-input[type="submit"]:focus {
-  outline: 1px dashed hsl(var(--fgColorH), calc(var(--fgColorS) * 2), calc(var(--fgColorL) * 1.15));
-  outline-offset: 2px;
+.error-message {
+    color: #dc3545;
+    font-size: 12px;
+    margin-top: 6px;
+    display: block;
+    animation: fadeIn 0.3s ease;
 }
 
-input[type="submit"]:focus {
-  background: hsl(var(--fgColorH), var(--fgColorS), calc(var(--fgColorL) * 0.85));
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
-input[type="submit"]:hover {
-  background: hsl(var(--fgColorH), var(--fgColorS), calc(var(--fgColorL) * 0.85));
+.show-password-wrapper {
+    display: flex;
+    align-items: center;
+    margin-bottom: 25px;
+    font-size: 14px;
 }
 
-input[type="submit"]:active {
-  background: hsl(var(--fgColorH), calc(var(--fgColorS) * 2), calc(var(--fgColorL) * 1.15));
-  transition: all 0.125s;
+.show-password-wrapper input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    margin-right: 8px;
+    accent-color: #667eea;
+}
+
+.show-password-wrapper label {
+    cursor: pointer;
+    margin: 0;
+    color: #666;
+    user-select: none;
+}
+
+.login-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 15px;
+}
+
+.login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+}
+
+.login-btn:active {
+    transform: translateY(0);
+}
+
+.login-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.loading {
+    display: none;
+    text-align: center;
+    color: #667eea;
+    font-weight: 600;
+}
+
+.loading.show {
+    display: block;
+}
+
+.spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 3px solid rgba(102, 126, 234, 0.2);
+    border-radius: 50%;
+    border-top-color: #667eea;
+    animation: spin 0.8s linear infinite;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.forgot-password {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.forgot-password a {
+    color: #667eea;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.forgot-password a:hover {
+    color: #764ba2;
+    text-decoration: underline;
+}
+
+.login-footer {
+    background-color: #f5f7fa;
+    padding: 20px;
+    text-align: center;
+    font-size: 12px;
+    color: #999;
+    border-top: 1px solid #e0e0e0;
+}
+
+.login-footer p {
+    margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+    .login-header h1 {
+        font-size: 24px;
+    }
+
+    .login-body {
+        padding: 30px 20px;
+    }
+
+    .login-header {
+        padding: 30px 20px 25px;
+    }
 }
 
 /** Checkbox styling */

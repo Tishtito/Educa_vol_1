@@ -150,7 +150,6 @@
 <script src="../js/header-init.js"></script>
 
 <script>
-    // Load components
     async function loadComponentPromise(componentPath, containerId) {
         try {
             const response = await fetch(componentPath);
@@ -162,11 +161,11 @@
                 document.dispatchEvent(new Event('headerLoaded'));
             }
         } catch (error) {
-            console.error(`Error loading ${componentPath}:`, error);
+            console.error(`Error loading component:`, error);
         }
     }
 
-    // Load exam details and points table
+    // Initialize page
     window.addEventListener('DOMContentLoaded', async () => {
         await Promise.all([
             loadComponentPromise('components/header.html', 'headerContainer'),
@@ -174,9 +173,6 @@
             loadComponentPromise('components/footer.html', 'footerContainer'),
             loadTeacherData()
         ]);
-
-        // Initialize script listeners for menu button functionality
-        initializeScriptListeners();
 
         // Load points table
         await loadPointsTable();

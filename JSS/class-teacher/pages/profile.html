@@ -207,9 +207,6 @@
          loadTeacherData()
       ]);
 
-      // Initialize script listeners for menu button functionality
-      initializeScriptListeners();
-
       // Load profile data
       await loadProfile();
    });
@@ -219,9 +216,8 @@
     */
    async function loadProfile() {
       try {
-         const response = await fetch('../backend/public/index.php?route=/profile', {
-            method: 'GET',
-            credentials: 'include'
+         const response = await fetch('../backend/public/index.php/profile', { 
+            credentials: 'include' 
          });
 
          if (!response.ok) {
