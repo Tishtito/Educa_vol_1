@@ -6,6 +6,7 @@
     <title>Points</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css">
     <link rel="stylesheet" href="../css/Tpanel.css">
+    <link rel="stylesheet" href="../css/summarycontainer.css">
     <style>
         .marks-table {
             margin: 20px;
@@ -77,54 +78,6 @@
             opacity: 0.8;
             margin-top: 2px;
         }
-
-        /* Summary section styling */
-        .summary-section {
-            margin-top: 40px;
-            padding: 20px;
-            background-color: var(--bg-color);
-            border-radius: 8px;
-        }
-
-        .summary-heading {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: var(--text-color);
-        }
-
-        .summary-table {
-            width: 100%;
-            max-width: 400px;
-            border-collapse: collapse;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-        }
-
-        .summary-table thead tr {
-            background-color: #f2f2f2;
-        }
-
-        .summary-table thead th {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: left;
-            font-weight: bold;
-        }
-
-        .summary-table tbody td {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: center;
-        }
-
-        .summary-table tbody tr:nth-of-type(even) {
-            background-color: #f9f9f9;
-        }
-
-        .summary-table tbody tr:hover {
-            background-color: #f5f5f5;
-        }
     </style>
 </head>
 <body>
@@ -133,13 +86,13 @@
 <div id="sidebarContainer"></div>
 
 <section class="marks-table">
+    <div id="summaryContainer"></div>
     <h1 class="heading">Points Scored</h1>
     <div class="box-container">
         <div id="tableContainer">
             <p style="text-align: center;">Loading points table...</p>
         </div>
     </div>
-    <div id="summaryContainer"></div>
 </section>
 
 <div id="footerContainer"></div>
@@ -217,7 +170,6 @@
     function displayPointsTable(data) {
         const subjects = data.subjects || [];
         const students = data.students || [];
-        const gradeCounts = data.gradeCounts || {};
 
         // Build main table header
         let html = '<table class="content-table"><thead><tr>';
@@ -247,32 +199,66 @@
 
         document.getElementById('tableContainer').innerHTML = html;
 
-        // Display summary table
-        displaySummaryTable(gradeCounts);
+        // Display summary table per subject
+        displaySummaryTablePerSubject(subjects, students);
     }
 
     /**
-     * Display grade abbreviation summary table
+     * Display grade abbreviation summary table - single table format
      */
-    function displaySummaryTable(gradeCounts) {
-        if (!gradeCounts || Object.keys(gradeCounts).length === 0) {
+    function displaySummaryTablePerSubject(subjects, students) {
+        if (!subjects || subjects.length === 0) {
             document.getElementById('summaryContainer').innerHTML = '';
             return;
         }
 
+        // Count AB grades for each subject
+        const subjectGradeCounts = {};
+        const allGrades = new Set();
+
+        subjects.forEach(subject => {
+            subjectGradeCounts[subject] = {};
+
+            students.forEach(student => {
+                const ab = student['Ab_' + subject];
+                if (ab && ab !== '-') {
+                    allGrades.add(ab);
+                    subjectGradeCounts[subject][ab] = (subjectGradeCounts[subject][ab] || 0) + 1;
+                }
+            });
+        });
+
+        // Sort grades
+        const sortedGrades = Array.from(allGrades).sort();
+
+        if (sortedGrades.length === 0) {
+            document.getElementById('summaryContainer').innerHTML = '';
+            return;
+        }
+
+        // Build single table with subjects as columns and grades as rows
         let html = '<div class="summary-section">';
-        html += '<div class="summary-heading">Grade Distribution</div>';
+        html += '<div class="summary-heading">Grade Distribution by Subject</div>';
         html += '<table class="summary-table"><thead><tr>';
-        html += '<th>Grade (AB)</th>';
-        html += '<th>Count</th>';
+        html += '<th>Grade</th>';
+
+        subjects.forEach(subject => {
+            html += `<th>${escapeHtml(subject)}</th>`;
+        });
+
         html += '</tr></thead><tbody>';
 
-        Object.keys(gradeCounts).sort().forEach(ab => {
-            const count = gradeCounts[ab];
-            html += `<tr>`;
-            html += `<td><strong>${escapeHtml(ab)}</strong></td>`;
-            html += `<td>${count}</td>`;
-            html += `</tr>`;
+        // Build rows for each grade
+        sortedGrades.forEach(grade => {
+            html += '<tr>';
+            html += `<td><strong>${escapeHtml(grade)}</strong></td>`;
+
+            subjects.forEach(subject => {
+                const count = subjectGradeCounts[subject][grade] || 0;
+                html += `<td>${count}</td>`;
+            });
+
+            html += '</tr>';
         });
 
         html += '</tbody></table>';

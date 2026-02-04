@@ -24,6 +24,7 @@ class StudentProfileController
         
         // Check authentication
         if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
+            error_log('[StudentProfileController::getStudentProfile] UNAUTHORIZED - loggedin flag not set');
             http_response_code(401);
             header('Content-Type: application/json');
             echo json_encode(['success' => false, 'message' => 'Unauthorized']);
@@ -34,6 +35,7 @@ class StudentProfileController
         $studentId = isset($_GET['id']) ? (int)$_GET['id'] : null;
 
         if (!$studentId) {
+            error_log('[StudentProfileController::getStudentProfile] ERROR - Student ID is required but not provided');
             http_response_code(400);
             header('Content-Type: application/json');
             echo json_encode(['success' => false, 'message' => 'Student ID is required']);
@@ -44,6 +46,7 @@ class StudentProfileController
         $examId = $_SESSION['exam_id'] ?? null;
 
         if (!$examId) {
+            error_log('[StudentProfileController::getStudentProfile] ERROR - No exam ID in session');
             http_response_code(400);
             header('Content-Type: application/json');
             echo json_encode(['success' => false, 'message' => 'No exam selected']);
@@ -55,6 +58,7 @@ class StudentProfileController
             $student = $this->db->select('students', '*', ['student_id' => $studentId]);
             
             if (!$student || count($student) === 0) {
+                error_log('[StudentProfileController::getStudentProfile] ERROR - Student not found: ID=' . $studentId);
                 http_response_code(404);
                 header('Content-Type: application/json');
                 echo json_encode(['success' => false, 'message' => 'Student not found']);
@@ -102,6 +106,7 @@ class StudentProfileController
                 'total_marks' => $totalMarks
             ]);
         } catch (\Exception $e) {
+            error_log('[StudentProfileController::getStudentProfile] EXCEPTION - ' . $e->getMessage() . ' Stack: ' . $e->getTraceAsString());
             http_response_code(500);
             header('Content-Type: application/json');
             echo json_encode([

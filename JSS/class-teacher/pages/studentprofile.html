@@ -221,7 +221,7 @@
             return;
          }
 
-         const response = await fetch(`../backend/public/index.php/student/${encodeURIComponent(studentId)}`, {
+         const response = await fetch(`../backend/public/index.php/student-profile?id=${encodeURIComponent(studentId)}`, {
             credentials: 'include'
          });
 
