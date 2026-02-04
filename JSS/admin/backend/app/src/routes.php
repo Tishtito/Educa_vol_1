@@ -58,7 +58,13 @@ return function (RouteCollector $r): void {
 	$r->addRoute('GET', '/settings/classes', 'ClassesController@list');
 	$r->addRoute('POST', '/settings/classes', 'ClassesController@create');
 	$r->addRoute('POST', '/settings/classes/delete', 'ClassesController@delete');
+	$r->addRoute('POST', '/settings/classes/move-all', 'ClassMovementController@moveAll');
+	$r->addRoute('POST', '/settings/classes/move-student', 'ClassMovementController@moveStudent');
+	$r->addRoute('POST', '/settings/classes/graduate-all', 'ClassMovementController@graduateAll');
 
 	$r->addRoute('GET', '/settings/exams', 'ExamsController@list');
 	$r->addRoute('POST', '/settings/exams/delete', 'ExamsController@delete');
+
+	$r->addRoute('GET', '/settings/sms/results', 'SmsController@results');
+	$r->addRoute('POST', '/settings/sms/send', 'SmsController@send');
 };

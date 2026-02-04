@@ -26,6 +26,7 @@ class ProfileController
 
 		// Check if examiner is authenticated
 		if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
+			error_log('[ProfileController::getProfile] UNAUTHORIZED - loggedin flag not set');
 			http_response_code(401);
 			echo json_encode(['success' => false, 'message' => 'Unauthorized']);
 			return;
@@ -34,6 +35,7 @@ class ProfileController
 		$examiner_id = $_SESSION['id'] ?? null;
 
 		if (!$examiner_id) {
+			error_log('[ProfileController::getProfile] ERROR - Examiner ID not found in session');
 			http_response_code(400);
 			echo json_encode(['success' => false, 'message' => 'Invalid session']);
 			return;
@@ -42,40 +44,38 @@ class ProfileController
 		try {
 			// Fetch examiner profile data
 			$examiner = $this->db->get('examiners', [
-				'id',
+				'examiner_id',
 				'name',
-				'username',
-				'email',
-				'phone'
+				'username'
 			], [
-				'id' => $examiner_id
+				'examiner_id' => $examiner_id
 			]);
 
 			if (!$examiner) {
+				error_log('[ProfileController::getProfile] ERROR - Examiner not found: ID=' . $examiner_id);
 				http_response_code(404);
 				echo json_encode(['success' => false, 'message' => 'Examiner not found']);
 				return;
 			}
 
-			// Fetch assigned exams count
-			$exams = $this->db->select('exams', ['exam_id'], [
-				'examiner_assigned' => $examiner_id
+			// Fetch assigned subjects count
+			$subjects = $this->db->select('examiner_subjects', ['subject_id'], [
+				'examiner_id' => $examiner_id
 			]);
 
-			$total_exams = is_array($exams) ? count($exams) : 0;
+			$total_subjects = is_array($subjects) ? count($subjects) : 0;
 
 			echo json_encode([
 				'success' => true,
 				'data' => [
-					'id' => $examiner['id'],
+					'id' => $examiner['examiner_id'],
 					'name' => $examiner['name'],
 					'username' => $examiner['username'],
-					'email' => $examiner['email'] ?? 'N/A',
-					'phone' => $examiner['phone'] ?? 'N/A',
-					'total_exams' => $total_exams
+					'total_subjects' => $total_subjects
 				]
 			]);
 		} catch (\Exception $e) {
+			error_log('[ProfileController::getProfile] EXCEPTION - ' . $e->getMessage() . ' Stack: ' . $e->getTraceAsString());
 			http_response_code(500);
 			echo json_encode([
 				'success' => false,

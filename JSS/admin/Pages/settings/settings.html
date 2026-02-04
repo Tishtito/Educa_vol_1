@@ -98,6 +98,14 @@
         .btn-secondary:hover {
             background: #6b7280;
         }
+
+        .sms-card {
+            margin-top: 24px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            padding: 18px 20px;
+        }
     </style>
     <title>JSS Admin</title>
 </head>
@@ -173,10 +181,34 @@
                     </li>
                 </a>
 
+                <a href="/Educa_vol_1/JSS/admin/Pages/settings/graduate_classes.html">
+                    <li><i class='bx bx-award'></i>
+                        <span class="info-2">
+                            <p>Graduate Class</p>
+                        </span>
+                    </li>
+                </a>
+
+                <a href="/Educa_vol_1/JSS/admin/Pages/settings/move_class.html">
+                    <li><i class='bx bx-transfer-alt'></i>
+                        <span class="info-2">
+                            <p>Move Class</p>
+                        </span>
+                    </li>
+                </a>
+
                 <a href="/Educa_vol_1/JSS/admin/Pages/settings/manage_exams.html">
                     <li><i class='bx bx-paperclip'></i>
                         <span class="info-2">
                             <p>Manage Exam</p>
+                        </span>
+                    </li>
+                </a>
+
+                <a href="/Educa_vol_1/JSS/admin/Pages/settings/send_marks.html">
+                    <li><i class='bx bx-send'></i>
+                        <span class="info-2">
+                            <p>Send Marks (SMS)</p>
                         </span>
                     </li>
                 </a>
@@ -191,6 +223,7 @@
                 -->
                 
             </ul>
+
 
             <div class="modal-overlay" id="createExamModal" aria-hidden="true">
                 <div class="modal-card">
@@ -322,6 +355,7 @@
                     }
                 });
             }
+
         })();
     </script>
 </body>

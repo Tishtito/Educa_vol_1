@@ -19,8 +19,8 @@ class DashboardController
     public function getDashboard(): void
     {
         $this->startSession();
-        error_log('[DASHBOARD] Request started. Session status: ' . session_status());
-        error_log('[DASHBOARD] Session data: ' . json_encode($_SESSION, JSON_UNESCAPED_SLASHES));
+        // error_log('[DASHBOARD] Request started. Session status: ' . session_status());
+        // error_log('[DASHBOARD] Session data: ' . json_encode($_SESSION, JSON_UNESCAPED_SLASHES));
         
         if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
             error_log('[DASHBOARD] Unauthorized: loggedin flag not set');
@@ -31,7 +31,7 @@ class DashboardController
 
         try {
             $examinerId = $_SESSION['id'] ?? null;
-            error_log('[DASHBOARD] Extracted examiner ID: ' . ($examinerId ?? 'NULL'));
+            // error_log('[DASHBOARD] Extracted examiner ID: ' . ($examinerId ?? 'NULL'));
             
             if (!$examinerId) {
                 error_log('[DASHBOARD] Error: Examiner ID not found in session');
@@ -41,31 +41,30 @@ class DashboardController
             }
 
             // Get subjects assigned to examiner
-            error_log('[DASHBOARD] Fetching subjects for examiner_id=' . $examinerId);
+            // error_log('[DASHBOARD] Fetching subjects for examiner_id=' . $examinerId);
             $subjects = $this->db->select('examiner_subjects', ['[>]subjects' => ['subject_id' => 'subject_id']], 
                 ['subjects.subject_id', 'subjects.name'],
                 ['examiner_subjects.examiner_id' => $examinerId]
             );
-            error_log('[DASHBOARD] Subjects query result: ' . json_encode($subjects ?? []));
+            // error_log('[DASHBOARD] Subjects query result: ' . json_encode($subjects ?? []));
 
             // Get classes assigned to examiner
-            error_log('[DASHBOARD] Fetching classes for examiner_id=' . $examinerId);
+            // error_log('[DASHBOARD] Fetching classes for examiner_id=' . $examinerId);
             $classes = $this->db->select('examiner_classes', ['[>]classes' => ['class_id' => 'class_id']], 
                 ['classes.class_id', 'classes.class_name'],
                 ['examiner_classes.examiner_id' => $examinerId]
             );
-            error_log('[DASHBOARD] Classes query result: ' . json_encode($classes ?? []));
+            // error_log('[DASHBOARD] Classes query result: ' . json_encode($classes ?? []));
 
             // Check if examiner has assigned classes
             if (empty($classes)) {
-                error_log('[DASHBOARD] Warning: No classes assigned to examiner_id=' . $examinerId);
+                // error_log('[DASHBOARD] Warning: No classes assigned to examiner_id=' . $examinerId);
                 http_response_code(403);
                 echo json_encode(['success' => false, 'message' => 'No classes assigned. Visit Admin for assistance.']);
                 return;
             }
 
             header('Content-Type: application/json');
-            error_log('[DASHBOARD] Success: Returning dashboard data for examiner_id=' . $examinerId);
             echo json_encode([
                 'success' => true,
                 'subjects' => $subjects ?: [],

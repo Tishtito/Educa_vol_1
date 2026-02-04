@@ -18,12 +18,12 @@ class SubjectController
     // GET /subjects - get all subjects
     public function getSubjects(): void
     {
-        error_log('[SubjectController::getSubjects] START - ' . date('Y-m-d H:i:s'));
-        error_log('[SubjectController::getSubjects] Session status: ' . session_status());
+        // error_log('[SubjectController::getSubjects] START - ' . date('Y-m-d H:i:s'));
+        // error_log('[SubjectController::getSubjects] Session status: ' . session_status());
         
         $this->startSession();
         
-        error_log('[SubjectController::getSubjects] Session data: ' . json_encode($_SESSION));
+        // error_log('[SubjectController::getSubjects] Session data: ' . json_encode($_SESSION));
         
         if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
             error_log('[SubjectController::getSubjects] UNAUTHORIZED - loggedin not set or false');
@@ -34,25 +34,25 @@ class SubjectController
 
         try {
             $examinerId = $_SESSION['id'] ?? null;
-            error_log('[SubjectController::getSubjects] Examiner ID: ' . ($examinerId ?? 'NULL'));
+            // error_log('[SubjectController::getSubjects] Examiner ID: ' . ($examinerId ?? 'NULL'));
             
             if (!$examinerId) {
-                error_log('[SubjectController::getSubjects] ERROR - No examiner ID in session');
+                // error_log('[SubjectController::getSubjects] ERROR - No examiner ID in session');
                 http_response_code(400);
                 echo json_encode(['success' => false, 'message' => 'Examiner ID not found']);
                 return;
             }
 
             // Get subjects assigned to this examiner
-            error_log('[SubjectController::getSubjects] Querying subjects for examiner: ' . $examinerId);
+            // error_log('[SubjectController::getSubjects] Querying subjects for examiner: ' . $examinerId);
             $subjects = $this->db->select('examiner_subjects', 
                 ['[>]subjects' => ['subject_id' => 'subject_id']], 
                 ['subjects.subject_id', 'subjects.name'],
                 ['examiner_subjects.examiner_id' => $examinerId]
             );
             
-            error_log('[SubjectController::getSubjects] Found ' . count($subjects) . ' subjects');
-            error_log('[SubjectController::getSubjects] Response: ' . json_encode(['success' => true, 'subjects' => $subjects ?: []]));
+            // error_log('[SubjectController::getSubjects] Found ' . count($subjects) . ' subjects');
+            // error_log('[SubjectController::getSubjects] Response: ' . json_encode(['success' => true, 'subjects' => $subjects ?: []]));
 
             header('Content-Type: application/json');
             echo json_encode(['success' => true, 'subjects' => $subjects ?: []]);
@@ -67,10 +67,10 @@ class SubjectController
     // GET /subjects/{subject_id}/students - get students for a specific subject and class
     public function getSubjectStudents(): void
     {
-        error_log('[SubjectController::getSubjectStudents] START - ' . date('Y-m-d H:i:s'));
+        // error_log('[SubjectController::getSubjectStudents] START - ' . date('Y-m-d H:i:s'));
         
         $this->startSession();
-        error_log('[SubjectController::getSubjectStudents] Session data: ' . json_encode($_SESSION));
+        // error_log('[SubjectController::getSubjectStudents] Session data: ' . json_encode($_SESSION));
         
         if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
             error_log('[SubjectController::getSubjectStudents] UNAUTHORIZED');
@@ -83,8 +83,8 @@ class SubjectController
             $examinerId = $_SESSION['id'] ?? null;
             $examId = $_SESSION['exam_id'] ?? null;
             
-            error_log('[SubjectController::getSubjectStudents] Examiner ID: ' . ($examinerId ?? 'NULL'));
-            error_log('[SubjectController::getSubjectStudents] Exam ID: ' . ($examId ?? 'NULL'));
+            // error_log('[SubjectController::getSubjectStudents] Examiner ID: ' . ($examinerId ?? 'NULL'));
+            // error_log('[SubjectController::getSubjectStudents] Exam ID: ' . ($examId ?? 'NULL'));
 
             if (!$examinerId) {
                 error_log('[SubjectController::getSubjectStudents] ERROR - No examiner ID');
@@ -105,7 +105,7 @@ class SubjectController
             $subjectId = $input['subject_id'] ?? $_GET['subject_id'] ?? null;
             $classId = $input['class_id'] ?? $_GET['class_id'] ?? null;
             
-            error_log('[SubjectController::getSubjectStudents] Subject ID: ' . ($subjectId ?? 'NULL') . ', Class ID: ' . ($classId ?? 'NULL'));
+            // error_log('[SubjectController::getSubjectStudents] Subject ID: ' . ($subjectId ?? 'NULL') . ', Class ID: ' . ($classId ?? 'NULL'));
 
             if (!$subjectId || !$classId) {
                 error_log('[SubjectController::getSubjectStudents] ERROR - Missing subject or class ID');
@@ -124,7 +124,7 @@ class SubjectController
                 ]
             );
 
-            error_log('[SubjectController::getSubjectStudents] Access check: ' . ($hasAccess ? 'GRANTED' : 'DENIED'));
+            // error_log('[SubjectController::getSubjectStudents] Access check: ' . ($hasAccess ? 'GRANTED' : 'DENIED'));
             
             if (!$hasAccess) {
                 error_log('[SubjectController::getSubjectStudents] FORBIDDEN - Examiner ' . $examinerId . ' no access to subject ' . $subjectId);
@@ -134,11 +134,11 @@ class SubjectController
             }
 
             // Get students in the class
-            error_log('[SubjectController::getSubjectStudents] Querying students for class: ' . $classId);
+            // error_log('[SubjectController::getSubjectStudents] Querying students for class: ' . $classId);
             
             // First get the class name from class_id
             $classInfo = $this->db->get('classes', 'class_name', ['class_id' => $classId]);
-            error_log('[SubjectController::getSubjectStudents] Class info: ' . json_encode($classInfo));
+            // error_log('[SubjectController::getSubjectStudents] Class info: ' . json_encode($classInfo));
             
             if (!$classInfo) {
                 error_log('[SubjectController::getSubjectStudents] ERROR - Class not found');
@@ -147,31 +147,33 @@ class SubjectController
                 return;
             }
             
-            // Query students by class name
-            $students = $this->db->select('students', '*', 
+            // Query students by class name with student_class_id
+            $students = $this->db->select('student_classes', 
+                ['[>]students' => ['student_id' => 'student_id']], 
+                ['student_classes.student_class_id', 'students.student_id', 'students.name'],
                 [
-                    'class' => $classInfo,
-                    'ORDER' => ['name' => 'ASC']
+                    'students.class' => $classInfo,
+                    'ORDER' => ['students.name' => 'ASC']
                 ]
             );
             
-            error_log('[SubjectController::getSubjectStudents] Found ' . count($students) . ' students');
+            // error_log('[SubjectController::getSubjectStudents] Found ' . count($students) . ' students');
 
             // Get subject name
             $subject = $this->db->get('subjects', '*', ['subject_id' => $subjectId]);
-            error_log('[SubjectController::getSubjectStudents] Subject: ' . json_encode($subject));
+            // error_log('[SubjectController::getSubjectStudents] Subject: ' . json_encode($subject));
 
             // Get exam results for these students in this subject
             $subjectColumn = $subject['name'] ?? null;
             
             if ($subjectColumn) {
                 // Get exam results
-                error_log('[SubjectController::getSubjectStudents] Querying exam results for exam: ' . $examId);
+                // error_log('[SubjectController::getSubjectStudents] Querying exam results for exam: ' . $examId);
                 $results = $this->db->select('exam_results', '*', 
                     ['exam_id' => $examId]
                 );
                 
-                error_log('[SubjectController::getSubjectStudents] Found ' . count($results) . ' results');
+                // error_log('[SubjectController::getSubjectStudents] Found ' . count($results) . ' results');
 
                 // Merge results with students
                 $resultsMap = [];
@@ -185,7 +187,7 @@ class SubjectController
                 }
             }
 
-            error_log('[SubjectController::getSubjectStudents] SUCCESS - Returning ' . count($students) . ' students');
+            // error_log('[SubjectController::getSubjectStudents] SUCCESS - Returning ' . count($students) . ' students');
             header('Content-Type: application/json');
             echo json_encode([
                 'success' => true,
@@ -206,10 +208,10 @@ class SubjectController
     // POST /subjects/students/marks - update marks for a student in a subject
     public function updateMarks(): void
     {
-        error_log('[SubjectController::updateMarks] START - ' . date('Y-m-d H:i:s'));
+        // error_log('[SubjectController::updateMarks] START - ' . date('Y-m-d H:i:s'));
         
         $this->startSession();
-        error_log('[SubjectController::updateMarks] Session data: ' . json_encode($_SESSION));
+        // error_log('[SubjectController::updateMarks] Session data: ' . json_encode($_SESSION));
         
         if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
             error_log('[SubjectController::updateMarks] UNAUTHORIZED');
@@ -222,7 +224,7 @@ class SubjectController
             $examinerId = $_SESSION['id'] ?? null;
             $examId = $_SESSION['exam_id'] ?? null;
             
-            error_log('[SubjectController::updateMarks] Examiner ID: ' . ($examinerId ?? 'NULL') . ', Exam ID: ' . ($examId ?? 'NULL'));
+            // error_log('[SubjectController::updateMarks] Examiner ID: ' . ($examinerId ?? 'NULL') . ', Exam ID: ' . ($examId ?? 'NULL'));
 
             if (!$examinerId || !$examId) {
                 error_log('[SubjectController::updateMarks] ERROR - Missing examiner or exam ID');
@@ -233,16 +235,27 @@ class SubjectController
 
             $input = json_decode(file_get_contents('php://input'), true);
             $studentId = $input['student_id'] ?? null;
+            $studentClassId = $input['student_class_id'] ?? null;
             $subjectId = $input['subject_id'] ?? null;
             $marks = $input['marks'] ?? null;
+            $marksOutOf = $input['marks_out_of'] ?? null;
             
-            error_log('[SubjectController::updateMarks] Student ID: ' . ($studentId ?? 'NULL') . ', Subject ID: ' . ($subjectId ?? 'NULL') . ', Marks: ' . ($marks ?? 'NULL'));
+            // error_log('[SubjectController::updateMarks] Student ID: ' . ($studentId ?? 'NULL') . ', Student Class ID: ' . ($studentClassId ?? 'NULL') . ', Subject ID: ' . ($subjectId ?? 'NULL') . ', Marks: ' . ($marks ?? 'NULL') . ', Marks Out Of: ' . ($marksOutOf ?? 'NULL'));
 
-            if (!$studentId || !$subjectId || $marks === null) {
+            if (!$studentId || !$studentClassId || !$subjectId || $marks === null) {
                 error_log('[SubjectController::updateMarks] ERROR - Missing required fields');
                 http_response_code(400);
                 echo json_encode(['success' => false, 'message' => 'Missing required fields']);
                 return;
+            }
+
+            // Convert marks to percentage
+            if ($marksOutOf && $marksOutOf > 0) {
+                $percentageMarks = ($marks / $marksOutOf) * 100;
+                $marksToStore = $percentageMarks;
+            } else {
+                error_log('[SubjectController::updateMarks] WARNING - No marks out of provided, storing raw marks');
+                $marksToStore = $marks;
             }
 
             // Verify examiner has access to this subject
@@ -254,8 +267,6 @@ class SubjectController
                     ]
                 ]
             );
-
-            error_log('[SubjectController::updateMarks] Access check: ' . ($hasAccess ? 'GRANTED' : 'DENIED'));
             
             if (!$hasAccess) {
                 error_log('[SubjectController::updateMarks] FORBIDDEN - No access to subject');
@@ -267,8 +278,6 @@ class SubjectController
             // Get subject name to determine which column to update
             $subject = $this->db->get('subjects', '*', ['subject_id' => $subjectId]);
             $subjectColumn = $subject['name'] ?? null;
-            
-            error_log('[SubjectController::updateMarks] Subject column: ' . ($subjectColumn ?? 'NULL'));
 
             if (!$subjectColumn) {
                 error_log('[SubjectController::updateMarks] ERROR - Invalid subject');
@@ -282,36 +291,35 @@ class SubjectController
                 [
                     'AND' => [
                         'student_id' => $studentId,
-                        'exam_id' => $examId
+                        'exam_id' => $examId,
+                        'student_class_id' => $studentClassId
                     ]
                 ]
             );
 
-            error_log('[SubjectController::updateMarks] Existing record: ' . ($existingResult ? 'YES' : 'NO'));
-
             if ($existingResult) {
                 // Update existing record
-                error_log('[SubjectController::updateMarks] Updating record for student ' . $studentId);
                 $this->db->update('exam_results', 
-                    [$subjectColumn => $marks],
+                    [$subjectColumn => $marksToStore],
                     [
                         'AND' => [
                             'student_id' => $studentId,
-                            'exam_id' => $examId
+                            'exam_id' => $examId,
+                            'student_class_id' => $studentClassId
                         ]
                     ]
                 );
             } else {
                 // Create new record
-                error_log('[SubjectController::updateMarks] Creating new record for student ' . $studentId);
                 $this->db->insert('exam_results', [
                     'student_id' => $studentId,
                     'exam_id' => $examId,
-                    $subjectColumn => $marks
+                    'student_class_id' => $studentClassId,
+                    $subjectColumn => $marksToStore
                 ]);
             }
 
-            error_log('[SubjectController::updateMarks] SUCCESS - Marks updated');
+            // error_log('[SubjectController::updateMarks] SUCCESS - Marks updated');
             header('Content-Type: application/json');
             echo json_encode(['success' => true, 'message' => 'Marks updated successfully']);
         } catch (\Exception $e) {

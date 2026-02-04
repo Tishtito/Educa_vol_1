@@ -10,7 +10,7 @@ CREATE TABLE admins (
     deleted_at datetime
 );
 
-CREATE TABLE  users(
+CREATE TABLE  examiner(
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     username VARCHAR(255) NOT NULL,
@@ -26,14 +26,19 @@ CREATE TABLE exams (
     exam_name VARCHAR(255) NOT NULL,
     exam_type ENUM ('Opener', 'Mid-term', 'End-Term'),
     term ENUM ('Term 1', 'Term 2', 'Term 3'),	
+    academic_year YEAR NOT NULL,  -- Added for clarity
     date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at datetime,
+    deleted_at datetime
 );
 
 CREATE TABLE students (
     student_id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
+    pno. VARCHAR(20) UNIQUE,
     class VARCHAR(50) NOT NULL,
     status ENUM('Active', 'Finished', 'Graduated') DEFAULT 'Active',
+    finished_at YEAR,
     created_at datetime,
     updated_at datetime,
     deleted_at datetime
@@ -101,6 +106,10 @@ CREATE TABLE classes (
     class_id INT AUTO_INCREMENT PRIMARY KEY,
     class_name VARCHAR(50) NOT NULL UNIQUE,
     year YEAR
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at datetime,
+    deleted_at datetime,
+    grade INT(11)
 );
 
 CREATE TABLE examiner_classes (
@@ -164,4 +173,3 @@ CREATE TABLE marks_out_of (
     UNIQUE KEY unique_exam_subject (exam_id, subject),
     FOREIGN KEY (exam_id) REFERENCES exams(exam_id) ON DELETE CASCADE
 );
-

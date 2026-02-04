@@ -5,9 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Subject Marks</title>
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css">
     <link rel="stylesheet" href="../css/Tpanel.css">
     <link rel="stylesheet" href="../css/subject.css">
+    <link rel="stylesheet" href="../css/markspopup.css">
 </head>
 <body>
 
@@ -22,13 +25,6 @@
     <!-- Messages -->
     <div class="error-message" id="errorMessage"></div>
     <div class="success-message" id="successMessage"></div>
-
-    <!-- Subject Info -->
-    <div class="subject-info" id="subjectInfo" style="display: none;">
-        <h2 id="subjectTitle"></h2>
-        <p id="classInfo"></p>
-        <p id="examInfo"></p>
-    </div>
 
     <!-- Marks Out Of -->
     <div class="marks-out-of">
@@ -57,6 +53,36 @@
                 <!-- Populated by JavaScript -->
             </tbody>
         </table>
+    </div>
+
+    <!-- Edit Marks Modal -->
+    <div class="modal fade" id="editMarksModal" tabindex="-1" aria-labelledby="editMarksLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editMarksLabel">Edit Student Marks</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="editMarksForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="modalStudentId">
+                        <input type="hidden" id="modalStudentClassId">
+                        <div class="mb-3">
+                            <label for="modalStudentName" class="form-label">Student Name</label>
+                            <input type="text" class="form-control" id="modalStudentName" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label for="modalMarksInput" class="form-label">Marks (Out of <span id="modalMarksOutOf">100</span>)</label>
+                            <input type="number" class="form-control" id="modalMarksInput" min="0" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Save Marks</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <!-- No Data Message -->
@@ -112,7 +138,6 @@ const noDataMessage = document.getElementById('noDataMessage');
 const errorMessage = document.getElementById('errorMessage');
 const successMessage = document.getElementById('successMessage');
 const studentTableBody = document.getElementById('studentTableBody');
-const subjectInfo = document.getElementById('subjectInfo');
 const marksOutOfInput = document.getElementById('marksOutOf');
 const setMarksBtn = document.getElementById('setMarksBtn');
 
@@ -128,6 +153,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     ]);
 
     await checkAuth();
+    
+    // Load marksOutOf from localStorage if it exists
+    const savedMarksOutOf = localStorage.getItem('marksOutOf');
+    if (savedMarksOutOf) {
+        marksOutOfInput.value = savedMarksOutOf;
+    }
+    
     subjectId = new URLSearchParams(window.location.search).get('subject_id');
     classId = new URLSearchParams(window.location.search).get('class_id');
 
@@ -178,10 +210,6 @@ async function loadStudents(subjectId, classId) {
         }
 
         if (data.success && data.students && data.students.length > 0) {
-            currentSubjectName = data.subject_name;
-            currentClassName = data.class_id;
-            currentExamId = data.exam_id;
-
             displayStudents(data);
             studentsContainer.style.display = 'block';
             noDataMessage.style.display = 'none';
@@ -204,13 +232,13 @@ async function loadStudents(subjectId, classId) {
 // DISPLAY STUDENTS
 // ========================================
 function displayStudents(data) {
-    // Show subject info
-    document.getElementById('subjectTitle').textContent = `${data.subject_name}`;
-    document.getElementById('classInfo').textContent = `Class: ${data.class_id}`;
-    // document.getElementById('examInfo').textContent = `Exam ID: ${data.exam_id}`;
-    subjectInfo.style.display = 'block';
-
     studentTableBody.innerHTML = '';
+
+    // Update heading with subject name
+    const heading = document.querySelector('.heading');
+    if (heading && data.subject_name) {
+        heading.textContent = `Subject Marks Management - ${data.subject_name}`;
+    }
 
     data.students.forEach(student => {
         const row = document.createElement('tr');
@@ -218,63 +246,83 @@ function displayStudents(data) {
 
         row.innerHTML = `
             <td>${student.name}</td>
-            <td id="marks-${student.student_id}">
-                <div class="marks-cell">
-                    <span id="display-${student.student_id}">${marks}</span>
-                    <form class="edit-form hidden" id="form-${student.student_id}">
-                        <input type="number" class="marks-input" id="input-${student.student_id}" min="0" value="${marks === '-' ? '' : marks}" placeholder="Enter marks" required>
-                        <button type="submit" class="action-btn save-btn" style="background: #28a745;">Save</button>
-                        <button type="button" class="action-btn cancel-btn" onclick="cancelEdit(${student.student_id})">Cancel</button>
-                    </form>
-                </div>
-            </td>
+            <td id="marks-${student.student_id}">${marks}</td>
             <td>
-                <button class="action-btn" onclick="toggleEditMarks(${student.student_id})">
+                <button class="action-btn" onclick="openEditModal(${student.student_id}, ${student.student_class_id}, '${student.name}', ${marks === '-' ? 0 : marks})">
                     <i class="fas fa-edit"></i> Edit
                 </button>
             </td>
         `;
 
-        // Append to DOM first
         studentTableBody.appendChild(row);
-
-        // Then add form submission handler after the element is in the DOM
-        const formElement = document.getElementById(`form-${student.student_id}`);
-        if (formElement) {
-            formElement.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const inputValue = document.getElementById(`input-${student.student_id}`).value;
-                await updateMarks(student.student_id, subjectId, parseInt(inputValue));
-            });
-        }
     });
 }
 
 // ========================================
-// EDIT MARKS
+// MODAL MANAGEMENT
 // ========================================
-function toggleEditMarks(studentId) {
-    const displayElem = document.getElementById(`display-${studentId}`);
-    const formElem = document.getElementById(`form-${studentId}`);
+const editMarksModal = new bootstrap.Modal(document.getElementById('editMarksModal'));
+const editMarksForm = document.getElementById('editMarksForm');
 
-    displayElem.parentElement.style.display = 'none';
-    formElem.classList.remove('hidden');
-    document.getElementById(`input-${studentId}`).focus();
+function openEditModal(studentId, studentClassId, studentName, currentMarks) {
+    // Check if marks out of is set
+    const marksOutOf = marksOutOfInput.value;
+    if (!marksOutOf) {
+        swal({
+            title: 'Warning!',
+            text: 'Please set the "Marks Out Of" value first.',
+            icon: 'warning',
+            button: 'OK'
+        });
+        return;
+    }
+    
+    document.getElementById('modalStudentId').value = studentId;
+    document.getElementById('modalStudentClassId').value = studentClassId;
+    document.getElementById('modalStudentName').value = studentName;
+    document.getElementById('modalMarksInput').value = currentMarks === 0 ? '' : currentMarks;
+    document.getElementById('modalMarksOutOf').textContent = marksOutOf;
+    editMarksModal.show();
 }
 
-function cancelEdit(studentId) {
-    const displayElem = document.getElementById(`display-${studentId}`);
-    const formElem = document.getElementById(`form-${studentId}`);
+editMarksForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const studentId = parseInt(document.getElementById('modalStudentId').value);
+    const studentClassId = parseInt(document.getElementById('modalStudentClassId').value);
+    const marks = parseInt(document.getElementById('modalMarksInput').value);
 
-    displayElem.parentElement.style.display = 'flex';
-    formElem.classList.add('hidden');
-}
+    if (isNaN(marks) || marks < 0) {
+        swal({
+            title: 'Error!',
+            text: 'Please enter a valid mark.',
+            icon: 'error',
+            button: 'OK'
+        });
+        return;
+    }
+
+    const marksOutOf = marksOutOfInput.value || 100;
+    if (marks > marksOutOf) {
+        swal({
+            title: 'Error!',
+            text: `Marks cannot exceed ${marksOutOf}.`,
+            icon: 'error',
+            button: 'OK'
+        });
+        return;
+    }
+
+    await updateMarks(studentId, studentClassId, subjectId, marks);
+    editMarksModal.hide();
+});
 
 // ========================================
 // UPDATE MARKS
 // ========================================
-async function updateMarks(studentId, subjectId, marks) {
+async function updateMarks(studentId, studentClassId, subjectId, marks) {
     try {
+        const marksOutOf = marksOutOfInput.value || 100;
+        
         const response = await fetch(`${API_BASE_URL}/subjects/students/marks`, {
             method: 'POST',
             credentials: 'include',
@@ -283,28 +331,43 @@ async function updateMarks(studentId, subjectId, marks) {
             },
             body: JSON.stringify({
                 student_id: studentId,
+                student_class_id: studentClassId,
                 subject_id: parseInt(subjectId),
-                marks: marks
+                marks: marks,
+                marks_out_of: parseInt(marksOutOf)
             })
         });
 
         const data = await response.json();
 
         if (data.success) {
-            // Update display
-            document.getElementById(`display-${studentId}`).textContent = marks;
-
-            // Close edit mode
-            cancelEdit(studentId);
+            // Update display with percentage
+            const percentage = ((marks / marksOutOf) * 100);
+            document.getElementById(`marks-${studentId}`).textContent = percentage + '%';
 
             // Show success message
-            showSuccess(`Marks updated for student ${studentId}`);
+            swal({
+                title: 'Success!',
+                text: 'Marks updated successfully (' + marks + '/' + marksOutOf + ' = ' + percentage + '%)',
+                icon: 'success',
+                button: 'OK'
+            });
         } else {
-            showError(data.message || 'Failed to update marks.');
+            swal({
+                title: 'Error!',
+                text: data.message || 'Failed to update marks.',
+                icon: 'error',
+                button: 'OK'
+            });
         }
     } catch (error) {
         console.error('Error updating marks:', error);
-        showError('Failed to update marks: ' + error.message);
+        swal({
+            title: 'Error!',
+            text: 'Failed to update marks: ' + error.message,
+            icon: 'error',
+            button: 'OK'
+        });
     }
 }
 
@@ -315,14 +378,24 @@ setMarksBtn.addEventListener('click', () => {
     const marksOutOf = marksOutOfInput.value;
 
     if (!marksOutOf) {
-        showError('Please enter marks out of value.');
+        swal({
+            title: 'Error!',
+            text: 'Please enter marks out of value.',
+            icon: 'error',
+            button: 'OK'
+        });
         return;
     }
 
     // Store in localStorage for reference
     localStorage.setItem('marksOutOf', marksOutOf);
-    showSuccess(`Marks out of set to ${marksOutOf}`);
-    marksOutOfInput.value = '';
+    swal({
+        title: 'Success!',
+        text: `Marks out of set to ${marksOutOf}`,
+        icon: 'success',
+        button: 'OK'
+    });
+    // Keep the value in the input field
 });
 
 // ========================================
@@ -333,14 +406,12 @@ function showLoading(show) {
 }
 
 function showError(message) {
-    console.error('ERROR:', message);
     errorMessage.textContent = message;
     errorMessage.classList.add('show');
     setTimeout(() => errorMessage.classList.remove('show'), 5000);
 }
 
 function showSuccess(message) {
-    console.log('SUCCESS:', message);
     successMessage.textContent = message;
     successMessage.classList.add('show');
     setTimeout(() => successMessage.classList.remove('show'), 3000);
