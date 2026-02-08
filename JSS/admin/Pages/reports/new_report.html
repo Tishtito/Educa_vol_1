@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Report Form</title>
-    <link rel="stylesheet" href="/Educa_vol_1/JSS/admin/css/new_report.css">
+    <link rel="stylesheet" href="../../css/new_report.css">
 </head>
 <body>
     <div class="document-border">
@@ -16,7 +16,7 @@
 
             <div class="school-header-container">
                 <div class="logo-left">
-                    <img src="/Educa_vol_1/JSS/admin/images/logo.png" alt="logo">
+                    <img src="../../images/logo.png" alt="logo">
                 </div>
 
                 <div class="school-header">
@@ -25,7 +25,7 @@
                 </div>
                 
                 <div class="logo-right">
-                    <img src="/Educa_vol_1/JSS/admin/images/logo.png" alt="logo">
+                    <img src="../../images/logo.png" alt="logo">
                 </div>
             </div>
 
@@ -88,7 +88,7 @@
 
     <script>
         (async function () {
-            const baseUrl = "/Educa_vol_1/JSS/admin/backend/public/index.php";
+            const baseUrl = "../../backend/public/index.php";
             const params = new URLSearchParams(window.location.search);
             const studentId = params.get('student_id') || '';
             const examId = params.get('exam_id') || '';
@@ -160,7 +160,7 @@
                 const authRes = await fetch(`${baseUrl}/auth/check`, { credentials: "include" });
                 const auth = await authRes.json();
                 if (!auth.authenticated) {
-                    window.location.replace("/Educa_vol_1/JSS/admin/Pages/login.html");
+                    window.location.replace("../login.html");
                     return;
                 }
 

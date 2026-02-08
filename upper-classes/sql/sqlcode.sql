@@ -24,7 +24,7 @@ CREATE TABLE  users(
 CREATE TABLE exams (
     exam_id INT AUTO_INCREMENT PRIMARY KEY,
     exam_name VARCHAR(255) NOT NULL,
-    exam_type ENUM('Weekly-Test', 'Opener', 'Mid-term', 'End-Term'),
+    exam_type ENUM('Weekly-Test', 'Opener', 'Mid-Term', 'End-Term'),
     term ENUM('Term 1', 'Term 2', 'Term 3'),
     academic_year YEAR NOT NULL,
     status ENUM('Scheduled', 'Completed', 'Cancelled') DEFAULT 'Scheduled',

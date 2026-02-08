@@ -5,7 +5,7 @@
     <title>Exam Breakdown</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/Educa_vol_1/JSS/admin/css/style.css">
+    <link rel="stylesheet" href="../../css/style.css">
 </head>
 
 <body>
@@ -27,7 +27,7 @@
             </div>
         </form>
         <a href="#" class="profile">
-                <img src="/Educa_vol_1/JSS/admin/images/logo.png">
+                <img src="../../images/logo.png">
         </a>
     </nav>
 
@@ -94,11 +94,11 @@
     </main>
 </div>
 
-    <script src="/Educa_vol_1/JSS/admin/js/index.js"></script>
-    <script src="/Educa_vol_1/JSS/admin/js/load-sidebar.js"></script>
+    <script src="../../js/index.js"></script>
+    <script src="../../js/load-sidebar.js"></script>
 <script>
     (async function () {
-        const baseUrl = "/Educa_vol_1/JSS/admin/backend/public/index.php";
+        const baseUrl = "../../backend/public/index.php";
         const params = new URLSearchParams(window.location.search);
         const resultId = params.get('result_id') || '';
 
@@ -111,7 +111,7 @@
             const authRes = await fetch(`${baseUrl}/auth/check`, { credentials: "include" });
             const auth = await authRes.json();
             if (!auth.authenticated) {
-                window.location.replace("/Educa_vol_1/JSS/admin/Pages/login.html");
+                window.location.replace("../login.html");
                 return;
             }
 

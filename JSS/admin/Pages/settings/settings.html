@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="stylesheet" href="/Educa_vol_1/JSS/admin/css/style.css">
+    <link rel="stylesheet" href="../../css/style.css">
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
     <style>
         .modal-overlay {
@@ -134,7 +134,7 @@
                 <span class="count">12</span>
             </a>
             <a href="#" class="profile">
-                <img src="/Educa_vol_1/JSS/admin/images/logo.png">
+                <img src="../../images/logo.png">
             </a>
         </nav>
 
@@ -156,7 +156,7 @@
 
             <!-- Insights -->
             <ul class="insights">
-                <a href="/Educa_vol_1/JSS/admin/Pages/settings/editpoints.html">
+                <a href="editpoints.html">
                     <li>
                         <i class='bx bx-message-square-dots'></i>
                         <span class="info-2">
@@ -173,7 +173,7 @@
                     </li>
                 </a>
 
-                <a href="/Educa_vol_1/JSS/admin/Pages/settings/classes.html">
+                <a href="classes.html">
                     <li><i class='bx bx-building-house'></i>
                         <span class="info-2">
                             <p>Manage Class</p>
@@ -181,7 +181,7 @@
                     </li>
                 </a>
 
-                <a href="/Educa_vol_1/JSS/admin/Pages/settings/graduate_classes.html">
+                <a href="graduate_classes.html">
                     <li><i class='bx bx-award'></i>
                         <span class="info-2">
                             <p>Graduate Class</p>
@@ -189,7 +189,7 @@
                     </li>
                 </a>
 
-                <a href="/Educa_vol_1/JSS/admin/Pages/settings/move_class.html">
+                <a href="move_class.html">
                     <li><i class='bx bx-transfer-alt'></i>
                         <span class="info-2">
                             <p>Move Class</p>
@@ -197,7 +197,7 @@
                     </li>
                 </a>
 
-                <a href="/Educa_vol_1/JSS/admin/Pages/settings/manage_exams.html">
+                <a href="manage_exams.html">
                     <li><i class='bx bx-paperclip'></i>
                         <span class="info-2">
                             <p>Manage Exam</p>
@@ -205,7 +205,7 @@
                     </li>
                 </a>
 
-                <a href="/Educa_vol_1/JSS/admin/Pages/settings/send_marks.html">
+                <a href="send_marks.html">
                     <li><i class='bx bx-send'></i>
                         <span class="info-2">
                             <p>Send Marks (SMS)</p>
@@ -267,11 +267,11 @@
 
 
 
-    <script src="/Educa_vol_1/JSS/admin/js/index.js"></script>
-    <script src="/Educa_vol_1/JSS/admin/js/load-sidebar.js"></script>
+    <script src="../../js/index.js"></script>
+    <script src="../../js/load-sidebar.js"></script>
     <script>
         (async function () {
-            const baseUrl = "/Educa_vol_1/JSS/admin/backend/public/index.php";
+            const baseUrl = "../../backend/public/index.php";
             const createExamBtn = document.getElementById('createExamBtn');
             const createExamModal = document.getElementById('createExamModal');
             const closeExamModal = document.getElementById('closeExamModal');
@@ -313,7 +313,7 @@
                 const authRes = await fetch(`${baseUrl}/auth/check`, { credentials: "include" });
                 const auth = await authRes.json();
                 if (!auth.authenticated) {
-                    window.location.replace("/Educa_vol_1/JSS/admin/Pages/login.html");
+                    window.location.replace("../../login.html");
                 }
             } catch (error) {
                 console.error('Failed to validate session', error);

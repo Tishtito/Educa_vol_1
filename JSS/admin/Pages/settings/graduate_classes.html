@@ -5,7 +5,7 @@
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-   <link rel="stylesheet" href="/Educa_vol_1/JSS/admin/css/style.css">
+   <link rel="stylesheet" href="../../css/style.css">
    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
    <title>Graduate Class</title>
    <style>
@@ -139,7 +139,7 @@
             <span class="count">12</span>
          </a>
          <a href="#" class="profile">
-            <img src="/Educa_vol_1/JSS/admin/images/logo.png">
+            <img src="../../images/logo.png">
          </a>
       </nav>
 
@@ -149,7 +149,7 @@
                <h1>Graduate Class</h1>
                <p class="subtitle">Move an entire class to a new level or mark them as finished.</p>
             </div>
-            <a href="/Educa_vol_1/JSS/admin/Pages/settings/settings.html" class="primary-btn">Back to Settings</a>
+            <a href="settings.html" class="primary-btn">Back to Settings</a>
          </div>
 
          <div class="panel-grid">
@@ -197,10 +197,10 @@
       </main>
    </div>
 
-   <script src="/Educa_vol_1/JSS/admin/js/index.js"></script>
-   <script src="/Educa_vol_1/JSS/admin/js/load-sidebar.js"></script>
+   <script src="../../js/index.js"></script>
+   <script src="../../js/load-sidebar.js"></script>
    <script>
-      const baseUrl = "/Educa_vol_1/JSS/admin/backend/public/index.php";
+      const baseUrl = "../../backend/public/index.php";
       const classesEndpoint = `${baseUrl}/settings/classes`;
       const studentsEndpoint = `${baseUrl}/students/active-by-class`;
       const graduateEndpoint = `${baseUrl}/settings/classes/graduate-all`;
