@@ -179,6 +179,19 @@
 <script src="../js/header-init.js"></script>
 
 <script>
+   // Retrieve student ID from token
+   function getStudentIdFromToken(token) {
+      const tokenMap = JSON.parse(sessionStorage.getItem('studentTokenMap') || '{}');
+      const studentId = tokenMap[token];
+      
+      if (!studentId) {
+         console.error('Invalid token: ' + token);
+         return null;
+      }
+      
+      return studentId;
+   }
+
    // Load components
    async function loadComponentPromise(componentPath, containerId) {
       try {
@@ -211,17 +224,29 @@
    /*Load student profile*/
    async function loadStudentProfile() {
       try {
-         // Get student ID from URL query parameter
+         // Get token from URL query parameter
          const params = new URLSearchParams(window.location.search);
-         const studentId = params.get('id');
+         const token = params.get('token');
+         const studentId = params.get('id'); // Fallback for backward compatibility
 
-         if (!studentId) {
+         let finalStudentId = studentId;
+
+         // Try to resolve token to student ID
+         if (token) {
+            finalStudentId = getStudentIdFromToken(token);
+            
+            if (!finalStudentId) {
+               document.getElementById('profileContainer').innerHTML = 
+                  '<p class="error-message">Invalid or expired link. <a href="students.html">Go back to students</a></p>';
+               return;
+            }
+         } else if (!finalStudentId) {
             document.getElementById('profileContainer').innerHTML = 
                '<p class="error-message">Student ID not provided. <a href="students.html">Go back to students</a></p>';
             return;
          }
 
-         const response = await fetch(`../backend/public/index.php/student-profile?id=${encodeURIComponent(studentId)}`, {
+         const response = await fetch(`../backend/public/index.php/student-profile?id=${encodeURIComponent(finalStudentId)}`, {
             credentials: 'include'
          });
 

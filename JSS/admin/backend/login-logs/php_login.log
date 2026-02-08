@@ -23,3 +23,14 @@
 [04-Feb-2026 03:32:37 Africa/Nairobi] [AUTH] Login success username=jwambu
 [04-Feb-2026 12:38:55 Africa/Nairobi] [AUTH] Invalid credentials for username=jwambu adminFound=1
 [04-Feb-2026 12:39:03 Africa/Nairobi] [AUTH] Login success username=jwambu
+[06-Feb-2026 12:32:33 Africa/Nairobi] [AUTH] Login success username=jwambu
+[06-Feb-2026 12:58:59 Africa/Nairobi] [AUTH] Invalid credentials for username=jwambu adminFound=1
+[06-Feb-2026 13:03:47 Africa/Nairobi] [AUTH] Login success username=jwambu
+[06-Feb-2026 13:04:42 Africa/Nairobi] [AUTH] Login success username=jwambu
+[06-Feb-2026 13:56:17 Africa/Nairobi] [AUTH] Login success username=jwambu
+[06-Feb-2026 15:56:55 Africa/Nairobi] [AUTH] Login success username=jwambu
+[06-Feb-2026 16:17:45 Africa/Nairobi] [AUTH] Login success username=jwambu
+[06-Feb-2026 17:18:04 Africa/Nairobi] [AUTH] Login success username=jwambu
+[06-Feb-2026 17:20:47 Africa/Nairobi] [ReportsController] download error: The PHP GD extension is required, but is not installed.
+[06-Feb-2026 23:16:08 Africa/Nairobi] [AUTH] Login success username=jwambu
+[07-Feb-2026 23:17:44 Africa/Nairobi] [AUTH] Login success username=jwambu

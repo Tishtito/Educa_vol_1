@@ -1,0 +1,171 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Exam Breakdown</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/style.css">
+</head>
+
+<body>
+
+<!-- Sidebar -->
+<div id="sidebar-container" data-active="students"></div>
+
+<div class="content">
+
+    <!-- Navbar -->
+    <nav>
+        <i class='bx bx-menu'></i>
+        <form action="#">
+            <div class="form-input">
+                <input type="search" placeholder="Search...">
+                <button class="search-btn" type="submit">
+                    <i class='bx bx-search'></i>
+                </button>
+            </div>
+        </form>
+        <a href="#" class="profile">
+                <img src="../../images/logo.png">
+        </a>
+    </nav>
+
+    <main>
+
+        <div class="header">
+            <div class="left">
+                <h1>Exam Breakdown</h1>
+                <ul class="breadcrumb">
+                    <li><a href="students_finished.html">Finished Students</a></li>
+                    /
+                    <li><a href="#" class="active" id="breadcrumb-exam">Exam</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Student Info -->
+        <div class="card">
+            <p><strong>Student:</strong> <span id="student-name">-</span></p>
+            <p><strong>Class:</strong> <span id="student-class">-</span></p>
+            <p><strong>Exam:</strong> <span id="exam-name">-</span></p>
+            <p><strong>Date:</strong> <span id="exam-date">-</span></p>
+        </div>
+
+        <!-- Subject Breakdown -->
+        <div class="bottom-data">
+            <div class="orders">
+                <div class="header">
+                    <i class='bx bx-receipt'></i>
+                    <h3>Subject Breakdown</h3>
+                    <i class='bx bx-filter'></i>
+                    <i class='bx bx-search'></i>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Subject</th>
+                            <th>Marks</th>
+                        </tr>
+                    </thead>
+                    <tbody id="subjects-body">
+                        <tr>
+                            <td colspan="2" style="text-align:center;">Loading...</td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th>Total Marks</th>
+                            <th id="total-marks">-</th>
+                        </tr>
+                        <tr>
+                            <th>Position</th>
+                            <th id="position">-</th>
+                        </tr>
+                        <tr>
+                            <th>Stream Position</th>
+                            <th id="stream-position">-</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+    <script src="../../js/index.js"></script>
+    <script src="../../js/load-sidebar.js"></script>
+<script>
+    (async function () {
+        const baseUrl = "../../backend/public/index.php";
+        const params = new URLSearchParams(window.location.search);
+        const resultId = params.get('result_id') || '';
+
+        if (!resultId || !resultId.match(/^\d+$/)) {
+            document.getElementById('subjects-body').innerHTML = '<tr><td colspan="2" style="text-align:center;">Invalid result ID.</td></tr>';
+            return;
+        }
+
+        try {
+            const authRes = await fetch(`${baseUrl}/auth/check`, { credentials: "include" });
+            const auth = await authRes.json();
+            if (!auth.authenticated) {
+                window.location.replace("../login.html");
+                return;
+            }
+
+            const detailRes = await fetch(`${baseUrl}/students/result-detail?result_id=${encodeURIComponent(resultId)}`, { credentials: "include" });
+            const detail = await detailRes.json();
+            if (!detail.success) {
+                document.getElementById('subjects-body').innerHTML = '<tr><td colspan="2" style="text-align:center;">Exam result not found.</td></tr>';
+                return;
+            }
+
+            const data = detail.data;
+            document.getElementById('student-name').textContent = data.student_name ?? '-';
+            document.getElementById('student-class').textContent = data.student_class ?? '-';
+            document.getElementById('exam-name').textContent = data.exam_name ?? 'N/A';
+            document.getElementById('breadcrumb-exam').textContent = data.exam_name ?? 'Exam';
+
+            const createdAt = data.created_at ? new Date(data.created_at) : null;
+            const dateText = createdAt ? createdAt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
+            document.getElementById('exam-date').textContent = dateText;
+
+            const subjects = [
+                { key: 'Math', label: 'Math' },
+                { key: 'English', label: 'English' },
+                { key: 'Kiswahili', label: 'Kiswahili' },
+                { key: 'Enviromental', label: 'Enviromental' },
+                { key: 'Creative', label: 'Creative' },
+                { key: 'Religious', label: 'Religious' },
+            ];
+
+            const body = document.getElementById('subjects-body');
+            body.innerHTML = '';
+            subjects.forEach((subject) => {
+                const value = data[subject.key];
+                if (value !== null && value !== undefined) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${subject.label}</td>
+                        <td>${value}</td>
+                    `;
+                    body.appendChild(row);
+                }
+            });
+
+            if (body.children.length === 0) {
+                body.innerHTML = '<tr><td colspan="2" style="text-align:center;">No subject marks found.</td></tr>';
+            }
+
+            document.getElementById('total-marks').textContent = data.total_marks ?? '-';
+            document.getElementById('position').textContent = data.position ?? '-';
+            document.getElementById('stream-position').textContent = data.stream_position ?? '-';
+        } catch (error) {
+            console.error('Failed to load exam breakdown', error);
+        }
+    })();
+</script>
+</body>
+</html>

@@ -1,0 +1,158 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mark List</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .row {
+            display: flex;
+        }
+
+        .column {
+            float: left;
+            padding: 10px;
+        }
+
+        .left {
+            width: 80%;
+        }
+
+        .right {
+            width: 20%;
+        }
+
+        .row:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        @media print{
+            button{
+                display: none !important;
+            }
+        }
+    </style>
+    <script>
+        function printPage() {
+            window.print();
+        }
+    </script>
+</head>
+<body>
+    <!-- Print Button -->
+    <button onclick="printPage()" class="btn btn-secondary mb-3">Print</button>
+
+    <div class="container my-5">
+        <div class="row">
+            <div class="column left">
+                <h1 id="streamlist-exam">Mark List</h1>
+                <h1 id="streamlist-grade">Grade:</h1>
+            </div>
+
+            <div class="column right">
+                <img src="../../images/logo.png" alt="" width="250px" height="200px">
+            </div>
+        </div>
+        <table class="table table-bordered text-center">
+            <thead>
+                <tr id="streamlist-head-top"></tr>
+                <tr id="streamlist-head-sub"></tr>
+            </thead>
+            <tbody id="streamlist-body"></tbody>
+            <tfoot id="streamlist-foot"></tfoot>
+        </table>
+        <button onclick="printPage()" class="btn btn-secondary mb-3">Print</button>
+    </div>
+    <script>
+        (async function () {
+            const baseUrl = "../../backend/public/index.php";
+            const params = new URLSearchParams(window.location.search);
+            const examId = params.get("exam_id");
+            const grade = params.get("grade");
+            const token = params.get("token");
+
+            try {
+                const authRes = await fetch(`${baseUrl}/auth/check`, { credentials: "include" });
+                const auth = await authRes.json();
+                if (!auth.authenticated) {
+                    window.location.replace("../login.html");
+                    return;
+                }
+
+                if (!examId || !grade || !token) {
+                    console.error("Missing exam_id or grade");
+                    return;
+                }
+
+                const res = await fetch(`${baseUrl}/streams/list?exam_id=${encodeURIComponent(examId)}&grade=${encodeURIComponent(grade)}&token=${encodeURIComponent(token)}`, {
+                    credentials: "include",
+                });
+                const payload = await res.json();
+                if (!payload.success) {
+                    console.error(payload.message || "Failed to load stream list");
+                    return;
+                }
+
+                const data = payload.data;
+                document.getElementById("streamlist-exam").textContent = `Mark List - ${data.exam_name}`;
+                document.getElementById("streamlist-grade").textContent = `Grade: ${data.grade}`;
+
+                const headTop = document.getElementById("streamlist-head-top");
+                const headSub = document.getElementById("streamlist-head-sub");
+                headTop.innerHTML = "<th rowspan=\"2\">Rank</th><th rowspan=\"2\">Name</th><th rowspan=\"2\">Class</th>";
+                headSub.innerHTML = "";
+
+                data.subjects.forEach((subject) => {
+                    headTop.innerHTML += `<th colspan=\"2\">${subject}</th>`;
+                    headSub.innerHTML += "<th>Marks</th><th>PL</th>";
+                });
+                headTop.innerHTML += "<th rowspan=\"2\">Total Marks</th>";
+
+                const getPL = (score) => {
+                    const numeric = Number(score);
+                    if (Number.isNaN(numeric)) return "-";
+                    const match = data.performance_levels.find(pl => numeric >= pl.min_marks && numeric <= pl.max_marks);
+                    return match ? match.ab : "-";
+                };
+
+                const body = document.getElementById("streamlist-body");
+                body.innerHTML = "";
+                data.students.forEach((student) => {
+                    let row = `<tr><td>${student.rank}</td><td>${student.Name}</td><td>${student.Class}</td>`;
+                    data.subjects.forEach((subject) => {
+                        const mark = student[subject] ?? "-";
+                        row += `<td>${mark}</td><td>${getPL(mark)}</td>`;
+                    });
+                    row += `<td>${student.Total_marks ?? 0}</td></tr>`;
+                    body.innerHTML += row;
+                });
+
+                const foot = document.getElementById("streamlist-foot");
+                const meanRow = ["<tr><th colspan=\"3\">Mean Scores</th>"];
+                data.subjects.forEach((subject) => {
+                    meanRow.push(`<td colspan=\"2\">${data.mean_scores[subject] ?? 0}</td>`);
+                });
+                meanRow.push(`<td>${data.total_mean ?? 0}</td></tr>`);
+                foot.innerHTML = meanRow.join("");
+            } catch (error) {
+                console.error("Stream list load failed", error);
+            }
+        })();
+    </script>
+</body>
+</html>

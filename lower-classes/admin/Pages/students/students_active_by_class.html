@@ -1,0 +1,300 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/style.css">
+    <title>Active Students</title>
+    <style>
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal {
+            width: min(640px, 92vw);
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .modal-close {
+            background: transparent;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .profile-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .profile-card {
+            padding: 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            background: #f9fafb;
+        }
+        .profile-card h4 {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 6px;
+        }
+        .profile-card p {
+            font-size: 16px;
+            font-weight: 600;
+            color: #111827;
+        }
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 16px;
+        }
+        .btn {
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-secondary {
+            background: #e5e7eb;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <div id="sidebar-container" data-active="students"></div>
+    <!-- End of Sidebar -->
+
+    <div class="content">
+        <!-- Navbar -->
+        <nav>
+            <i class='bx bx-menu'></i>
+            <form action="#">
+                <div class="form-input">
+                    <input type="search" placeholder="Search...">
+                    <button class="search-btn" type="submit">
+                        <i class='bx bx-search'></i>
+                    </button>
+                </div>
+            </form>
+            <a href="#" class="profile">
+                <img src="../../images/logo.png">
+            </a>
+        </nav>
+
+        <main>
+            <div class="header">
+                <div class="left">
+                    <h1>Active Students</h1>
+                    <ul class="breadcrumb">
+                        <li><a href="students_active.html">Active</a></li>
+                        /
+                        <li><a href="#" class="active" id="class-name">Class</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="bottom-data">
+                <div class="orders">
+                    <div class="header">
+                        <i class='bx bx-receipt'></i>
+                        <h3 id="table-title">Active Students</h3>
+                        <i class='bx bx-filter'></i>
+                        <i class='bx bx-search'></i>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Name</th>
+                                <th>Class</th>
+                                <th>Joined On</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="students-body">
+                            <tr>
+                                <td colspan="5" style="text-align:center;">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="student-profile-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" id="profile-title">Student Profile</div>
+                <button class="modal-close" type="button" id="profile-close">&times;</button>
+            </div>
+            <div class="profile-grid">
+                <div class="profile-card">
+                    <h4>Name</h4>
+                    <p id="profile-name">-</p>
+                </div>
+                <div class="profile-card">
+                    <h4>Class</h4>
+                    <p id="profile-class">-</p>
+                </div>
+                <div class="profile-card">
+                    <h4>Status</h4>
+                    <p id="profile-status">-</p>
+                </div>
+                <div class="profile-card">
+                    <h4>Joined</h4>
+                    <p id="profile-joined">-</p>
+                </div>
+                <div class="profile-card">
+                    <h4>Last Updated</h4>
+                    <p id="profile-updated">-</p>
+                </div>
+                <div class="profile-card">
+                    <h4>Results Count</h4>
+                    <p id="profile-results">-</p>
+                </div>
+                <div class="profile-card">
+                    <h4>Last Exam</h4>
+                    <p id="profile-last-exam">-</p>
+                </div>
+                <div class="profile-card">
+                    <h4>Last Exam Date</h4>
+                    <p id="profile-last-exam-date">-</p>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" type="button" id="profile-close-btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../js/index.js"></script>
+    <script src="../../js/load-sidebar.js"></script>
+    <script>
+        (async function () {
+            const baseUrl = "../../backend/public/index.php";
+            const params = new URLSearchParams(window.location.search);
+            const className = params.get('class') || '';
+
+            if (!className) {
+                document.getElementById('students-body').innerHTML = '<tr><td colspan="5" style="text-align:center;">Invalid class selected.</td></tr>';
+                return;
+            }
+
+            document.getElementById('class-name').textContent = className;
+            document.getElementById('table-title').textContent = `Active Students in ${className}`;
+
+            try {
+                const authRes = await fetch(`${baseUrl}/auth/check`, { credentials: "include" });
+                const auth = await authRes.json();
+                if (!auth.authenticated) {
+                    window.location.replace("../login.html");
+                    return;
+                }
+
+                const listRes = await fetch(`${baseUrl}/students/active-by-class?class=${encodeURIComponent(className)}`, { credentials: "include" });
+                const list = await listRes.json();
+                const tbody = document.getElementById('students-body');
+                if (!list.success || (list.data || []).length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No active students found in this class.</td></tr>';
+                    return;
+                }
+
+                const modal = document.getElementById('student-profile-modal');
+                const closeBtn = document.getElementById('profile-close');
+                const closeBtn2 = document.getElementById('profile-close-btn');
+
+                function closeProfile() {
+                    modal.classList.remove('active');
+                }
+
+                closeBtn.addEventListener('click', closeProfile);
+                closeBtn2.addEventListener('click', closeProfile);
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) closeProfile();
+                });
+
+                tbody.innerHTML = '';
+                list.data.forEach((student, index) => {
+                    const createdAt = student.created_at ? new Date(student.created_at) : null;
+                    const joinedOn = createdAt ? createdAt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${student.name}</td>
+                        <td>${student.class}</td>
+                        <td>${joinedOn}</td>
+                        <td>
+                            <a href="#" class="view-student" data-id="${student.student_id}">
+                                <span class="status process">View</span>
+                            </a>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+
+                tbody.addEventListener('click', async (event) => {
+                    const link = event.target.closest('.view-student');
+                    if (!link) return;
+                    event.preventDefault();
+                    const studentId = link.dataset.id;
+
+                    try {
+                        const profileRes = await fetch(`${baseUrl}/students/profile?student_id=${encodeURIComponent(studentId)}`, { credentials: "include" });
+                        const profile = await profileRes.json();
+                        if (!profile.success) {
+                            return;
+                        }
+
+                        const info = profile.data.student;
+                        const lastExamDate = profile.data.last_exam_date ? new Date(profile.data.last_exam_date) : null;
+                        const joinedAt = info.created_at ? new Date(info.created_at) : null;
+                        const updatedAt = info.updated_at ? new Date(info.updated_at) : null;
+
+                        document.getElementById('profile-title').textContent = `Student Profile - ${info.name}`;
+                        document.getElementById('profile-name').textContent = info.name ?? '-';
+                        document.getElementById('profile-class').textContent = info.class ?? '-';
+                        document.getElementById('profile-status').textContent = info.status ?? '-';
+                        document.getElementById('profile-joined').textContent = joinedAt ? joinedAt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
+                        document.getElementById('profile-updated').textContent = updatedAt ? updatedAt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
+                        document.getElementById('profile-results').textContent = profile.data.results_count ?? 0;
+                        document.getElementById('profile-last-exam').textContent = profile.data.last_exam_name ?? '-';
+                        document.getElementById('profile-last-exam-date').textContent = lastExamDate ? lastExamDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
+
+                        modal.classList.add('active');
+                    } catch (err) {
+                        console.error('Failed to load student profile', err);
+                    }
+                });
+            } catch (error) {
+                console.error('Failed to load active students', error);
+            }
+        })();
+    </script>
+</body>
+
+</html>

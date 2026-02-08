@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Learning Areas</title>
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css">
+   <link rel="stylesheet" href="../css/Tpanel.css">
+   <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+   <script src="../js/script.js"></script>
+   <script src="../js/teacher-data.js"></script>
+</head>
+<body>
+
+<!-- Header Component Container -->
+<div id="headerContainer"></div>
+
+<!-- Sidebar Component Container -->
+<div id="sidebarContainer"></div>
+
+<section class="courses">
+
+   <h1 class="heading">Learning Areas</h1>
+
+   <div class="box-container">
+
+      <div class="box">
+         <div class="thumb">
+            <img src="../photos/kiswahili.jpg" alt="">
+         </div>
+         <h3 class="title">Kiswahili</h3>
+         <a href="subjects.html?subject=Kiswahili" class="inline-btn">View Marks</a>
+      </div>
+
+      <div class="box">
+         <div class="thumb">
+            <img src="../photos/math.png" alt="">
+         </div>
+         <h3 class="title">Math</h3>
+         <a href="subjects.html?subject=Math" class="inline-btn">View Marks</a>
+      </div>
+
+      <div class="box">
+         <div class="thumb">
+            <img src="../photos/english.jpg" alt="">
+         </div>
+         <h3 class="title">English</h3>
+         <a href="subjects.html?subject=English" class="inline-btn">View Marks</a>
+      </div>
+
+      <div class="box">
+         <div class="thumb">
+            <img src="../photos/creative.jpg" alt="">
+         </div>
+         <h3 class="title">Creative Arts</h3>
+         <a href="subjects.html?subject=Creative" class="inline-btn">View Marks</a>
+      </div>
+
+      <div class="box">
+         <div class="thumb">
+            <img src="../photos/religious.jpg" alt="">
+         </div>
+         <h3 class="title">CRE</h3>
+         <a href="subjects.html?subject=Religious" class="inline-btn">View Marks</a>
+      </div>
+
+      <div class="box">
+         <div class="thumb">
+            <img src="../photos/enviromental.jpg" alt="">
+         </div>
+         <h3 class="title">Enviromental</h3>
+         <a href="subjects.html?subject=Enviromental" class="inline-btn">View Marks</a>
+      </div>
+
+   </div>
+
+</section>
+
+<!-- Footer Component Container -->
+<div id="footerContainer"></div>
+
+<script>
+   // Initialize components and dashboard
+   document.addEventListener('DOMContentLoaded', () => {
+      // Load components first
+      Promise.all([
+         loadComponentPromise('header', 'headerContainer'),
+         loadComponentPromise('sidebar', 'sidebarContainer'),
+         loadComponentPromise('footer', 'footerContainer')
+      ]).then(() => {
+         console.log('Components loaded');
+         // Load teacher data to populate names in header and sidebar
+         loadTeacherData();
+         // Initialize script listeners after components are loaded
+         // Use setTimeout to ensure DOM is painted before attaching listeners
+         setTimeout(() => {
+            initializeScriptListeners();
+         }, 50);
+      }).catch(err => {
+         console.error('Error loading components:', err);
+         swal({
+            title: 'Error!',
+            text: 'Failed to load page components',
+            icon: 'error',
+            button: 'OK',
+         });
+      });
+   });
+
+   /**
+    * Wrapper for loadComponent that returns a promise
+    */
+   function loadComponentPromise(componentName, containerId) {
+      return new Promise((resolve, reject) => {
+         const container = document.getElementById(containerId);
+         if (!container) {
+            reject(new Error(`Container with id "${containerId}" not found`));
+            return;
+         }
+
+         const componentPath = `components/${componentName}.html`;
+         
+         fetch(componentPath)
+            .then(response => {
+               if (!response.ok) throw new Error(`Failed to load ${componentName} component`);
+               return response.text();
+            })
+            .then(html => {
+               container.innerHTML = html;
+               resolve();
+            })
+            .catch(error => {
+               console.error(`Error loading ${componentName} component:`, error);
+               reject(error);
+            });
+      });
+   }
+</script>
+
+</body>
+</html>

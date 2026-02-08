@@ -1,0 +1,6 @@
+[2026-02-07T21:57:36+03:00] Uncaught Exception ParseError: syntax error, unexpected token ";" in C:\xampp\htdocs\Educa_vol_1\Upper-classes-combined\examiner\backend\app\src\Controllers\SubjectController.php:56
+Stack: #0 C:\xampp\htdocs\Educa_vol_1\Upper-classes-combined\examiner\backend\vendor\composer\ClassLoader.php(427): Composer\Autoload\{closure}('C:\\xampp\\htdocs...')
+#1 [internal function]: Composer\Autoload\ClassLoader->loadClass('App\\Controllers...')
+#2 C:\xampp\htdocs\Educa_vol_1\Upper-classes-combined\examiner\backend\app\src\bootstrap.php(133): class_exists('\\App\\Controller...')
+#3 C:\xampp\htdocs\Educa_vol_1\Upper-classes-combined\examiner\backend\public\index.php(7): require('C:\\xampp\\htdocs...')
+#4 {main}

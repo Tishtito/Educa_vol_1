@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Teacher Dashboard</title>
+    <link rel="icon" type="image/x-icon" href="../photos/logo.png">
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css">
+   <link rel="stylesheet" href="../css/Tpanel.css">
+   <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+</head>
+<body>
+
+<!-- Header Component Container -->
+<div id="headerContainer"></div>
+
+<!-- Sidebar Component Container -->
+<div id="sidebarContainer"></div>
+
+<section class="home-grid">
+
+   <h1 class="heading">Analysis</h1>
+
+   <div class="box-container">
+     <div class="box">
+         <h3 class="title">Learning Areas Mean</h3>
+         <p class="likes">English : <span id="englishMean">-</span></p>
+         <p class="likes">Kiswahili : <span id="kiswahiliMean">-</span></p>
+         <p class="likes">Math : <span id="mathMean">-</span></p>
+         <p class="likes">Creative Arts : <span id="creativeMean">-</span></p>
+         <p class="likes">CRE : <span id="creMean">-</span></p>
+         <p class="likes">AgricNutri : <span id="agricNutriMean">-</span></p>
+         <p class="likes">Science & Technology : <span id="sciTechMean">-</span></p>
+         <p class="likes">Social studies : <span id="sstMean">-</span></p>
+         <p class="likes">Intergrated science : <span id="integratedScienceMean">-</span></p>
+      </div>
+
+      <div class="box">
+         <h3 class="title">Mean Standard Score (MSS)</h3>
+         <p class="likes">MSS: <span id="mssMean">-</span></p>
+         <a href="../students.php" class="inline-btn">view Scores</a>
+      </div>
+
+   </div>
+
+</section>
+
+<section class="courses">
+
+   <h1 class="heading" id="classTitle">Class Dashboard</h1>
+
+   <div class="box-container">
+
+      <div class="box">
+         <div class="thumb">
+            <img src="../photos/kiswahili.jpg" alt="">
+         </div>
+         <h3 class="title">Kiswahili</h3>
+         <a href="subjects.html?subject=Kiswahili" class="inline-btn">View Marks</a>
+      </div>
+
+      <div class="box">
+         <div class="thumb">
+            <img src="../photos/math.png" alt="">
+         </div>
+         <h3 class="title">Math</h3>
+         <a href="subjects.html?subject=Math" class="inline-btn">View Marks</a>
+      </div>
+
+      <div class="box">
+         <div class="thumb">
+            <img src="../photos/english.jpg" alt="">
+         </div>
+         <h3 class="title">English</h3>
+         <a href="subjects.html?subject=English" class="inline-btn">View Marks</a>
+      </div>
+
+      <div class="box">
+         <div class="thumb">
+            <img src="../photos/creative.jpg" alt="">
+         </div>
+         <h3 class="title">Creative Arts</h3>
+         <a href="subjects.html?subject=Creative" class="inline-btn">View Marks</a>
+      </div>
+
+      <div class="box">
+         <div class="thumb">
+            <img src="../photos/religious.jpg" alt="">
+         </div>
+         <h3 class="title">CRE</h3>
+         <a href="subjects.html?subject=CRE" class="inline-btn">View Marks</a>
+      </div>
+
+      <div class="box">
+         <div class="thumb">
+            <img src="../photos/science.png" alt="">
+         </div>
+         <h3 class="title">Intergrated Science</h3>
+         <a href="subjects.html?subject=Integrated_science" class="inline-btn">View Marks</a>
+      </div>
+
+      <div class="box">
+         <div class="thumb">
+            <img src="../photos/sst.png" alt="">
+         </div>
+         <h3 class="title">Social Studies</h3>
+         <a href="subjects.html?subject=SST" class="inline-btn">View Marks</a>
+      </div>
+
+      <div class="box">
+         <div class="thumb">
+            <img src="../photos/science.png" alt="">
+         </div>
+         <h3 class="title">Science & Technology</h3>
+         <a href="subjects.html?subject=SciTech" class="inline-btn">View Marks</a>
+      </div>
+
+   </div>
+
+   <div class="more-btn">
+      <a href="subjects.html" class="inline-option-btn">view all Learning Areas</a>
+   </div>
+
+</section>
+
+<!-- Footer Component Container -->
+<div id="footerContainer"></div>
+
+<!-- custom js file link  -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="../js/examiner-data.js"></script>
+<script src="../js/script.js"></script>
+<script src="../js/header-init.js"></script>
+
+<script>
+async function loadComponentPromise(componentName, containerId) {
+   try {
+      const res = await fetch(`components/${componentName}.html`);
+      if (!res.ok) throw new Error(`Failed to load ${componentName}`);
+      const html = await res.text();
+      document.getElementById(containerId).innerHTML = html;
+      // Trigger header re-initialization after header loads
+      if (containerId === 'headerContainer') {
+         document.dispatchEvent(new Event('headerLoaded'));
+      }
+   } catch (err) {
+      console.error(`Error loading ${componentName} component:`, err);
+   }
+}
+
+async function checkAuth() {
+   const res = await fetch('../backend/public/index.php/auth/check', { credentials: 'include' });
+   if (!res.ok) {
+      window.location.href = 'index.html';
+      return null;
+   }
+   return await res.json();
+}
+
+async function loadDashboard() {
+   try {
+      // Check auth first
+      const authRes = await fetch('../backend/public/index.php/auth/check', { credentials: 'include' });
+      const authData = await authRes.json();
+      
+      if (!authData.success) {
+         window.location.href = 'index.html';
+         return;
+      }
+
+      // Check if exam_id is set in session
+      if (!authData.exam_id) {
+         // Redirect to exam selection if no exam is selected
+         window.location.href = 'exam.html';
+         return;
+      }
+
+      const response = await fetch('../backend/public/index.php/dashboard', { credentials: 'include' });
+      
+      if (!response.ok) {
+         if (response.status === 401) {
+            window.location.href = 'index.html';
+            return;
+         }
+         throw new Error(`Failed to load dashboard data: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+         // Load examiner name in header and sidebar
+         await loadExaminerData();
+
+         // Update class title
+         const classTitleElement = document.getElementById('classTitle');
+         if (classTitleElement) classTitleElement.textContent = data.title || 'Class Dashboard';
+
+         // Update mean scores
+         const means = data.means || {};
+         const elements = {
+            'englishMean': means.English,
+            'kiswahiliMean': means.Kiswahili,
+            'mathMean': means.Math,
+            'creativeMean': means.Creative,
+            'creMean': means.CRE,
+            'agricNutriMean': means.AgricNutri,
+            'sciTechMean': means.SciTech,
+            'sstMean': means.SST,
+            'integratedScienceMean': means.Integrated_science,
+            'mssMean': means.total_mean
+         };
+
+         for (const [id, value] of Object.entries(elements)) {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value || '-';
+         }
+      } else {
+         throw new Error(data.message || 'Unknown error');
+      }
+   } catch (error) {
+      console.error('Error loading dashboard:', error);
+   }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+   await Promise.all([
+      loadComponentPromise('header', 'headerContainer'),
+      loadComponentPromise('sidebar', 'sidebarContainer'),
+      loadComponentPromise('footer', 'footerContainer')
+   ]);
+   // Load examiner data (name and class) from backend
+   await loadExaminerData();
+   // Load dashboard data
+   await loadDashboard();
+});
+</script>
+
+</body>
+</html>

@@ -99,6 +99,21 @@
 <script src="../js/header-init.js"></script>
 <script>
 // ========================================
+// TOKEN MANAGEMENT
+// ========================================
+function getSubjectTokenData(token) {
+    const tokenMap = JSON.parse(sessionStorage.getItem('subjectTokenMap') || '{}');
+    const data = tokenMap[token];
+    
+    if (!data) {
+        console.error('Invalid token: ' + token);
+        return null;
+    }
+    
+    return data;
+}
+
+// ========================================
 // COMPONENT LOADING
 // ========================================
 async function loadComponentPromise(componentName, containerId) {
@@ -160,8 +175,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         marksOutOfInput.value = savedMarksOutOf;
     }
     
-    subjectId = new URLSearchParams(window.location.search).get('subject_id');
-    classId = new URLSearchParams(window.location.search).get('class_id');
+    // Get token from URL, or fall back to direct IDs for backward compatibility
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    let directSubjectId = params.get('subject_id');
+    let directClassId = params.get('class_id');
+
+    if (token) {
+        // Retrieve actual IDs from token
+        const tokenData = getSubjectTokenData(token);
+        if (!tokenData) {
+            showError('Invalid or expired link. Please go back and select again.');
+            return;
+        }
+        subjectId = tokenData.subject_id;
+        classId = tokenData.class_id;
+    } else {
+        subjectId = directSubjectId;
+        classId = directClassId;
+    }
 
     if (!subjectId || !classId) {
         showError('Missing subject or class ID. Please go back and select again.');

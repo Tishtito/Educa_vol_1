@@ -1,0 +1,128 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    font-size: 12px;
+   }
+        
+    .report-container {
+        max-width: 800px;
+        margin: 0 auto;
+        border: 1px solid #000;
+        padding: 15px;
+        position: relative;
+    }
+        
+    .school-header {
+        text-align: center;
+        margin-bottom: 15px;
+    }
+        
+    .school-name {
+        font-weight: bold;
+        font-size: 18px;
+        margin-bottom: 5px;
+    }
+        
+    .school-contact {
+        font-size: 11px;
+        margin-bottom: 10px;
+    }
+        
+    .report-title {
+        text-align: center;
+        font-weight: bold;
+        text-decoration: underline;
+        margin-bottom: 15px;
+        font-size: 14px;
+    }
+        
+    .student-info {
+        margin-bottom: 15px;
+    }
+        
+    .info-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 10px;
+    }
+        
+    .info-table td {
+        padding: 3px;
+        border: 1px solid #000;
+    }
+        
+        .info-table td:first-child {
+            font-weight: bold;
+            width: 25%;
+        }
+        
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+            font-size: 11px;
+        }
+        
+        .results-table th, .results-table td {
+            border: 1px solid #000;
+            padding: 5px;
+            text-align: center;
+        }
+        
+        .results-table th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        
+        .summary-section {
+            margin-top: 20px;
+        }
+        
+        .summary-title {
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+    .summary-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 15px;
+    }
+        
+    .summary-table th, .summary-table td {
+        border: 1px solid #000;
+        padding: 5px;
+        text-align: center;
+    }
+        
+    .summary-table th {
+        background-color: #f0f0f0;
+    }
+        
+    .signature-section {
+        margin-top: 20px;
+    }
+        
+    .comments {
+        margin: 15px 0;
+        font-style: italic;
+    }
+        
+    .footer {
+        margin-top: 20px;
+        text-align: center;
+        font-size: 11px;
+    }
+        
+    .motto {
+        font-weight: bold;
+        text-align: center;
+       margin-top: 10px;
+    }
+        
+    .stamp-notice {
+        text-align: center;
+        font-style: italic;
+        margin-top: 5px;
+    }

@@ -15,7 +15,7 @@ class ExamController
         $this->db = $db;
     }
 
-    // GET /exams - list all exams
+    // GET /exams - list all scheduled exams
     public function getExams(): void
     {
         $this->startSession();
@@ -25,7 +25,7 @@ class ExamController
             return;
         }
         try {
-            $exams = $this->db->select('exams', '*', ['ORDER' => ['date_created' => 'DESC']]);
+            $exams = $this->db->select('exams', '*', ['status' => 'Scheduled', 'ORDER' => ['date_created' => 'DESC']]);
             header('Content-Type: application/json');
             echo json_encode(['success' => true, 'exams' => $exams]);
         } catch (\Exception $e) {

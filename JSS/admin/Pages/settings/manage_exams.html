@@ -159,12 +159,13 @@
                         <thead>
                             <tr>
                                 <th>Exam</th>
+                                <th>Status</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td colspan="2" style="text-align:center;">Loading...</td>
+                                <td colspan="3" style="text-align:center;">Loading...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -234,6 +235,34 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="editExamModal" aria-hidden="true">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Update Exam Status</h3>
+                <button type="button" class="modal-close" id="closeEditModal">&times;</button>
+            </div>
+            <form class="modal-form" id="editExamForm">
+                <div class="field">
+                    <label for="editExamName">Exam Name</label>
+                    <input type="text" id="editExamName" disabled style="background-color: #f3f4f6; cursor: not-allowed;">
+                </div>
+                <div class="field">
+                    <label for="editExamStatus">Status</label>
+                    <select id="editExamStatus" name="status" required>
+                        <option value="">-- Select Status --</option>
+                        <option value="Scheduled">Scheduled</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn-primary">Update Status</button>
+                    <button type="button" class="btn-secondary" id="cancelEdit">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="/Educa_vol_1/JSS/admin/js/index.js"></script>
     <script src="/Educa_vol_1/JSS/admin/js/load-sidebar.js"></script>
     <script>
@@ -245,16 +274,39 @@
             const closeExamModal = document.getElementById('closeExamModal');
             const cancelExam = document.getElementById('cancelExam');
             const createExamForm = document.getElementById('createExamForm');
+            
+            // Edit modal elements
+            const editExamModal = document.getElementById('editExamModal');
+            const closeEditModal = document.getElementById('closeEditModal');
+            const cancelEdit = document.getElementById('cancelEdit');
+            const editExamForm = document.getElementById('editExamForm');
+            const editExamName = document.getElementById('editExamName');
+            const editExamStatus = document.getElementById('editExamStatus');
+            let currentEditExamId = null;
 
-            const toggleModal = (show) => {
-                if (!createExamModal) {
-                    return;
-                }
-                createExamModal.classList.toggle('active', show);
-                createExamModal.setAttribute('aria-hidden', show ? 'false' : 'true');
+            const toggleModal = (modal, show) => {
+                if (!modal) return;
+                modal.classList.toggle('active', show);
+                modal.setAttribute('aria-hidden', show ? 'false' : 'true');
             };
 
-            const bindDeleteLinks = () => {
+            const bindActionLinks = () => {
+                // Edit links
+                document.querySelectorAll('.edit-link').forEach((link) => {
+                    link.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        const examId = link.getAttribute('data-id');
+                        const examName = link.getAttribute('data-name');
+                        const examStatus = link.getAttribute('data-status');
+                        
+                        currentEditExamId = examId;
+                        editExamName.value = examName;
+                        editExamStatus.value = examStatus;
+                        toggleModal(editExamModal, true);
+                    });
+                });
+
+                // Delete links
                 document.querySelectorAll('.delete-link').forEach((link) => {
                     link.addEventListener('click', async (event) => {
                         event.preventDefault();
@@ -267,9 +319,7 @@
                             dangerMode: true,
                         });
 
-                        if (!confirm) {
-                            return;
-                        }
+                        if (!confirm) return;
 
                         try {
                             const res = await fetch(`${baseUrl}/settings/exams/delete`, {
@@ -305,50 +355,77 @@
                     const res = await fetch(`${baseUrl}/settings/exams`, { credentials: 'include' });
                     const data = await res.json();
                     if (!data.success || !Array.isArray(data.data)) {
-                        tableBody.innerHTML = '<tr><td colspan="2" style="text-align:center;">No exams found.</td></tr>';
+                        tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center;">No exams found.</td></tr>';
                         return;
                     }
 
                     if (data.data.length === 0) {
-                        tableBody.innerHTML = '<tr><td colspan="2" style="text-align:center;">No exams found.</td></tr>';
+                        tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center;">No exams found.</td></tr>';
                         return;
                     }
 
                     tableBody.innerHTML = '';
                     data.data.forEach((row) => {
+                        const statusColors = {
+                            'Scheduled': '#3b82f6',
+                            'Completed': '#10b981',
+                            'Cancelled': '#ef4444'
+                        };
+                        const statusBg = statusColors[row.status] || '#6b7280';
+                        
                         const tr = document.createElement('tr');
                         tr.innerHTML = `
                             <td><p>${row.exam_name}</p></td>
-                            <td><a href="#" class="delete-link" data-id="${row.exam_id}"><span class="status delete">delete</span></a></td>
+                            <td><span style="background-color: ${statusBg}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600;">${row.status}</span></td>
+                            <td>
+                                <a href="#" class="edit-link" data-id="${row.exam_id}" data-name="${row.exam_name}" data-status="${row.status}"><span class="status pending">edit</span></a>
+                                <a href="#" class="delete-link" data-id="${row.exam_id}"><span class="status delete">delete</span></a>
+                            </td>
                         `;
                         tableBody.appendChild(tr);
                     });
-                    bindDeleteLinks();
+                    bindActionLinks();
                 } catch (error) {
                     console.error('Failed to load exams', error);
-                    tableBody.innerHTML = '<tr><td colspan="2" style="text-align:center;">Failed to load exams.</td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Failed to load exams.</td></tr>';
                 }
             };
 
             if (createExamBtn) {
                 createExamBtn.addEventListener('click', (event) => {
                     event.preventDefault();
-                    toggleModal(true);
+                    toggleModal(createExamModal, true);
                 });
             }
 
             if (closeExamModal) {
-                closeExamModal.addEventListener('click', () => toggleModal(false));
+                closeExamModal.addEventListener('click', () => toggleModal(createExamModal, false));
             }
 
             if (cancelExam) {
-                cancelExam.addEventListener('click', () => toggleModal(false));
+                cancelExam.addEventListener('click', () => toggleModal(createExamModal, false));
+            }
+
+            if (closeEditModal) {
+                closeEditModal.addEventListener('click', () => toggleModal(editExamModal, false));
+            }
+
+            if (cancelEdit) {
+                cancelEdit.addEventListener('click', () => toggleModal(editExamModal, false));
             }
 
             if (createExamModal) {
                 createExamModal.addEventListener('click', (event) => {
                     if (event.target === createExamModal) {
-                        toggleModal(false);
+                        toggleModal(createExamModal, false);
+                    }
+                });
+            }
+
+            if (editExamModal) {
+                editExamModal.addEventListener('click', (event) => {
+                    if (event.target === editExamModal) {
+                        toggleModal(editExamModal, false);
                     }
                 });
             }
@@ -380,13 +457,49 @@
                             return;
                         }
 
-                        toggleModal(false);
+                        toggleModal(createExamModal, false);
                         createExamForm.reset();
                         await loadExams();
                         swal('Success', 'Exam created successfully!', 'success');
                     } catch (error) {
                         console.error('Failed to create exam', error);
                         swal('Error', 'Failed to create exam.', 'error');
+                    }
+                });
+            }
+
+            if (editExamForm) {
+                editExamForm.addEventListener('submit', async (event) => {
+                    event.preventDefault();
+                    const payload = {
+                        exam_id: Number(currentEditExamId),
+                        status: editExamStatus.value,
+                    };
+
+                    if (!payload.status) {
+                        swal('Error', 'Please select a status!', 'error');
+                        return;
+                    }
+
+                    try {
+                        const res = await fetch(`${baseUrl}/settings/exams/update`, {
+                            method: 'POST',
+                            credentials: 'include',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload),
+                        });
+                        const data = await res.json();
+                        if (!data.success) {
+                            swal('Error', data.message || 'Failed to update exam.', 'error');
+                            return;
+                        }
+
+                        toggleModal(editExamModal, false);
+                        await loadExams();
+                        swal('Success', 'Exam status updated successfully!', 'success');
+                    } catch (error) {
+                        console.error('Failed to update exam', error);
+                        swal('Error', 'Failed to update exam.', 'error');
                     }
                 });
             }

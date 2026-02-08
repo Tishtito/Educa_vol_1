@@ -87,6 +87,11 @@ async function loadExams() {
                </div>
             </div>
             <h3 class="title">${escapeHtml(exam.exam_name)}</h3>
+            <p style="font-size: 0.9rem; color: #666; margin: 8px 0;">
+               <span style="background-color: #10b981; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: 600;">
+                  ${escapeHtml(exam.status)}
+               </span>
+            </p>
             <button class="inline-btn" onclick="selectExam(${exam.exam_id})">Select Exam</button>
          `;
          examsContainer.appendChild(box);

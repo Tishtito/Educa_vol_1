@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mark List</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css">
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        .row {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        .column {
+            padding: 10px;
+        }
+
+        .left {
+            width: 80%;
+        }
+
+        .right {
+            width: 20%;
+        }
+
+        .row:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        .print-btn {
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .print-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .mean-row {
+            font-weight: bold;
+            background-color: #f9f9f9;
+        }
+
+        .deviation-row {
+            font-weight: bold;
+            background-color: #f2dede;
+        }
+
+        @media print {
+            .print-btn, .navbar {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Print Button -->
+<button class="print-btn" onclick="window.print()">Print</button>
+
+<div class="row">
+    <div class="column left">
+        <h2>Mark List - <span id="examName">Loading...</span></h2>
+        <h2>Grade <span id="classTitle">Loading...</span></h2>
+        <h2>Class Tutor: <span id="teacherName">Loading...</span></h2>
+        <p><strong>Total Mean Score:</strong> <span id="totalMean">0</span></p>
+    </div>
+
+    <div class="column right">
+        <img src="../photos/logo.png" alt="" width="250px" height="200px">
+    </div>
+</div>
+
+<div id="tableContainer">
+    <p style="text-align: center;">Loading mark list...</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="../js/teacher-data.js"></script>
+<script src="../js/script.js"></script>
+
+<script>
+    // Load exam details and mark list
+    window.addEventListener('DOMContentLoaded', async () => {
+        // Load teacher data
+        loadTeacherData();
+
+        // Load exam details
+        await loadExamDetails();
+
+        // Load mark list
+        await loadMarkList();
+    });
+
+    /**
+     * Load exam details
+     */
+    async function loadExamDetails() {
+        try {
+            const response = await fetch('../backend/public/index.php?route=/marklist/exam-details', {
+                method: 'GET',
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.success) {
+                document.getElementById('examName').textContent = escapeHtml(data.examName);
+                document.getElementById('classTitle').textContent = escapeHtml(data.classTitle);
+            }
+        } catch (error) {
+            console.error('Error loading exam details:', error);
+        }
+    }
+
+    /**
+     * Load mark list
+     */
+    async function loadMarkList() {
+        try {
+            const response = await fetch('../backend/public/index.php?route=/marklist', {
+                method: 'GET',
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.success) {
+                displayMarkList(data);
+            } else {
+                document.getElementById('tableContainer').innerHTML = 
+                    `<p style="text-align: center; color: red;">${escapeHtml(data.message)}</p>`;
+            }
+        } catch (error) {
+            console.error('Error loading mark list:', error);
+            document.getElementById('tableContainer').innerHTML = 
+                `<p style="text-align: center; color: red;">Error loading mark list. Please refresh the page.</p>`;
+        }
+    }
+
+    /**
+     * Display mark list table
+     */
+    function displayMarkList(data) {
+        const subjects = data.subjects || [];
+        const students = data.students || [];
+        const subjectMeans = data.subjectMeans || {};
+        const totalMean = data.totalMean || 0;
+        const previousMeans = data.previousMeans || {};
+
+        // Update total mean
+        document.getElementById('totalMean').textContent = totalMean;
+
+        // Build table header
+        let html = '<table><thead><tr>';
+        html += '<th rowspan="2">Rank</th>';
+        html += '<th rowspan="2">Name</th>';
+
+        subjects.forEach(subject => {
+            html += `<th colspan="2">${escapeHtml(subject)}</th>`;
+        });
+
+        html += '<th colspan="2">Total Marks</th>';
+        html += '</tr><tr>';
+
+        subjects.forEach(() => {
+            html += '<th>Marks</th><th>PL</th>';
+        });
+
+        html += '<th>TOTAL</th><th>PL</th>';
+        html += '</tr></thead><tbody>';
+
+        // Build student rows
+        let rank = 1;
+        students.forEach(student => {
+            html += '<tr>';
+            html += `<td>${student.position || rank}</td>`;
+            html += `<td>${escapeHtml(student.Name || '')}</td>`;
+
+            subjects.forEach(subject => {
+                const mark = student[subject] || '-';
+                const pl = student[`PL_${subject}`] || '-';
+                html += `<td>${escapeHtml(String(mark))}</td>`;
+                html += `<td>${escapeHtml(String(pl))}</td>`;
+            });
+
+            const totalMarks = student.total_marks || '-';
+            const totalPL = '-'; // Could be calculated if needed
+            html += `<td>${escapeHtml(String(totalMarks))}</td>`;
+            html += `<td>${escapeHtml(String(totalPL))}</td>`;
+            html += '</tr>';
+
+            rank++;
+        });
+
+        // Mean score row
+        html += '<tr class="mean-row">';
+        html += '<td colspan="2">Mean Score</td>';
+
+        subjects.forEach(subject => {
+            const mean = subjectMeans[subject] || 0;
+            html += `<td colspan="2">${mean}</td>`;
+        });
+
+        html += `<td colspan="2">${totalMean}</td>`;
+        html += '</tr>';
+
+        // Previous mean row
+        html += '<tr class="mean-row">';
+        html += '<td colspan="2">Previous Mean</td>';
+
+        subjects.forEach(subject => {
+            const prevMean = previousMeans[subject] || 0;
+            html += `<td colspan="2">${prevMean}</td>`;
+        });
+
+        const prevTotalMean = previousMeans.total_mean || 0;
+        html += `<td colspan="2">${prevTotalMean}</td>`;
+        html += '</tr>';
+
+        // Deviation row
+        html += '<tr class="deviation-row">';
+        html += '<td colspan="2">Deviation</td>';
+
+        subjects.forEach(subject => {
+            const current = subjectMeans[subject] || 0;
+            const previous = previousMeans[subject] || 0;
+            const deviation = (current - previous).toFixed(2);
+            html += `<td colspan="2">${deviation}</td>`;
+        });
+
+        const totalDeviation = (totalMean - (previousMeans.total_mean || 0)).toFixed(2);
+        html += `<td colspan="2">${totalDeviation}</td>`;
+        html += '</tr>';
+
+        html += '</tbody></table>';
+
+        document.getElementById('tableContainer').innerHTML = html;
+    }
+
+    /**
+     * Escape HTML to prevent XSS
+     */
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+</script>
+
+</body>
+</html>

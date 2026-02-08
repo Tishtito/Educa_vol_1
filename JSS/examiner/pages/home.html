@@ -130,9 +130,26 @@ function escapeHtml(text) {
    return text.replace(/[&<>"']/g, m => map[m]);
 }
 
+// Generate secure token for subject/class combination
+function generateSubjectToken(subjectId, classId) {
+   const token = 'token_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+   
+   // Store token-to-data mapping in sessionStorage
+   let tokenMap = JSON.parse(sessionStorage.getItem('subjectTokenMap') || '{}');
+   tokenMap[token] = {
+      subject_id: subjectId,
+      class_id: classId
+   };
+   sessionStorage.setItem('subjectTokenMap', JSON.stringify(tokenMap));
+   
+   return token;
+}
+
 function goToSubject(subjectName, subjectId, classId, className) {
-   // Navigate to generic subjects.html page with subject and class IDs
-   window.location.href = `subjects.html?subject_id=${subjectId}&class_id=${classId}`;
+   // Generate token for secure link
+   const token = generateSubjectToken(subjectId, classId);
+   // Navigate to generic subjects.html page with token
+   window.location.href = `subjects.html?token=${token}`;
 }
 
 document.addEventListener('DOMContentLoaded', async () => {

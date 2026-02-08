@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="/Educa_vol_1/upper-classes/admin/css/style.css">
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <style>
+        .sms-card {
+            margin-top: 24px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            padding: 18px 20px;
+        }
+
+        .sms-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .sms-header h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .sms-btn {
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+        }
+
+        .sms-btn-primary {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: #fff;
+            box-shadow: 0 8px 18px rgba(34, 197, 94, 0.25);
+        }
+
+        .sms-btn-primary:hover {
+            background: linear-gradient(135deg, #16a34a, #15803d);
+            transform: translateY(-1px);
+        }
+
+        .sms-btn-secondary {
+            background: #e5e7eb;
+            color: #111827;
+        }
+
+        .sms-btn-secondary:hover {
+            background: #d1d5db;
+        }
+
+        .sms-filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .sms-filters select,
+        .sms-filters button {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+        }
+
+        .sms-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .sms-table thead {
+            background: #f3f4f6;
+        }
+
+        .sms-table th,
+        .sms-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        .sms-table input,
+        .sms-table textarea {
+            width: 100%;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 6px 8px;
+            font-size: 13px;
+        }
+
+        .sms-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .sms-status {
+            font-size: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 999px;
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .sms-status.sent {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .sms-status.failed {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .sms-note {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #6b7280;
+        }
+    </style>
+    <title>Send Marks | JSS Admin</title>
+</head>
+
+<body>
+    <div id="sidebar-container" data-active="settings"></div>
+
+    <div class="content">
+        <nav>
+            <i class='bx bx-menu'></i>
+            <form action="#">
+                <div class="form-input">
+                    <input type="search" placeholder="Search...">
+                    <button class="search-btn" type="submit"><i class='bx bx-search'></i></button>
+                </div>
+            </form>
+            <input type="checkbox" id="theme-toggle" hidden>
+            <label for="theme-toggle" class="theme-toggle"></label>
+            <a href="#" class="notif">
+                <i class='bx bx-bell'></i>
+                <span class="count">12</span>
+            </a>
+            <a href="#" class="profile">
+                <img src="/Educa_vol_1/upper-classes/admin/images/logo.png">
+            </a>
+        </nav>
+
+        <main>
+            <div class="header">
+                <div class="left">
+                    <h1>Send Marks</h1>
+                    <ul class="breadcrumb">
+                        <li><a href="#">Settings</a></li>
+                        /
+                        <li><a href="#" class="active">Send Marks (SMS)</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <section class="sms-card" aria-labelledby="smsSectionTitle">
+                <div class="sms-header">
+                    <h2 id="smsSectionTitle">Send Marks via SMS</h2>
+                    <button type="button" class="sms-btn sms-btn-primary" id="smsSendAllBtn">Send All</button>
+                </div>
+                <div class="sms-filters">
+                    <select id="smsExamSelect">
+                        <option value="">-- Select Exam --</option>
+                    </select>
+                    <select id="smsClassSelect">
+                        <option value="">-- Select Class --</option>
+                    </select>
+                    <button type="button" class="sms-btn sms-btn-secondary" id="smsLoadBtn">Load Results</button>
+                </div>
+                <div class="sms-table-wrapper">
+                    <table class="sms-table" id="smsResultsTable">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Total</th>
+                                <th>Position</th>
+                                <th>Status</th>
+                                <th>Parent Phone</th>
+                                <th>SMS Message</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="7">Select an exam and class to view results.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="sms-note">Tip: update the phone number and message before sending. Messages are logged to the server for now.</p>
+            </section>
+        </main>
+    </div>
+
+    <script src="/Educa_vol_1/upper-classes/admin/js/index.js"></script>
+    <script src="/Educa_vol_1/upper-classes/admin/js/load-sidebar.js"></script>
+    <script>
+        (async function () {
+            const baseUrl = "/Educa_vol_1/upper-classes/admin/backend/public/index.php";
+            const smsExamSelect = document.getElementById('smsExamSelect');
+            const smsClassSelect = document.getElementById('smsClassSelect');
+            const smsLoadBtn = document.getElementById('smsLoadBtn');
+            const smsSendAllBtn = document.getElementById('smsSendAllBtn');
+            const smsResultsTable = document.getElementById('smsResultsTable');
+            let smsExamName = '';
+
+            const renderTableMessage = (message) => {
+                if (!smsResultsTable) {
+                    return;
+                }
+                const tbody = smsResultsTable.querySelector('tbody');
+                if (!tbody) {
+                    return;
+                }
+                tbody.innerHTML = `<tr><td colspan="7">${message}</td></tr>`;
+            };
+
+            const populateSelect = (selectEl, rows, valueKey, labelKey) => {
+                if (!selectEl) {
+                    return;
+                }
+                selectEl.innerHTML = '<option value="">-- Select --</option>';
+                rows.forEach(row => {
+                    const option = document.createElement('option');
+                    option.value = row[valueKey];
+                    option.textContent = row[labelKey];
+                    selectEl.appendChild(option);
+                });
+            };
+
+            const loadSmsFilters = async () => {
+                try {
+                    const [examsRes, classesRes] = await Promise.all([
+                        fetch(`${baseUrl}/settings/exams`, { credentials: 'include' }),
+                        fetch(`${baseUrl}/settings/classes`, { credentials: 'include' })
+                    ]);
+                    const examsJson = await examsRes.json();
+                    const classesJson = await classesRes.json();
+
+                    if (examsJson.success) {
+                        populateSelect(smsExamSelect, examsJson.data, 'exam_id', 'exam_name');
+                    }
+                    if (classesJson.success) {
+                        populateSelect(smsClassSelect, classesJson.data, 'class_name', 'class_name');
+                    }
+                } catch (error) {
+                    console.error('Failed to load SMS filters', error);
+                }
+            };
+
+            const buildSmsMessage = (student, examName) => {
+                const total = student.total_marks ?? 0;
+                const position = student.position ?? '-';
+                const subjects = [
+                    ['Eng', student.English],
+                    ['Math', student.Math],
+                    ['Kis', student.Kiswahili],
+                    ['Tech', student.Technical],
+                    ['Agri', student.Agriculture],
+                    ['Creat', student.Creative],
+                    ['Rel', student.Religious],
+                    ['SST', student.SST],
+                    ['Sci', student.Science]
+                ]
+                    .filter(([, score]) => score !== null && score !== undefined)
+                    .map(([label, score]) => `${label}:${score}`)
+                    .join(' ');
+
+                return `${student.student_name} ${examName}: ${subjects} | Total:${total} Pos:${position}`;
+            };
+
+            const renderSmsRows = (rows) => {
+                if (!smsResultsTable) {
+                    return;
+                }
+                const tbody = smsResultsTable.querySelector('tbody');
+                if (!tbody) {
+                    return;
+                }
+
+                if (!rows.length) {
+                    renderTableMessage('No results found for the selected exam/class.');
+                    return;
+                }
+
+                tbody.innerHTML = '';
+                rows.forEach(row => {
+                    const tr = document.createElement('tr');
+                    tr.dataset.studentId = row.student_id;
+                    tr.dataset.examId = row.exam_id;
+                    tr.dataset.className = row.class;
+
+                    const autoMessage = buildSmsMessage(row, smsExamName);
+                    tr.dataset.autoMessage = autoMessage;
+                    tr.dataset.messageEdited = '0';
+                    tr.dataset.totalMarks = row.total_marks ?? 0;
+                    tr.dataset.position = row.position ?? '-';
+                    tr.dataset.subjects = JSON.stringify({
+                        English: row.English ?? null,
+                        Math: row.Math ?? null,
+                        Kiswahili: row.Kiswahili ?? null,
+                        Technical: row.Technical ?? null,
+                        Agriculture: row.Agriculture ?? null,
+                        Creative: row.Creative ?? null,
+                        Religious: row.Religious ?? null,
+                        SST: row.SST ?? null,
+                        Science: row.Science ?? null,
+                    });
+
+                    tr.innerHTML = `
+                        <td>${row.student_name}</td>
+                        <td>${row.total_marks ?? '-'}</td>
+                        <td>${row.position ?? '-'}</td>
+                        <td><span class="sms-status pending" title="Not sent"><i class='bx bx-time'></i></span></td>
+                        <td><input type="text" placeholder="+2567xxxxxxx" value=""></td>
+                        <td><textarea rows="2">${autoMessage}</textarea></td>
+                        <td>
+                            <div class="sms-actions">
+                                <button type="button" class="sms-btn sms-btn-primary sms-send-btn">Send</button>
+                            </div>
+                        </td>
+                    `;
+
+                    tbody.appendChild(tr);
+                });
+            };
+
+            const sendSmsRow = async (row) => {
+                const phoneInput = row.querySelector('input');
+                const messageInput = row.querySelector('textarea');
+                const phone = phoneInput ? phoneInput.value.trim() : '';
+                let message = messageInput ? messageInput.value.trim() : '';
+
+                if (row.dataset.messageEdited !== '1') {
+                    let subjects = {};
+                    try {
+                        subjects = JSON.parse(row.dataset.subjects || '{}');
+                    } catch (e) {
+                        subjects = {};
+                    }
+
+                    const freshMessage = buildSmsMessage({
+                        student_name: row.children[0]?.textContent?.trim() || '',
+                        total_marks: row.dataset.totalMarks ?? 0,
+                        position: row.dataset.position ?? '-',
+                        ...subjects,
+                    }, smsExamName);
+
+                    if (messageInput) {
+                        messageInput.value = freshMessage;
+                    }
+                    message = freshMessage;
+                }
+
+                if (!phone) {
+                    swal('Error', 'Phone number is required.', 'error');
+                    return false;
+                }
+
+                if (!message) {
+                    swal('Error', 'Message is required.', 'error');
+                    return false;
+                }
+
+                const payload = {
+                    student_id: Number(row.dataset.studentId || 0),
+                    exam_id: Number(row.dataset.examId || 0),
+                    class_name: row.dataset.className || '',
+                    phone,
+                    message,
+                };
+
+                try {
+                    const res = await fetch(`${baseUrl}/settings/sms/send`, {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload),
+                    });
+                    const data = await res.json();
+                    if (!data.success) {
+                        const status = row.querySelector('.sms-status');
+                        if (status) {
+                            status.classList.remove('sent');
+                            status.classList.add('failed');
+                            status.innerHTML = "<i class='bx bx-x'></i>";
+                            status.title = 'Failed';
+                        }
+                        swal('Error', data.message || 'Failed to send SMS.', 'error');
+                        return false;
+                    }
+                    const status = row.querySelector('.sms-status');
+                    if (status) {
+                        status.classList.remove('failed');
+                        status.classList.add('sent');
+                        status.innerHTML = "<i class='bx bx-check'></i>";
+                        status.title = 'Sent';
+                    }
+                    return true;
+                } catch (error) {
+                    console.error('Failed to send SMS', error);
+                    const status = row.querySelector('.sms-status');
+                    if (status) {
+                        status.classList.remove('sent');
+                        status.classList.add('failed');
+                        status.innerHTML = "<i class='bx bx-x'></i>";
+                        status.title = 'Failed';
+                    }
+                    swal('Error', 'Failed to send SMS.', 'error');
+                    return false;
+                }
+            };
+
+            if (smsLoadBtn) {
+                smsLoadBtn.addEventListener('click', async () => {
+                    const examId = smsExamSelect ? smsExamSelect.value : '';
+                    const className = smsClassSelect ? smsClassSelect.value : '';
+
+                    if (!examId || !className) {
+                        swal('Error', 'Please select an exam and class.', 'error');
+                        return;
+                    }
+
+                    renderTableMessage('Loading results...');
+
+                    try {
+                        const res = await fetch(`${baseUrl}/settings/sms/results?exam_id=${encodeURIComponent(examId)}&class=${encodeURIComponent(className)}`, {
+                            credentials: 'include',
+                        });
+                        const data = await res.json();
+                        if (!data.success) {
+                            renderTableMessage(data.message || 'Failed to load results.');
+                            return;
+                        }
+                        smsExamName = data.exam?.exam_name || 'Exam';
+                        renderSmsRows(data.data || []);
+                    } catch (error) {
+                        console.error('Failed to load SMS results', error);
+                        renderTableMessage('Failed to load results.');
+                    }
+                });
+            }
+
+            if (smsResultsTable) {
+                smsResultsTable.addEventListener('click', async (event) => {
+                    const button = event.target.closest('.sms-send-btn');
+                    if (!button) {
+                        return;
+                    }
+                    const row = button.closest('tr');
+                    if (!row) {
+                        return;
+                    }
+                    const ok = await sendSmsRow(row);
+                    if (ok) {
+                        swal('Success', 'SMS sent successfully.', 'success');
+                    }
+                });
+
+                smsResultsTable.addEventListener('input', (event) => {
+                    const textarea = event.target.closest('textarea');
+                    if (!textarea) {
+                        return;
+                    }
+                    const row = textarea.closest('tr');
+                    if (!row) {
+                        return;
+                    }
+                    row.dataset.messageEdited = '1';
+                });
+            }
+
+            if (smsSendAllBtn) {
+                smsSendAllBtn.addEventListener('click', async () => {
+                    if (!smsResultsTable) {
+                        return;
+                    }
+                    const rows = Array.from(smsResultsTable.querySelectorAll('tbody tr'))
+                        .filter(row => row.dataset.studentId);
+                    if (!rows.length) {
+                        swal('Error', 'No results to send.', 'error');
+                        return;
+                    }
+
+                    for (const row of rows) {
+                        const sent = await sendSmsRow(row);
+                        if (!sent) {
+                            return;
+                        }
+                    }
+
+                    swal('Success', 'All SMS sent successfully.', 'success');
+                });
+            }
+
+            await loadSmsFilters();
+        })();
+    </script>
+</body>
+
+</html>
+

@@ -345,6 +345,9 @@
          const studentName = escapeHtml(student.name || '');
          const studentId = student.student_id || '';
          
+         // Generate token for secure link
+         const token = generateSecureToken(studentId);
+         
          html += `
             <div class="box">
                <div class="tutor">
@@ -366,7 +369,7 @@
                <p>Kiswahili: <span>${kiswahili}</span></p>
                <p>Current Class: <span>${currentClass}</span></p>
                
-               <a href="studentprofile.html?id=${studentId}" class="inline-btn">View Profile</a>
+               <a href="studentprofile.html?token=${token}" class="inline-btn">View Profile</a>
                <a href="#" data-id="${studentId}" class="delete-btn inline-btn2">Delete Student</a>
             </div>
          `;
@@ -379,6 +382,31 @@
       
       // Re-attach event listeners for delete buttons
       attachDeleteListeners();
+   }
+
+   // Generate secure token for student ID
+   function generateSecureToken(studentId) {
+      const token = 'token_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+      
+      // Store token-to-ID mapping in sessionStorage
+      let tokenMap = JSON.parse(sessionStorage.getItem('studentTokenMap') || '{}');
+      tokenMap[token] = studentId;
+      sessionStorage.setItem('studentTokenMap', JSON.stringify(tokenMap));
+      
+      return token;
+   }
+
+   // Retrieve student ID from token
+   function getStudentIdFromToken(token) {
+      const tokenMap = JSON.parse(sessionStorage.getItem('studentTokenMap') || '{}');
+      const studentId = tokenMap[token];
+      
+      if (!studentId) {
+         console.error('Invalid token: ' + token);
+         return null;
+      }
+      
+      return studentId;
    }
 
    // Populate class dropdowns with available classes
