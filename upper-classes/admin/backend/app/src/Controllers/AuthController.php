@@ -34,7 +34,6 @@ class AuthController
 
 		if ($username === '' || $password === '') {
 			$this->clearSession();
-			$this->logLogin(null, $username, false, 'empty_credentials');
 			error_log('[AUTH] Empty username or password');
 			header('Location: ' . $this->basePath() . '/Pages/login.html?error=1');
 			return;
@@ -46,7 +45,6 @@ class AuthController
 		$validPassword = $hasAdmin && isset($admin['password']) && password_verify($password, $admin['password']);
 		if (!$validPassword) {
 			$this->clearSession();
-			$this->logLogin($hasAdmin ? (int)$admin['id'] : null, $username, false, 'invalid_credentials');
 			error_log('[AUTH] Invalid credentials for username=' . $username . ' adminFound=' . ($hasAdmin ? '1' : '0'));
 			header('Location: ' . $this->basePath() . '/Pages/login.html?error=1');
 			return;
@@ -56,7 +54,6 @@ class AuthController
 		$_SESSION['loggedin'] = true;
 		$_SESSION['id'] = $admin['id'];
 		$_SESSION['username'] = $admin['username'];
-		$this->logLogin((int)$admin['id'], (string)$admin['username'], true, 'success');
 		error_log('[AUTH] Login success username=' . $admin['username']);
 
 		header('Location: ' . $this->basePath() . '/Pages/dashboard/index.html');
@@ -133,41 +130,4 @@ class AuthController
 		session_destroy();
 	}
 
-	private function logLogin(?int $adminId, string $username, bool $success, string $reason): void
-	{
-		try {
-			$ip = $_SERVER['REMOTE_ADDR'] ?? null;
-			$userAgent = $_SERVER['HTTP_USER_AGENT'] ?? null;
-			$timestamp = date('Y-m-d H:i:s');
-			$cleanUser = $username !== '' ? $username : '-';
-			$cleanIp = $ip ?? '-';
-			$cleanAgent = $userAgent ? str_replace(["\r", "\n"], ' ', $userAgent) : '-';
-			$cleanReason = $reason !== '' ? $reason : '-';
-			$cleanId = $adminId !== null ? (string)$adminId : '-';
-			$line = sprintf(
-				"[%s] success=%s user=%s id=%s ip=%s reason=%s agent=\"%s\"%s",
-				$timestamp,
-				$success ? '1' : '0',
-				$cleanUser,
-				$cleanId,
-				$cleanIp,
-				$cleanReason,
-				$cleanAgent,
-				PHP_EOL
-			);
-
-			$backendRoot = realpath(__DIR__ . '/../../../..');
-			$logDir = $backendRoot ? $backendRoot . '/login-logs' : null;
-			if (!$logDir) {
-				return;
-			}
-			if (!is_dir($logDir)) {
-				mkdir($logDir, 0755, true);
-			}
-			$logFile = $logDir . '/login.log';
-			file_put_contents($logFile, $line, FILE_APPEND | LOCK_EX);
-		} catch (\Throwable $e) {
-			error_log('[AUTH] Login log failed: ' . $e->getMessage());
-		}
-	}
 }
