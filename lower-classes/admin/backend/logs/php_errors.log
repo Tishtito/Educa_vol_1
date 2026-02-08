@@ -1,0 +1,10 @@
+[2026-02-08T19:12:43+03:00] Uncaught Exception PDOException: SQLSTATE[HY000] [1049] Unknown database 'lower_classes' in C:\xampp\htdocs\Educa_vol_1\lower-classes\admin\backend\vendor\catfan\medoo\src\Medoo.php:517
+Stack: #0 C:\xampp\htdocs\Educa_vol_1\lower-classes\admin\backend\config\dependencies.php(17): Medoo\Medoo->__construct(Array)
+#1 C:\xampp\htdocs\Educa_vol_1\lower-classes\admin\backend\app\src\bootstrap.php(83): {closure}()
+#2 C:\xampp\htdocs\Educa_vol_1\lower-classes\admin\backend\public\index.php(7): require('C:\\xampp\\htdocs...')
+#3 {main}
+[2026-02-08T19:13:31+03:00] Uncaught Exception PDOException: SQLSTATE[HY000] [1049] Unknown database 'lower_classes' in C:\xampp\htdocs\Educa_vol_1\lower-classes\admin\backend\vendor\catfan\medoo\src\Medoo.php:517
+Stack: #0 C:\xampp\htdocs\Educa_vol_1\lower-classes\admin\backend\config\dependencies.php(17): Medoo\Medoo->__construct(Array)
+#1 C:\xampp\htdocs\Educa_vol_1\lower-classes\admin\backend\app\src\bootstrap.php(83): {closure}()
+#2 C:\xampp\htdocs\Educa_vol_1\lower-classes\admin\backend\public\index.php(7): require('C:\\xampp\\htdocs...')
+#3 {main}
