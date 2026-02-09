@@ -137,15 +137,23 @@
                     return;
                 }
 
-                const summaryRes = await fetch(`${baseUrl}/dashboard/summary`, { credentials: "include" });
-                const summary = await summaryRes.json();
+                const [summaryRes, topRes, examsRes] = await Promise.all([
+                    fetch(`${baseUrl}/dashboard/summary`, { credentials: "include" }),
+                    fetch(`${baseUrl}/dashboard/top-exams`, { credentials: "include" }),
+                    fetch(`${baseUrl}/dashboard/exams`, { credentials: "include" }),
+                ]);
+
+                const [summary, top, exams] = await Promise.all([
+                    summaryRes.json(),
+                    topRes.json(),
+                    examsRes.json(),
+                ]);
+
                 if (summary.success) {
                     document.getElementById("total-students").textContent = summary.data.total_students;
                     document.getElementById("total-teachers").textContent = summary.data.total_examiners;
                 }
 
-                const topRes = await fetch(`${baseUrl}/dashboard/top-exams`, { credentials: "include" });
-                const top = await topRes.json();
                 if (top.success) {
                     const tbody = document.getElementById("top-students-body");
                     tbody.innerHTML = "";
@@ -160,8 +168,6 @@
                     });
                 }
 
-                const examsRes = await fetch(`${baseUrl}/dashboard/exams`, { credentials: "include" });
-                const exams = await examsRes.json();
                 if (exams.success) {
                     const list = document.getElementById("exam-list");
                     list.innerHTML = "";

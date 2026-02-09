@@ -5,14 +5,17 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use Medoo\Medoo;
+use App\Support\FileCache;
 
 class UserController
 {
 	private Medoo $db;
+	private FileCache $cache;
 
-	public function __construct(Medoo $db)
+	public function __construct(Medoo $db, FileCache $cache)
 	{
 		$this->db = $db;
+		$this->cache = $cache;
 	}
 
 	private function requireAuth(): bool
@@ -38,7 +41,9 @@ class UserController
 		}
 
 		try {
-			$rows = $this->db->select('class_teachers', ['id', 'name', 'class_assigned']);
+			$rows = $this->cache->remember('users:teachers', 60, function () {
+				return $this->db->select('class_teachers', ['id', 'name', 'class_assigned']);
+			});
 
 			header('Content-Type: application/json');
 			echo json_encode([
@@ -60,15 +65,17 @@ class UserController
 		}
 
 		try {
-			$sql = "SELECT examiners.examiner_id, examiners.name,
-				GROUP_CONCAT(subjects.name SEPARATOR ', ') AS subjects
-				FROM examiners
-				LEFT JOIN examiner_subjects ON examiners.examiner_id = examiner_subjects.examiner_id
-				LEFT JOIN subjects ON examiner_subjects.subject_id = subjects.subject_id
-				GROUP BY examiners.examiner_id";
+			$rows = $this->cache->remember('users:examiners', 60, function () {
+				$sql = "SELECT examiners.examiner_id, examiners.name,
+					GROUP_CONCAT(subjects.name SEPARATOR ', ') AS subjects
+					FROM examiners
+					LEFT JOIN examiner_subjects ON examiners.examiner_id = examiner_subjects.examiner_id
+					LEFT JOIN subjects ON examiner_subjects.subject_id = subjects.subject_id
+					GROUP BY examiners.examiner_id";
 
-			$stmt = $this->db->query($sql);
-			$rows = $stmt ? $stmt->fetchAll() : [];
+				$stmt = $this->db->query($sql);
+				return $stmt ? $stmt->fetchAll() : [];
+			});
 
 			header('Content-Type: application/json');
 			echo json_encode([
@@ -90,9 +97,11 @@ class UserController
 		}
 
 		try {
-			$rows = $this->db->select('classes', ['class_id', 'class_name'], [
-				'ORDER' => ['class_name' => 'ASC'],
-			]);
+			$rows = $this->cache->remember('users:classes', 60, function () {
+				return $this->db->select('classes', ['class_id', 'class_name'], [
+					'ORDER' => ['class_name' => 'ASC'],
+				]);
+			});
 
 			header('Content-Type: application/json');
 			echo json_encode([

@@ -5,14 +5,17 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use Medoo\Medoo;
+use App\Support\FileCache;
 
 class StudentsController
 {
 	private Medoo $db;
+	private FileCache $cache;
 
-	public function __construct(Medoo $db)
+	public function __construct(Medoo $db, FileCache $cache)
 	{
 		$this->db = $db;
+		$this->cache = $cache;
 	}
 
 	private function requireAuth(): bool
@@ -38,29 +41,33 @@ class StudentsController
 		}
 
 		try {
-			$sql = "SELECT status, COUNT(*) AS total FROM students GROUP BY status";
-			$stmt = $this->db->query($sql);
-			$rows = $stmt ? $stmt->fetchAll() : [];
+			$data = $this->cache->remember('students:summary', 30, function () {
+				$sql = "SELECT status, COUNT(*) AS total FROM students GROUP BY status";
+				$stmt = $this->db->query($sql);
+				$rows = $stmt ? $stmt->fetchAll() : [];
 
-			$active = 0;
-			$finished = 0;
-			foreach ($rows as $row) {
-				$status = strtolower((string)($row['status'] ?? ''));
-				$total = (int)($row['total'] ?? 0);
-				if ($status === 'active') {
-					$active = $total;
-				} elseif ($status === 'finished') {
-					$finished = $total;
+				$active = 0;
+				$finished = 0;
+				foreach ($rows as $row) {
+					$status = strtolower((string)($row['status'] ?? ''));
+					$total = (int)($row['total'] ?? 0);
+					if ($status === 'active') {
+						$active = $total;
+					} elseif ($status === 'finished') {
+						$finished = $total;
+					}
 				}
-			}
+
+				return [
+					'active' => $active,
+					'finished' => $finished,
+				];
+			});
 
 			header('Content-Type: application/json');
 			echo json_encode([
 				'success' => true,
-				'data' => [
-					'active' => $active,
-					'finished' => $finished,
-				],
+				'data' => $data,
 			]);
 		} catch (\Throwable $e) {
 			error_log('[StudentsController] summary error: ' . $e->getMessage());
@@ -77,10 +84,12 @@ class StudentsController
 		}
 
 		try {
-			$sql = "SELECT DISTINCT class FROM students WHERE status = 'Active' AND deleted_at IS NULL ORDER BY class ASC";
-			$stmt = $this->db->query($sql);
-			$rows = $stmt ? $stmt->fetchAll() : [];
-			$classes = array_map(fn($row) => $row['class'], $rows);
+			$classes = $this->cache->remember('students:active-classes', 60, function () {
+				$sql = "SELECT DISTINCT class FROM students WHERE status = 'Active' AND deleted_at IS NULL ORDER BY class ASC";
+				$stmt = $this->db->query($sql);
+				$rows = $stmt ? $stmt->fetchAll() : [];
+				return array_map(fn($row) => $row['class'], $rows);
+			});
 
 			header('Content-Type: application/json');
 			echo json_encode([
@@ -110,9 +119,11 @@ class StudentsController
 		}
 
 		try {
-			$sql = "SELECT student_id, name, class, created_at FROM students WHERE status = 'Active' AND class = :class AND deleted_at IS NULL ORDER BY name ASC";
-			$stmt = $this->db->query($sql, [':class' => $class]);
-			$rows = $stmt ? $stmt->fetchAll() : [];
+			$rows = $this->cache->remember('students:active-by-class:' . $class, 30, function () use ($class) {
+				$sql = "SELECT student_id, name, class, created_at FROM students WHERE status = 'Active' AND class = :class AND deleted_at IS NULL ORDER BY name ASC";
+				$stmt = $this->db->query($sql, [':class' => $class]);
+				return $stmt ? $stmt->fetchAll() : [];
+			});
 
 			header('Content-Type: application/json');
 			echo json_encode([
@@ -134,10 +145,12 @@ class StudentsController
 		}
 
 		try {
-			$sql = "SELECT DISTINCT YEAR(finished_at) AS finished_year FROM students WHERE status = 'Finished' AND updated_at IS NOT NULL ORDER BY finished_year DESC";
-			$stmt = $this->db->query($sql);
-			$rows = $stmt ? $stmt->fetchAll() : [];
-			$years = array_map(fn($row) => (int)$row['finished_year'], $rows);
+			$years = $this->cache->remember('students:finished-years', 60, function () {
+				$sql = "SELECT DISTINCT YEAR(finished_at) AS finished_year FROM students WHERE status = 'Finished' AND updated_at IS NOT NULL ORDER BY finished_year DESC";
+				$stmt = $this->db->query($sql);
+				$rows = $stmt ? $stmt->fetchAll() : [];
+				return array_map(fn($row) => (int)$row['finished_year'], $rows);
+			});
 
 			header('Content-Type: application/json');
 			echo json_encode([
@@ -167,9 +180,13 @@ class StudentsController
 		}
 
 		try {
-			$sql = "SELECT student_id, name, class, finished_at FROM students WHERE status = 'Finished' AND YEAR(updated_at) = :year ORDER BY updated_at DESC";
-			$stmt = $this->db->query($sql, [':year' => (int)$year]);
-			$rows = $stmt ? $stmt->fetchAll() : [];
+			$rows = $this->cache->remember('students:finished-by-year:' . $year, 60, function () use ($year) {
+				$start = $year . '-01-01 00:00:00';
+				$end = ((int)$year + 1) . '-01-01 00:00:00';
+				$sql = "SELECT student_id, name, class, finished_at FROM students WHERE status = 'Finished' AND updated_at >= :start AND updated_at < :end ORDER BY updated_at DESC";
+				$stmt = $this->db->query($sql, [':start' => $start, ':end' => $end]);
+				return $stmt ? $stmt->fetchAll() : [];
+			});
 
 			header('Content-Type: application/json');
 			echo json_encode([

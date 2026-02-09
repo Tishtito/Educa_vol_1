@@ -5,14 +5,17 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use Medoo\Medoo;
+use App\Support\FileCache;
 
 class SmsController
 {
     private Medoo $db;
+    private FileCache $cache;
 
-    public function __construct(Medoo $db)
+    public function __construct(Medoo $db, FileCache $cache)
     {
         $this->db = $db;
+        $this->cache = $cache;
     }
 
     private function requireAuth(): bool
@@ -48,16 +51,14 @@ class SmsController
         }
 
         try {
-            $exam = $this->db->get('exams', ['exam_id', 'exam_name', 'exam_type', 'term'], [
-                'exam_id' => $examId,
-            ]);
+            $payload = $this->cache->remember('sms:results:' . $examId . ':' . $class, 30, function () use ($examId, $class) {
+                $exam = $this->db->get('exams', ['exam_id', 'exam_name', 'exam_type', 'term'], [
+                    'exam_id' => $examId,
+                ]);
 
-            if (!$exam) {
-                http_response_code(404);
-                header('Content-Type: application/json');
-                echo json_encode(['success' => false, 'message' => 'Exam not found']);
-                return;
-            }
+                if (!$exam) {
+                    return ['error' => 'Exam not found'];
+                }
 
                 $subjects = ['English', 'Math', 'Kiswahili', 'Creative', 'Technical', 'Agriculture', 'SST', 'Science', 'Religious'];
                 $subjectSelect = implode(', ', array_map(fn($subject) => "er.$subject", $subjects));
@@ -72,44 +73,57 @@ class SmsController
                     WHERE s.class = :class AND s.deleted_at IS NULL
                     ORDER BY computed_total DESC, s.name ASC";
 
-            $stmt = $this->db->query($sql, [
-                ':exam_id' => $examId,
-                ':class' => $class,
-            ]);
-            $rows = $stmt ? $stmt->fetchAll() : [];
+                $stmt = $this->db->query($sql, [
+                    ':exam_id' => $examId,
+                    ':class' => $class,
+                ]);
+                $rows = $stmt ? $stmt->fetchAll() : [];
 
-            $data = [];
-            $rank = 1;
-            foreach ($rows as $row) {
-                $total = (int)($row['computed_total'] ?? 0);
-                $position = $rank;
+                $data = [];
+                $rank = 1;
+                foreach ($rows as $row) {
+                    $total = (int)($row['computed_total'] ?? 0);
+                    $position = $rank;
 
-                $data[] = [
-                    'student_id' => (int)($row['student_id'] ?? 0),
-                    'student_name' => $row['student_name'] ?? '',
-                    'class' => $row['class'] ?? '',
-                    'exam_id' => (int)($row['exam_id'] ?? $examId),
-                    'total_marks' => $total,
-                    'position' => $position,
-                    'English' => $row['English'] ?? null,
-                    'Math' => $row['Math'] ?? null,
-                    'Kiswahili' => $row['Kiswahili'] ?? null,
-                    'Technical' => $row['Technical'] ?? null,
-                    'Agriculture' => $row['Agriculture'] ?? null,
-                    'Creative' => $row['Creative'] ?? null,
-                    'Religious' => $row['Religious'] ?? null,
-                    'SST' => $row['SST'] ?? null,
-                    'Science' => $row['Science'] ?? null,
+                    $data[] = [
+                        'student_id' => (int)($row['student_id'] ?? 0),
+                        'student_name' => $row['student_name'] ?? '',
+                        'class' => $row['class'] ?? '',
+                        'exam_id' => (int)($row['exam_id'] ?? $examId),
+                        'total_marks' => $total,
+                        'position' => $position,
+                        'English' => $row['English'] ?? null,
+                        'Math' => $row['Math'] ?? null,
+                        'Kiswahili' => $row['Kiswahili'] ?? null,
+                        'Technical' => $row['Technical'] ?? null,
+                        'Agriculture' => $row['Agriculture'] ?? null,
+                        'Creative' => $row['Creative'] ?? null,
+                        'Religious' => $row['Religious'] ?? null,
+                        'SST' => $row['SST'] ?? null,
+                        'Science' => $row['Science'] ?? null,
+                    ];
+
+                    $rank++;
+                }
+
+                return [
+                    'exam' => $exam,
+                    'data' => $data,
                 ];
+            });
 
-                $rank++;
+            if (isset($payload['error'])) {
+                http_response_code(404);
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => $payload['error']]);
+                return;
             }
 
             header('Content-Type: application/json');
             echo json_encode([
                 'success' => true,
-                'exam' => $exam,
-                'data' => $data,
+                'exam' => $payload['exam'],
+                'data' => $payload['data'],
             ]);
         } catch (\Throwable $e) {
             error_log('[SmsController] results error: ' . $e->getMessage());

@@ -5,15 +5,18 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use Medoo\Medoo;
+use App\Support\FileCache;
 
 class DashboardController
 {
 	private Medoo $db;
+	private FileCache $cache;
 	private const TOKEN_SECRET = 'educa-jss-token-v1';
 
-	public function __construct(Medoo $db)
+	public function __construct(Medoo $db, FileCache $cache)
 	{
 		$this->db = $db;
+		$this->cache = $cache;
 	}
 
 	private function requireAuth(): bool
@@ -48,16 +51,17 @@ class DashboardController
 			return;
 		}
 
-		$totalStudents = (int)($this->db->count('students'));
-		$totalExaminers = (int)($this->db->count('examiners'));
+		$summary = $this->cache->remember('dashboard:summary', 30, function () {
+			return [
+				'total_students' => (int)($this->db->count('students')),
+				'total_examiners' => (int)($this->db->count('examiners')),
+			];
+		});
 
 		header('Content-Type: application/json');
 		echo json_encode([
 			'success' => true,
-			'data' => [
-				'total_students' => $totalStudents,
-				'total_examiners' => $totalExaminers,
-			],
+			'data' => $summary,
 		]);
 	}
 
@@ -82,10 +86,13 @@ class DashboardController
 				exams.exam_id
 			ORDER BY 
 				exams.date_created DESC
+			LIMIT 10
 		";
 
-		$stmt = $this->db->query($sql);
-		$rows = $stmt ? $stmt->fetchAll() : [];
+		$rows = $this->cache->remember('dashboard:top-exams', 30, function () use ($sql) {
+			$stmt = $this->db->query($sql);
+			return $stmt ? $stmt->fetchAll() : [];
+		});
 
 		header('Content-Type: application/json');
 		echo json_encode([
@@ -100,18 +107,21 @@ class DashboardController
 			return;
 		}
 
-		$rows = $this->db->select('exams', ['exam_id', 'exam_name'], [
-			'ORDER' => ['date_created' => 'DESC'],
-		]);
+		$sessionKey = session_id();
+		$data = $this->cache->remember('dashboard:exams:' . $sessionKey, 30, function () {
+			$rows = $this->db->select('exams', ['exam_id', 'exam_name'], [
+				'ORDER' => ['date_created' => 'DESC'],
+			]);
 
-		$data = array_map(function ($row) {
-			$examId = (int)$row['exam_id'];
-			return [
-				'exam_id' => $examId,
-				'exam_name' => $row['exam_name'],
-				'token' => $this->makeToken('exam:' . $examId),
-			];
-		}, $rows ?: []);
+			return array_map(function ($row) {
+				$examId = (int)$row['exam_id'];
+				return [
+					'exam_id' => $examId,
+					'exam_name' => $row['exam_name'],
+					'token' => $this->makeToken('exam:' . $examId),
+				];
+			}, $rows ?: []);
+		});
 
 		header('Content-Type: application/json');
 		echo json_encode([
@@ -126,14 +136,16 @@ class DashboardController
 			return;
 		}
 
-		$rows = $this->db->select('students', ['class'], [
-			'GROUP' => 'class',
-			'ORDER' => ['class' => 'ASC'],
-		]);
+		$grades = $this->cache->remember('dashboard:grades', 60, function () {
+			$rows = $this->db->select('students', ['class'], [
+				'GROUP' => 'class',
+				'ORDER' => ['class' => 'ASC'],
+			]);
 
-		$grades = array_map(function ($row) {
-			return $row['class'];
-		}, $rows ?: []);
+			return array_map(function ($row) {
+				return $row['class'];
+			}, $rows ?: []);
+		});
 
 		header('Content-Type: application/json');
 		echo json_encode([

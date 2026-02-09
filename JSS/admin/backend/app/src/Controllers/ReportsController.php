@@ -7,15 +7,18 @@ namespace App\Controllers;
 use Medoo\Medoo;
 use Dompdf\Dompdf;
 use Dompdf\Options;
+use App\Support\FileCache;
 
 class ReportsController
 {
 	private Medoo $db;
+	private FileCache $cache;
 	private const TOKEN_SECRET = 'educa-jss-token-v1';
 
-	public function __construct(Medoo $db)
+	public function __construct(Medoo $db, FileCache $cache)
 	{
 		$this->db = $db;
+		$this->cache = $cache;
 	}
 
 	private function requireAuth(): bool
@@ -65,20 +68,23 @@ class ReportsController
 		}
 
 		try {
-			$rows = $this->db->select('exams', ['exam_id', 'exam_name', 'exam_type'], [
-				'exam_type' => $type,
-				'ORDER' => ['date_created' => 'DESC'],
-			]);
+			$sessionKey = session_id();
+			$data = $this->cache->remember('reports:exams:' . $type . ':' . $sessionKey, 30, function () use ($type) {
+				$rows = $this->db->select('exams', ['exam_id', 'exam_name', 'exam_type'], [
+					'exam_type' => $type,
+					'ORDER' => ['date_created' => 'DESC'],
+				]);
 
-			$data = array_map(function ($row) {
-				$examId = (int)$row['exam_id'];
-				return [
-					'exam_id' => $examId,
-					'exam_name' => $row['exam_name'],
-					'exam_type' => $row['exam_type'],
-					'token' => $this->makeToken('exam:' . $examId),
-				];
-			}, $rows ?: []);
+				return array_map(function ($row) {
+					$examId = (int)$row['exam_id'];
+					return [
+						'exam_id' => $examId,
+						'exam_name' => $row['exam_name'],
+						'exam_type' => $row['exam_type'],
+						'token' => $this->makeToken('exam:' . $examId),
+					];
+				}, $rows ?: []);
+			});
 
 			header('Content-Type: application/json');
 			echo json_encode([
@@ -109,15 +115,18 @@ class ReportsController
 		}
 
 		try {
-			$stmt = $this->db->query("SELECT DISTINCT class FROM students ORDER BY class ASC");
-			$rows = $stmt ? $stmt->fetchAll() : [];
-			$grades = array_map(fn($row) => $row['class'], $rows);
-			$data = array_map(function ($grade) use ($examId) {
-				return [
-					'grade' => $grade,
-					'token' => $this->makeToken('exam:' . $examId . '|grade:' . $grade),
-				];
-			}, $grades);
+			$sessionKey = session_id();
+			$data = $this->cache->remember('reports:grades:' . $examId . ':' . $sessionKey, 30, function () use ($examId) {
+				$stmt = $this->db->query("SELECT DISTINCT class FROM students ORDER BY class ASC");
+				$rows = $stmt ? $stmt->fetchAll() : [];
+				$grades = array_map(fn($row) => $row['class'], $rows);
+				return array_map(function ($grade) use ($examId) {
+					return [
+						'grade' => $grade,
+						'token' => $this->makeToken('exam:' . $examId . '|grade:' . $grade),
+					];
+				}, $grades);
+			});
 
 			header('Content-Type: application/json');
 			echo json_encode([
@@ -156,9 +165,11 @@ class ReportsController
 		}
 
 		try {
-			$sql = "SELECT students.student_id, students.name, students.class FROM students INNER JOIN exam_results ON students.student_id = exam_results.student_id WHERE students.class = :grade AND exam_results.exam_id = :exam_id ORDER BY students.name ASC";
-			$stmt = $this->db->query($sql, [':grade' => $grade, ':exam_id' => $examId]);
-			$rows = $stmt ? $stmt->fetchAll() : [];
+			$rows = $this->cache->remember('reports:students:' . $examId . ':' . $grade, 30, function () use ($examId, $grade) {
+				$sql = "SELECT students.student_id, students.name, students.class FROM students INNER JOIN exam_results ON students.student_id = exam_results.student_id WHERE students.class = :grade AND exam_results.exam_id = :exam_id ORDER BY students.name ASC";
+				$stmt = $this->db->query($sql, [':grade' => $grade, ':exam_id' => $examId]);
+				return $stmt ? $stmt->fetchAll() : [];
+			});
 
 			header('Content-Type: application/json');
 			echo json_encode([

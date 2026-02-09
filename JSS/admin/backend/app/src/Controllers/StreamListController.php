@@ -5,15 +5,18 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use Medoo\Medoo;
+use App\Support\FileCache;
 
 class StreamListController
 {
 	private Medoo $db;
+	private FileCache $cache;
 	private const TOKEN_SECRET = 'educa-jss-token-v1';
 
-	public function __construct(Medoo $db)
+	public function __construct(Medoo $db, FileCache $cache)
 	{
 		$this->db = $db;
+		$this->cache = $cache;
 	}
 
 	private function requireAuth(): bool
@@ -71,49 +74,41 @@ class StreamListController
 			return;
 		}
 
-		$examName = $this->db->get('exams', 'exam_name', ['exam_id' => $examId]);
-		if (!$examName) {
-			http_response_code(404);
-			header('Content-Type: application/json');
-			echo json_encode(['success' => false, 'message' => 'Exam not found']);
-			return;
-		}
+		$payload = $this->cache->remember('streamlist:' . $examId . ':' . $grade, 30, function () use ($examId, $grade) {
+			$examName = $this->db->get('exams', 'exam_name', ['exam_id' => $examId]);
+			if (!$examName) {
+				return ['error' => 'Exam not found'];
+			}
 
-		$classes = [];
-		try {
-			$classNames = $this->db->select('classes', ['class_name'], [
-				'grade' => $grade,
-				'ORDER' => ['class_name' => 'ASC'],
-			]);
-
-			$classes = array_map(function ($row) {
-				return $row['class_name'];
-			}, $classNames ?: []);
-		} catch (\Throwable $e) {
+			$classes = [];
 			try {
 				$classNames = $this->db->select('classes', ['class_name'], [
-					'class_name[~]' => $grade . '%',
+					'grade' => $grade,
 					'ORDER' => ['class_name' => 'ASC'],
 				]);
 
 				$classes = array_map(function ($row) {
 					return $row['class_name'];
 				}, $classNames ?: []);
-			} catch (\Throwable $fallbackError) {
-				error_log('[StreamListController] classes error: ' . $e->getMessage());
-				error_log('[StreamListController] classes fallback error: ' . $fallbackError->getMessage());
-				http_response_code(500);
-				header('Content-Type: application/json');
-				echo json_encode(['success' => false, 'message' => 'Failed to load classes']);
-				return;
-			}
-		}
+			} catch (\Throwable $e) {
+				try {
+					$classNames = $this->db->select('classes', ['class_name'], [
+						'class_name[~]' => $grade . '%',
+						'ORDER' => ['class_name' => 'ASC'],
+					]);
 
-		if (empty($classes)) {
-			header('Content-Type: application/json');
-			echo json_encode([
-				'success' => true,
-				'data' => [
+					$classes = array_map(function ($row) {
+						return $row['class_name'];
+					}, $classNames ?: []);
+				} catch (\Throwable $fallbackError) {
+					error_log('[StreamListController] classes error: ' . $e->getMessage());
+					error_log('[StreamListController] classes fallback error: ' . $fallbackError->getMessage());
+					return ['error' => 'Failed to load classes'];
+				}
+			}
+
+			if (empty($classes)) {
+				return [
 					'exam_name' => $examName,
 					'grade' => $grade,
 					'subjects' => [],
@@ -122,22 +117,20 @@ class StreamListController
 					'total_mean' => 0,
 					'performance_levels' => [],
 					'classes' => [],
-				],
-			]);
-			return;
-		}
+				];
+			}
 
-		$subjects = ['English', 'Kiswahili', 'Math', 'Creative', 'Science', 'Technical', 'Agriculture', 'SST', 'Religious'];
+			$subjects = ['English', 'Kiswahili', 'Math', 'Creative', 'Science', 'Technical', 'Agriculture', 'SST', 'Religious'];
 
-		$paramKeys = [];
-		$params = [':exam_id' => $examId];
-		foreach ($classes as $index => $className) {
-			$key = ':class_' . $index;
-			$paramKeys[] = $key;
-			$params[$key] = $className;
-		}
-		$placeholders = implode(',', $paramKeys);
-		$sql = "
+			$paramKeys = [];
+			$params = [':exam_id' => $examId];
+			foreach ($classes as $index => $className) {
+				$key = ':class_' . $index;
+				$paramKeys[] = $key;
+				$params[$key] = $className;
+			}
+			$placeholders = implode(',', $paramKeys);
+			$sql = "
 			SELECT 
 				students.student_id AS student_id, 
 				students.name AS Name, 
@@ -174,63 +167,60 @@ class StreamListController
 				Total_marks DESC
 		";
 
-		$stmt = $this->db->query($sql, $params);
-		$students = $stmt ? $stmt->fetchAll() : [];
+			$stmt = $this->db->query($sql, $params);
+			$students = $stmt ? $stmt->fetchAll() : [];
 
-		$validStudents = 0;
-		$subjectTotals = array_fill_keys($subjects, 0);
-		$totalValidMarks = 0;
+			$validStudents = 0;
+			$subjectTotals = array_fill_keys($subjects, 0);
+			$totalValidMarks = 0;
 
-		foreach ($students as $index => &$student) {
-			$rank = $index + 1;
-			$student['rank'] = $rank;
-			$totalMarks = isset($student['Total_marks']) ? (int)$student['Total_marks'] : 0;
-			$student['Total_marks'] = $totalMarks;
+			foreach ($students as $index => &$student) {
+				$rank = $index + 1;
+				$student['rank'] = $rank;
+				$totalMarks = isset($student['Total_marks']) ? (int)$student['Total_marks'] : 0;
+				$student['Total_marks'] = $totalMarks;
 
-			$allSubjectsFilled = true;
-			foreach ($subjectTotals as $subject => &$total) {
-				if ($student[$subject] === null) {
-					$allSubjectsFilled = false;
-				} else {
-					$total += (float)$student[$subject];
+				$allSubjectsFilled = true;
+				foreach ($subjectTotals as $subject => &$total) {
+					if ($student[$subject] === null) {
+						$allSubjectsFilled = false;
+					} else {
+						$total += (float)$student[$subject];
+					}
 				}
+				unset($total);
+
+				if ($allSubjectsFilled) {
+					$validStudents++;
+					$totalValidMarks += $totalMarks;
+				}
+
+				$this->db->update('exam_results', [
+					'total_marks' => $totalMarks,
+					'stream_position' => $rank,
+				], [
+					'student_id' => $student['student_id'],
+					'exam_id' => $examId,
+				]);
 			}
-			unset($total);
+			unset($student);
 
-			if ($allSubjectsFilled) {
-				$validStudents++;
-				$totalValidMarks += $totalMarks;
+			$meanScores = [];
+			if ($validStudents > 0) {
+				foreach ($subjectTotals as $subject => $total) {
+					$meanScores[$subject] = round($total / $validStudents, 2);
+				}
+				$meanTotalMarks = round($totalValidMarks / $validStudents, 2);
+			} else {
+				foreach ($subjectTotals as $subject => $total) {
+					$meanScores[$subject] = 0;
+				}
+				$meanTotalMarks = 0;
 			}
 
-			$this->db->update('exam_results', [
-				'total_marks' => $totalMarks,
-				'stream_position' => $rank,
-			], [
-				'student_id' => $student['student_id'],
-				'exam_id' => $examId,
-			]);
-		}
-		unset($student);
+			$plRows = $this->db->select('point_boundaries', ['min_marks', 'max_marks', 'ab']);
 
-		$meanScores = [];
-		if ($validStudents > 0) {
-			foreach ($subjectTotals as $subject => $total) {
-				$meanScores[$subject] = round($total / $validStudents, 2);
-			}
-			$meanTotalMarks = round($totalValidMarks / $validStudents, 2);
-		} else {
-			foreach ($subjectTotals as $subject => $total) {
-				$meanScores[$subject] = 0;
-			}
-			$meanTotalMarks = 0;
-		}
-
-		$plRows = $this->db->select('point_boundaries', ['min_marks', 'max_marks', 'ab']);
-
-		header('Content-Type: application/json');
-		echo json_encode([
-			'success' => true,
-			'data' => [
+			return [
 				'exam_name' => $examName,
 				'grade' => $grade,
 				'subjects' => $subjects,
@@ -238,7 +228,20 @@ class StreamListController
 				'mean_scores' => $meanScores,
 				'total_mean' => $meanTotalMarks,
 				'performance_levels' => $plRows,
-			],
+			];
+		});
+
+		if (isset($payload['error'])) {
+			http_response_code(404);
+			header('Content-Type: application/json');
+			echo json_encode(['success' => false, 'message' => $payload['error']]);
+			return;
+		}
+
+		header('Content-Type: application/json');
+		echo json_encode([
+			'success' => true,
+			'data' => $payload,
 		]);
 	}
 }
