@@ -72,8 +72,6 @@ class MarklistController
                     (SELECT ab FROM point_boundaries WHERE er.CRE BETWEEN min_marks AND max_marks LIMIT 1) AS PL_CRE,
                     er.SST, 
                     (SELECT ab FROM point_boundaries WHERE er.SST BETWEEN min_marks AND max_marks LIMIT 1) AS PL_SST,
-                    er.Integrated_science, 
-                    (SELECT ab FROM point_boundaries WHERE er.Integrated_science BETWEEN min_marks AND max_marks LIMIT 1) AS PL_Integrated_science,
                     er.total_marks,
                     er.position
                 FROM 
@@ -206,7 +204,7 @@ class MarklistController
             SET total_marks = (
                 COALESCE(Math, 0) + COALESCE(English, 0) + COALESCE(Kiswahili, 0) +
                 COALESCE(SciTech, 0) + COALESCE(AgricNutri, 0) + COALESCE(Creative, 0) + 
-                COALESCE(CRE, 0) + COALESCE(SST, 0) + COALESCE(Integrated_science, 0)
+                COALESCE(CRE, 0) + COALESCE(SST, 0)
             )
             WHERE exam_id = ?";
 

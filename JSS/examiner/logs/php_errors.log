@@ -1,10 +1,64 @@
-[04-Feb-2026 03:29:57 Africa/Nairobi] [ProfileController::getProfile] EXCEPTION - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'examiner_assigned' in 'where clause' Stack: #0 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\vendor\catfan\medoo\src\Medoo.php(629): PDOStatement->execute()
-#1 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\vendor\catfan\medoo\src\Medoo.php(1668): Medoo\Medoo->exec(Object(PDOStatement), Array)
-#2 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\app\src\Controllers\ProfileController.php(63): Medoo\Medoo->select('exams', Array, Array)
-#3 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\app\src\bootstrap.php(144): App\Controllers\ProfileController->getProfile()
+[09-Feb-2026 02:40:39 Africa/Nairobi] [SubjectController::updateMarks] EXCEPTION: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'pre-technical' in 'field list'
+[09-Feb-2026 02:40:39 Africa/Nairobi] [SubjectController::updateMarks] Stack: #0 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\vendor\catfan\medoo\src\Medoo.php(629): PDOStatement->execute()
+#1 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\vendor\catfan\medoo\src\Medoo.php(1824): Medoo\Medoo->exec(Object(PDOStatement), Array)
+#2 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\app\src\Controllers\SubjectController.php(335): Medoo\Medoo->insert('exam_results', Array)
+#3 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\app\src\bootstrap.php(144): App\Controllers\SubjectController->updateMarks()
 #4 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\public\index.php(7): require('C:\\xampp\\htdocs...')
 #5 {main}
-[04-Feb-2026 03:34:01 Africa/Nairobi] [AUTH] Login success username=tishtito
-[04-Feb-2026 15:05:59 Africa/Nairobi] [AUTH] Login success username=tishtito
-[04-Feb-2026 17:59:26 Africa/Nairobi] [AUTH] Login success username=tishtito
-[07-Feb-2026 23:19:23 Africa/Nairobi] [AUTH] Login success username=tishtito
+[09-Feb-2026 02:51:09 Africa/Nairobi] [DASHBOARD] Unauthorized: loggedin flag not set
+[09-Feb-2026 02:51:12 Africa/Nairobi] [AUTH] Login success username=tishtito
+[09-Feb-2026 02:51:41 Africa/Nairobi] [SubjectController::updateMarks] EXCEPTION: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'pre-technical' in 'field list'
+[09-Feb-2026 02:51:41 Africa/Nairobi] [SubjectController::updateMarks] Stack: #0 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\vendor\catfan\medoo\src\Medoo.php(629): PDOStatement->execute()
+#1 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\vendor\catfan\medoo\src\Medoo.php(1824): Medoo\Medoo->exec(Object(PDOStatement), Array)
+#2 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\app\src\Controllers\SubjectController.php(335): Medoo\Medoo->insert('exam_results', Array)
+#3 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\app\src\bootstrap.php(144): App\Controllers\SubjectController->updateMarks()
+#4 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\public\index.php(7): require('C:\\xampp\\htdocs...')
+#5 {main}
+[09-Feb-2026 02:56:23 Africa/Nairobi] [SubjectController::updateMarks] EXCEPTION: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'pre-technical' in 'field list'
+[09-Feb-2026 02:56:23 Africa/Nairobi] [SubjectController::updateMarks] Stack: #0 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\vendor\catfan\medoo\src\Medoo.php(629): PDOStatement->execute()
+#1 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\vendor\catfan\medoo\src\Medoo.php(1899): Medoo\Medoo->exec(Object(PDOStatement), Array)
+#2 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\app\src\Controllers\SubjectController.php(325): Medoo\Medoo->update('exam_results', Array, Array)
+#3 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\app\src\bootstrap.php(144): App\Controllers\SubjectController->updateMarks()
+#4 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\public\index.php(7): require('C:\\xampp\\htdocs...')
+#5 {main}
+[09-Feb-2026 02:57:00 Africa/Nairobi] [SubjectController::updateMarks] EXCEPTION: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'pre-technical' in 'field list'
+[09-Feb-2026 02:57:00 Africa/Nairobi] [SubjectController::updateMarks] Stack: #0 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\vendor\catfan\medoo\src\Medoo.php(629): PDOStatement->execute()
+#1 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\vendor\catfan\medoo\src\Medoo.php(1899): Medoo\Medoo->exec(Object(PDOStatement), Array)
+#2 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\app\src\Controllers\SubjectController.php(325): Medoo\Medoo->update('exam_results', Array, Array)
+#3 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\app\src\bootstrap.php(144): App\Controllers\SubjectController->updateMarks()
+#4 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\public\index.php(7): require('C:\\xampp\\htdocs...')
+#5 {main}
+[09-Feb-2026 03:03:07 Africa/Nairobi] [SubjectController::updateMarks] EXCEPTION: Incorrect column name: social studies.
+[09-Feb-2026 03:03:07 Africa/Nairobi] [SubjectController::updateMarks] Stack: #0 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\vendor\catfan\medoo\src\Medoo.php(1842): Medoo\Medoo->columnQuote('social studies')
+#1 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\app\src\Controllers\SubjectController.php(325): Medoo\Medoo->update('exam_results', Array, Array)
+#2 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\app\src\bootstrap.php(144): App\Controllers\SubjectController->updateMarks()
+#3 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\public\index.php(7): require('C:\\xampp\\htdocs...')
+#4 {main}
+[09-Feb-2026 03:07:18 Africa/Nairobi] [SubjectController::updateMarks] EXCEPTION: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'pre-technical' in 'field list'
+[09-Feb-2026 03:07:18 Africa/Nairobi] [SubjectController::updateMarks] Stack: #0 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\vendor\catfan\medoo\src\Medoo.php(629): PDOStatement->execute()
+#1 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\vendor\catfan\medoo\src\Medoo.php(1899): Medoo\Medoo->exec(Object(PDOStatement), Array)
+#2 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\app\src\Controllers\SubjectController.php(325): Medoo\Medoo->update('exam_results', Array, Array)
+#3 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\app\src\bootstrap.php(144): App\Controllers\SubjectController->updateMarks()
+#4 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\public\index.php(7): require('C:\\xampp\\htdocs...')
+#5 {main}
+[09-Feb-2026 03:11:10 Africa/Nairobi] [SubjectController::updateMarks] EXCEPTION: Incorrect column name: intergrated science.
+[09-Feb-2026 03:11:10 Africa/Nairobi] [SubjectController::updateMarks] Stack: #0 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\vendor\catfan\medoo\src\Medoo.php(1842): Medoo\Medoo->columnQuote('intergrated sci...')
+#1 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\app\src\Controllers\SubjectController.php(325): Medoo\Medoo->update('exam_results', Array, Array)
+#2 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\app\src\bootstrap.php(144): App\Controllers\SubjectController->updateMarks()
+#3 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\public\index.php(7): require('C:\\xampp\\htdocs...')
+#4 {main}
+[09-Feb-2026 03:11:39 Africa/Nairobi] [SubjectController::updateMarks] EXCEPTION: Incorrect column name: intergrated science.
+[09-Feb-2026 03:11:39 Africa/Nairobi] [SubjectController::updateMarks] Stack: #0 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\vendor\catfan\medoo\src\Medoo.php(1803): Medoo\Medoo->columnQuote('intergrated sci...')
+#1 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\app\src\Controllers\SubjectController.php(335): Medoo\Medoo->insert('exam_results', Array)
+#2 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\app\src\bootstrap.php(144): App\Controllers\SubjectController->updateMarks()
+#3 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\public\index.php(7): require('C:\\xampp\\htdocs...')
+#4 {main}
+[09-Feb-2026 03:12:06 Africa/Nairobi] [AUTH] Invalid credentials for username=jwambu examinerFound=0
+[09-Feb-2026 03:12:12 Africa/Nairobi] [AUTH] Login success username=tishtito
+[09-Feb-2026 03:13:46 Africa/Nairobi] [SubjectController::updateMarks] EXCEPTION: Incorrect column name: intergrated science.
+[09-Feb-2026 03:13:46 Africa/Nairobi] [SubjectController::updateMarks] Stack: #0 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\vendor\catfan\medoo\src\Medoo.php(1803): Medoo\Medoo->columnQuote('intergrated sci...')
+#1 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\app\src\Controllers\SubjectController.php(335): Medoo\Medoo->insert('exam_results', Array)
+#2 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\app\src\bootstrap.php(144): App\Controllers\SubjectController->updateMarks()
+#3 C:\xampp\htdocs\Educa_vol_1\JSS\examiner\backend\public\index.php(7): require('C:\\xampp\\htdocs...')
+#4 {main}
+[09-Feb-2026 08:43:27 Africa/Nairobi] [AUTH] Login success username=tishtito

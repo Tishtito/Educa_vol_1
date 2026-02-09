@@ -147,17 +147,34 @@ class SubjectController
                 return;
             }
             
-            // Query students by class name with student_class_id
-            $students = $this->db->select('student_classes', 
-                ['[>]students' => ['student_id' => 'student_id']], 
-                ['student_classes.student_class_id', 'students.student_id', 'students.name'],
+            // Query students directly from students table by class name and active status
+            $studentList = $this->db->select('students', ['student_id', 'name'], 
                 [
-                    'students.class' => $classInfo,
-                    'ORDER' => ['students.name' => 'ASC']
+                    'class' => $classInfo,
+                    'status' => 'Active',
+                    'ORDER' => ['name' => 'ASC']
                 ]
             );
             
-            // error_log('[SubjectController::getSubjectStudents] Found ' . count($students) . ' students');
+            // error_log('[SubjectController::getSubjectStudents] Found ' . count($studentList) . ' students');
+
+            // Get student_class_id for each student and build the students array
+            $students = [];
+            if (!empty($studentList)) {
+                foreach ($studentList as $student) {
+                    $studentClass = $this->db->get('student_classes', ['student_class_id'], 
+                        ['student_id' => intval($student['student_id'])]
+                    );
+                    
+                    if ($studentClass) {
+                        $students[] = [
+                            'student_class_id' => $studentClass['student_class_id'],
+                            'student_id' => $student['student_id'],
+                            'name' => $student['name']
+                        ];
+                    }
+                }
+            }
 
             // Get subject name
             $subject = $this->db->get('subjects', '*', ['subject_id' => $subjectId]);

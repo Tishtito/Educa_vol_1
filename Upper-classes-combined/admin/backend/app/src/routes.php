@@ -6,6 +6,7 @@ return function (RouteCollector $r): void {
 	$r->addRoute('POST', '/auth/login', 'AuthController@login');
 	$r->addRoute('GET', '/auth/check', 'AuthController@check');
 	$r->addRoute('GET', '/auth/logout', 'AuthController@logout');
+	$r->addRoute('POST', '/signup/register', 'SignUpController@register');
 
 	$r->addRoute('GET', '/dashboard/summary', 'DashboardController@summary');
 	$r->addRoute('GET', '/dashboard/top-exams', 'DashboardController@topExams');

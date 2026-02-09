@@ -42,7 +42,7 @@ class SubjectsController
         }
 
         // Validate subject to prevent SQL injection
-        $validSubjects = ['English', 'Math', 'Kiswahili', 'Creative', 'CRE', 'AgricNutri', 'SST', 'SciTech', 'Integrated_science'];
+        $validSubjects = ['English', 'Math', 'Kiswahili', 'Creative', 'CRE', 'AgricNutri', 'SST', 'SciTech'];
         if (!in_array($subject, $validSubjects)) {
             echo json_encode(['success' => false, 'message' => 'Invalid subject']);
             return;

@@ -396,7 +396,7 @@
                 const editExaminerClassSelect = document.getElementById("edit-examiner-class");
                 if (classes.success) {
                     classesData = classes.data || [];
-                    const optionsHtml = ['<option value="">-- Select Class --</option>']
+                    const optionsHtml = ['<option value="">-- Select Class --</option>', '<option value="No class teacher">No class teacher</option>']
                         .concat(classes.data.map(item => `<option value="${item.class_name}">${item.class_name}</option>`))
                         .join('');
                     editClassSelect.innerHTML = optionsHtml;

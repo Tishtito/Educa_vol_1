@@ -51,16 +51,29 @@ class SubjectController
 
 			$marksOutOfValue = $marksOutOf ? intval($marksOutOf['marks_out_of']) : null;
 
-			// Get all students in this class
-			$students = $this->db->select('student_classes', '*', [
-				'class' => $class
+			// Get all active students in this class from students table
+			$students = $this->db->select('students', ['student_id', 'name'], [
+				'class' => $class,
+				'status' => 'Active'
 			]);
 
 			// Get marks for each student in this subject/exam
 			if (!empty($students)) {
 				$students = array_map(function ($student) use ($subject, $examId) {
+					// Get the student_class_id from student_classes table
+					$studentClass = $this->db->get('student_classes', ['student_class_id'], [
+						'student_id' => intval($student['student_id'])
+					]);
+
+					if (!$studentClass) {
+						return null;
+					}
+
+					$studentClassId = $studentClass['student_class_id'];
+
+					// Get marks from exam_results
 					$result = $this->db->get('exam_results', '*', [
-						'student_class_id' => intval($student['student_class_id']),
+						'student_class_id' => intval($studentClassId),
 						'exam_id' => intval($examId)
 					]);
 					
@@ -69,18 +82,18 @@ class SubjectController
 						$marks = $result[$subject];
 					}
 					
-					// Get student name
-					$studentData = $this->db->get('students', ['student_id', 'name'], [
-						'student_id' => intval($student['student_id'])
-					]);
-					
 					return [
 						'student_id' => $student['student_id'],
-						'student_name' => $studentData['name'] ?? 'Unknown',
-						'student_class_id' => $student['student_class_id'],
+						'student_name' => $student['name'] ?? 'Unknown',
+						'student_class_id' => $studentClassId,
 						'marks' => $marks
 					];
 				}, $students);
+
+				// Filter out null entries
+				$students = array_filter($students, function ($student) {
+					return $student !== null;
+				});
 				
 				// Sort by student name
 				usort($students, function ($a, $b) {
@@ -95,7 +108,7 @@ class SubjectController
 				'class' => $class,
 				'exam_id' => $examId,
 				'marks_out_of' => $marksOutOfValue,
-				'students' => $students
+				'students' => $students ?? []
 			]);
 
 		} catch (\Exception $e) {
@@ -165,6 +178,20 @@ class SubjectController
 			// Convert marks to percentage (following the working logic)
 			$percentage = ($marks / $maxMarks) * 100;
 
+			// Get student_id from student_classes table
+			$studentClass = $this->db->get('student_classes', ['student_id'], [
+				'student_class_id' => intval($studentClassId)
+			]);
+
+			if (!$studentClass) {
+				http_response_code(404);
+				header('Content-Type: application/json');
+				echo json_encode(['success' => false, 'message' => 'Student class record not found']);
+				return;
+			}
+
+			$studentId = $studentClass['student_id'];
+
 			// Check if exam_results record exists for this student/exam
 			$existingResult = $this->db->get('exam_results', '*', [
 				'student_class_id' => intval($studentClassId),
@@ -185,6 +212,7 @@ class SubjectController
 				// Record doesn't exist, INSERT it
 				$insertData = [
 					'exam_id' => intval($examId),
+					'student_id' => intval($studentId),
 					'student_class_id' => intval($studentClassId),
 					$subject => $percentage
 				];

@@ -394,7 +394,6 @@ class ReportsController
 			'AgricNutri' => 'Agriculture and Nutrition',
 			'SST' => 'Social Studies',
 			'CRE' => 'Christian Religious Education',
-			'Integrated_science' => 'Integrated Science',
 		];
 	}
 

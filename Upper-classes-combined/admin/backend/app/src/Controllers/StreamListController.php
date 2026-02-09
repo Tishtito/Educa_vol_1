@@ -127,7 +127,7 @@ class StreamListController
 			return;
 		}
 
-		$subjects = ['Math', 'English', 'Kiswahili', 'Creative', 'SciTech', 'AgricNutri', 'SST', 'Integrated_science', 'CRE'];
+		$subjects = ['Math', 'English', 'Kiswahili', 'Creative', 'SciTech', 'AgricNutri', 'SST', 'CRE'];
 
 		$paramKeys = [];
 		$params = [':exam_id' => $examId];
@@ -146,7 +146,6 @@ class StreamListController
 				exam_results.Math, 
 				exam_results.Kiswahili, 
 				exam_results.Creative, 
-				exam_results.Integrated_science, 
 				exam_results.SciTech,
 				exam_results.AgricNutri,
 				exam_results.SST,
@@ -156,7 +155,6 @@ class StreamListController
 					exam_results.Math + 
 					exam_results.Kiswahili + 
 					exam_results.Creative + 
-					exam_results.Integrated_science +
 					exam_results.SciTech +
 					exam_results.AgricNutri +
 					exam_results.SST +

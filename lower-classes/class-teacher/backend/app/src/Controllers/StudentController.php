@@ -62,12 +62,12 @@ class StudentController
                     students.class, 
                     exam_results.Math, 
                     exam_results.English, 
-                    exam_results.Kiswahili, 
+                    exam_results.Kiswahili,  
                     exam_results.Enviromental, 
                     exam_results.Creative,
                     exam_results.Religious,
                     (exam_results.Math + exam_results.English + exam_results.Kiswahili + 
-                     exam_results.Enviromental + exam_results.Creative + exam_results.Religious) AS total_marks
+                    exam_results.Enviromental + exam_results.Creative + exam_results.Religious) AS total_marks
                 FROM students
                 LEFT JOIN exam_results 
                     ON students.student_id = exam_results.student_id 
@@ -190,7 +190,20 @@ class StudentController
         }
 
         try {
+            $now = date('Y-m-d H:i:s');
+            $currentYear = date('Y');
+
+            // Update student's class
             $this->db->update('students', ['class' => $newClass], ['student_id' => $studentId]);
+
+            // Record class change in student_classes table
+            $this->db->insert('student_classes', [
+                'student_id' => $studentId,
+                'class' => $newClass,
+                'academic_year' => $currentYear,
+                'created_at' => $now,
+                'updated_at' => $now
+            ]);
 
             header('Content-Type: application/json');
             echo json_encode([
@@ -295,16 +308,31 @@ class StudentController
         // }
 
         try {
+            $now = date('Y-m-d H:i:s');
+            $currentYear = date('Y');
+
             // Insert new student with teacher's assigned class, Active status, and current timestamp
             $result = $this->db->insert('students', [
                 'name' => $studentName,
                 // 'pno' => $parentPhone,
                 'class' => $classAssigned,
                 'status' => 'Active',
-                'created_at' => date('Y-m-d H:i:s')
+                'created_at' => $now
             ]);
 
             if ($result->rowCount() > 0) {
+                // Get the newly inserted student's ID
+                $studentId = $this->db->pdo->lastInsertId();
+                
+                // Insert record into student_classes table for academic year tracking
+                $this->db->insert('student_classes', [
+                    'student_id' => $studentId,
+                    'class' => $classAssigned,
+                    'academic_year' => $currentYear,
+                    'created_at' => $now,
+                    'updated_at' => $now
+                ]);
+
                 header('Content-Type: application/json');
                 echo json_encode([
                     'success' => true,

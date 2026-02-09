@@ -363,7 +363,6 @@
         (async function () {
             const baseUrl = "../../backend/public/index.php";
 
-            let subjectsData = [];
             let classesData = [];
 
             function renderCheckboxes(container, items, name, valueKey, labelKey, idPrefix) {
@@ -396,19 +395,13 @@
                 const editExaminerClassSelect = document.getElementById("edit-examiner-class");
                 if (classes.success) {
                     classesData = classes.data || [];
-                    const optionsHtml = ['<option value="">-- Select Class --</option>']
+                    const optionsHtml = ['<option value="">-- Select Class --</option>', '<option value="No class teacher">No class teacher</option>']
                         .concat(classes.data.map(item => `<option value="${item.class_name}">${item.class_name}</option>`))
                         .join('');
                     editClassSelect.innerHTML = optionsHtml;
                     addClassSelect.innerHTML = optionsHtml;
                     addExaminerClassSelect.innerHTML = optionsHtml;
                     editExaminerClassSelect.innerHTML = optionsHtml;
-                }
-
-                const subjectsRes = await fetch(`${baseUrl}/subjects`, { credentials: "include" });
-                const subjects = await subjectsRes.json();
-                if (subjects.success) {
-                    subjectsData = subjects.data || [];
                 }
 
                 const teachersRes = await fetch(`${baseUrl}/teachers`, { credentials: "include" });

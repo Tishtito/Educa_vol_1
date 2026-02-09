@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Educa System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .signup-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        .signup-container h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 28px;
+        }
+        
+        .signup-container p {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            background-color: #f8f9ff;
+        }
+        
+        .form-group input::placeholder {
+            color: #999;
+        }
+        
+        .role-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .role-option {
+            flex: 1;
+        }
+        
+        .role-option input[type="radio"] {
+            display: none;
+        }
+        
+        .role-option label {
+            display: block;
+            padding: 12px;
+            text-align: center;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 0;
+            background-color: #f9f9f9;
+        }
+        
+        .role-option input[type="radio"]:checked + label {
+            border-color: #667eea;
+            background-color: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .password-group {
+            position: relative;
+        }
+        
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 38px;
+            cursor: pointer;
+            color: #666;
+            font-size: 18px;
+        }
+        
+        .toggle-password:hover {
+            color: #333;
+        }
+        
+        .password-strength {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .password-strength.weak {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        
+        .password-strength.medium {
+            background-color: #fff3e0;
+            color: #e65100;
+        }
+        
+        .password-strength.strong {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .terms-checkbox {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .terms-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        
+        .terms-checkbox label {
+            margin-bottom: 0;
+            font-weight: 400;
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .terms-checkbox a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .terms-checkbox a:hover {
+            text-decoration: underline;
+        }
+        
+        .signup-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .signup-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .signup-btn:active {
+            transform: translateY(0);
+        }
+        
+        .signup-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .login-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+        
+        .error-message {
+            color: #c62828;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+            margin-right: 10px;
+        }
+        
+        .signup-btn.loading .spinner {
+            display: inline-block;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="signup-container">
+    <h1><i class="fas fa-graduation-cap"></i> Educa Sign Up</h1>
+    <p>Create a new account to get started</p>
+    
+    <form id="signupForm" onsubmit="handleSignup(event)">
+        
+        <!-- Full Name -->
+        <div class="form-group">
+            <label for="name"><i class="fas fa-user"></i> Full Name</label>
+            <input 
+                type="text" 
+                id="name" 
+                name="name" 
+                placeholder="Enter your full name"
+                required
+            >
+            <div class="error-message" id="nameError"></div>
+        </div>
+        
+        <!-- Username -->
+        <div class="form-group">
+            <label for="username"><i class="fas fa-at"></i> Username</label>
+            <input 
+                type="text" 
+                id="username" 
+                name="username" 
+                placeholder="Choose a username"
+                required
+            >
+            <div class="error-message" id="usernameError"></div>
+        </div>
+        
+        <!-- Role Selection -->
+        <div class="form-group">
+            <label><i class="fas fa-user-tag"></i> Role</label>
+            <div class="role-selector">
+                <div class="role-option">
+                    <input 
+                        type="radio" 
+                        id="roleClassTeacher" 
+                        name="role" 
+                        value="classTeacher"
+                    >
+                    <label for="roleClassTeacher">Class Teacher</label>
+                </div>
+                <div class="role-option">
+                    <input 
+                        type="radio" 
+                        id="roleExaminer" 
+                        name="role" 
+                        value="examiner"
+                    >
+                    <label for="roleExaminer">Examiner</label>
+                </div>
+                <div class="role-option">
+                    <input 
+                        type="radio" 
+                        id="roleBoth" 
+                        name="role" 
+                        value="both"
+                        checked
+                    >
+                    <label for="roleBoth">Both</label>
+                </div>
+            </div>
+            <div class="error-message" id="roleError"></div>
+        </div>
+        
+        <!-- Class Assignment -->
+        <div class="form-group">
+            <label for="classAssigned"><i class="fas fa-chalkboard-user"></i> Class Assigned</label>
+            <select id="classAssigned" name="classAssigned" required>
+                <option value="">Select a class...</option>
+            </select>
+            <div class="error-message" id="classError"></div>
+        </div>
+        
+        <!-- Password -->
+        <div class="form-group">
+            <label for="password"><i class="fas fa-lock"></i> Password</label>
+            <div class="password-group">
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    placeholder="Enter a strong password"
+                    required
+                    onchange="checkPasswordStrength()"
+                >
+                <span class="toggle-password" onclick="togglePasswordVisibility('password')">
+                    <i class="fas fa-eye"></i>
+                </span>
+            </div>
+            <div class="password-strength" id="passwordStrength"></div>
+            <div class="error-message" id="passwordError"></div>
+        </div>
+        
+        <!-- Confirm Password -->
+        <div class="form-group">
+            <label for="confirmPassword"><i class="fas fa-lock"></i> Confirm Password</label>
+            <div class="password-group">
+                <input 
+                    type="password" 
+                    id="confirmPassword" 
+                    name="confirmPassword" 
+                    placeholder="Confirm your password"
+                    required
+                >
+                <span class="toggle-password" onclick="togglePasswordVisibility('confirmPassword')">
+                    <i class="fas fa-eye"></i>
+                </span>
+            </div>
+            <div class="error-message" id="confirmError"></div>
+        </div>
+        
+        <!-- Terms and Conditions -->
+        <div class="terms-checkbox">
+            <input 
+                type="checkbox" 
+                id="terms" 
+                name="terms"
+                required
+            >
+            <label for="terms">
+                I agree to the <a href="#">Terms and Conditions</a>
+            </label>
+        </div>
+        
+        <!-- Submit Button -->
+        <button type="submit" class="signup-btn" id="signupBtn">
+            <span class="spinner"></span>
+            Create Account
+        </button>
+        
+        <!-- Login Link -->
+        <div class="login-link">
+            Already have an account? <a href="index.html">Login here</a>
+        </div>
+    </form>
+</div>
+
+<script>
+// Load classes on page load
+window.addEventListener('DOMContentLoaded', async function() {
+    await loadClasses();
+});
+
+async function loadClasses() {
+    try {
+        const res = await fetch('../backend/public/index.php/auth/classes', {
+            credentials: 'include'
+        });
+        
+        if (!res.ok) {
+            console.error('Failed to load classes');
+            return;
+        }
+        
+        const data = await res.json();
+        const classSelect = document.getElementById('classAssigned');
+        
+        if (data.success && Array.isArray(data.classes)) {
+            data.classes.forEach(cls => {
+                const option = document.createElement('option');
+                option.value = cls.class_name;
+                option.textContent = cls.class_name;
+                classSelect.appendChild(option);
+            });
+        }
+    } catch (err) {
+        console.error('Error loading classes:', err);
+    }
+}
+
+function togglePasswordVisibility(fieldId) {
+    const field = document.getElementById(fieldId);
+    const icon = event.target.closest('.toggle-password').querySelector('i');
+    
+    if (field.type === 'password') {
+        field.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        field.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+
+function checkPasswordStrength() {
+    const password = document.getElementById('password').value;
+    const strengthDiv = document.getElementById('passwordStrength');
+    
+    if (password.length === 0) {
+        strengthDiv.style.display = 'none';
+        return;
+    }
+    
+    let strength = 0;
+    if (password.length >= 8) strength++;
+    if (password.length >= 12) strength++;
+    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+    if (/\d/.test(password)) strength++;
+    if (/[\W_]/.test(password)) strength++;
+    
+    strengthDiv.style.display = 'block';
+    if (strength < 2) {
+        strengthDiv.className = 'password-strength weak';
+        strengthDiv.textContent = '❌ Weak password - Use 8+ characters, uppercase, lowercase, and numbers';
+    } else if (strength < 4) {
+        strengthDiv.className = 'password-strength medium';
+        strengthDiv.textContent = '⚠️  Medium strength - Add special characters for better security';
+    } else {
+        strengthDiv.className = 'password-strength strong';
+        strengthDiv.textContent = '✓ Strong password';
+    }
+}
+
+function clearErrors() {
+    document.querySelectorAll('.error-message').forEach(el => {
+        el.style.display = 'none';
+        el.textContent = '';
+    });
+}
+
+async function handleSignup(event) {
+    event.preventDefault();
+    clearErrors();
+    
+    const name = document.getElementById('name').value.trim();
+    const username = document.getElementById('username').value.trim();
+    const role = document.querySelector('input[name="role"]:checked')?.value;
+    const classAssigned = document.getElementById('classAssigned').value;
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const termsAccepted = document.getElementById('terms').checked;
+    
+    // Client-side validation
+    if (!name) {
+        document.getElementById('nameError').textContent = 'Full name is required';
+        document.getElementById('nameError').style.display = 'block';
+        return;
+    }
+    
+    if (name.length < 3) {
+        document.getElementById('nameError').textContent = 'Name must be at least 3 characters';
+        document.getElementById('nameError').style.display = 'block';
+        return;
+    }
+    
+    if (!username) {
+        document.getElementById('usernameError').textContent = 'Username is required';
+        document.getElementById('usernameError').style.display = 'block';
+        return;
+    }
+    
+    if (username.length < 3) {
+        document.getElementById('usernameError').textContent = 'Username must be at least 3 characters';
+        document.getElementById('usernameError').style.display = 'block';
+        return;
+    }
+    
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+        document.getElementById('usernameError').textContent = 'Username can only contain letters, numbers, and underscores';
+        document.getElementById('usernameError').style.display = 'block';
+        return;
+    }
+    
+    if (!role) {
+        document.getElementById('roleError').textContent = 'Please select a role';
+        document.getElementById('roleError').style.display = 'block';
+        return;
+    }
+    
+    if (!classAssigned) {
+        document.getElementById('classError').textContent = 'Please select a class';
+        document.getElementById('classError').style.display = 'block';
+        return;
+    }
+    
+    if (!password) {
+        document.getElementById('passwordError').textContent = 'Password is required';
+        document.getElementById('passwordError').style.display = 'block';
+        return;
+    }
+    
+    if (password.length < 6) {
+        document.getElementById('passwordError').textContent = 'Password must be at least 6 characters';
+        document.getElementById('passwordError').style.display = 'block';
+        return;
+    }
+    
+    if (password !== confirmPassword) {
+        document.getElementById('confirmError').textContent = 'Passwords do not match';
+        document.getElementById('confirmError').style.display = 'block';
+        return;
+    }
+    
+    if (!termsAccepted) {
+        Swal.fire('Error', 'You must accept the Terms and Conditions', 'error');
+        return;
+    }
+    
+    // Submit to server
+    const btn = document.getElementById('signupBtn');
+    btn.disabled = true;
+    btn.classList.add('loading');
+    
+    try {
+        const res = await fetch('../backend/public/index.php/signup/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                name,
+                username,
+                password,
+                confirm_password: confirmPassword,
+                role,
+                class_assigned: classAssigned
+            })
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok && data.success) {
+            Swal.fire(
+                'Success!',
+                'Account created successfully. Redirecting to login...',
+                'success'
+            ).then(() => {
+                window.location.href = 'index.html';
+            });
+        } else {
+            Swal.fire('Error', data.message || 'Failed to create account', 'error');
+        }
+    } catch (err) {
+        console.error('Error:', err);
+        Swal.fire('Error', 'An error occurred: ' + err.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.classList.remove('loading');
+    }
+}
+</script>
+
+</body>
+</html>

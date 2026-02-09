@@ -31,29 +31,7 @@ class ExaminerController
 		return true;
 	}
 
-	public function subjects(): void
-	{
-		if (!$this->requireAuth()) {
-			return;
-		}
 
-		try {
-			$rows = $this->db->select('subjects', ['subject_id', 'name'], [
-				'ORDER' => ['name' => 'ASC'],
-			]);
-
-			header('Content-Type: application/json');
-			echo json_encode([
-				'success' => true,
-				'data' => $rows,
-			]);
-		} catch (\Throwable $e) {
-			error_log('[ExaminerController] subjects error: ' . $e->getMessage());
-			http_response_code(500);
-			header('Content-Type: application/json');
-			echo json_encode(['success' => false, 'message' => 'Failed to load subjects']);
-		}
-	}
 
 	public function detail(): void
 	{
@@ -70,7 +48,7 @@ class ExaminerController
 		}
 
 		try {
-			$examiner = $this->db->get('examiners', ['examiner_id', 'name', 'password'], [
+			$examiner = $this->db->get('examiners', ['examiner_id', 'name', 'password', 'class_assigned'], [
 				'examiner_id' => $examinerId,
 			]);
 
@@ -81,22 +59,13 @@ class ExaminerController
 				return;
 			}
 
-			$subjectIds = $this->db->select('examiner_subjects', 'subject_id', [
-				'examiner_id' => $examinerId,
-			]) ?? [];
-
-			$classIds = $this->db->select('examiner_classes', 'class_id', [
-				'examiner_id' => $examinerId,
-			]) ?? [];
-
 			header('Content-Type: application/json');
 			echo json_encode([
 				'success' => true,
 				'data' => [
 					'examiner_id' => $examiner['examiner_id'],
 					'name' => $examiner['name'],
-					'subject_ids' => array_map('intval', $subjectIds),
-					'class_ids' => array_map('intval', $classIds),
+					'class_assigned' => $examiner['class_assigned'],
 				],
 			]);
 		} catch (\Throwable $e) {
@@ -116,16 +85,14 @@ class ExaminerController
 		$examinerId = isset($_POST['examiner_id']) ? (int)$_POST['examiner_id'] : 0;
 		$name = isset($_POST['name']) ? trim((string)$_POST['name']) : '';
 		$password = isset($_POST['password']) ? (string)$_POST['password'] : '';
-		$subjects = $_POST['subjects'] ?? [];
+		$classAssigned = isset($_POST['class_assigned']) ? trim((string)$_POST['class_assigned']) : '';
 
-		if ($examinerId <= 0 || $name === '') {
+		if ($examinerId <= 0 || $name === '' || $classAssigned === '') {
 			http_response_code(400);
 			header('Content-Type: application/json');
 			echo json_encode(['success' => false, 'message' => 'Invalid input']);
 			return;
 		}
-
-		$subjects = is_array($subjects) ? array_map('intval', $subjects) : [];
 
 		try {
 			$existing = $this->db->get('examiners', ['password'], ['examiner_id' => $examinerId]);
@@ -144,15 +111,8 @@ class ExaminerController
 			$this->db->update('examiners', [
 				'name' => $name,
 				'password' => $hash,
+				'class_assigned' => $classAssigned,
 			], ['examiner_id' => $examinerId]);
-
-			$this->db->delete('examiner_subjects', ['examiner_id' => $examinerId]);
-			foreach ($subjects as $subjectId) {
-				$this->db->insert('examiner_subjects', [
-					'examiner_id' => $examinerId,
-					'subject_id' => $subjectId,
-				]);
-			}
 
 			header('Content-Type: application/json');
 			echo json_encode(['success' => true]);

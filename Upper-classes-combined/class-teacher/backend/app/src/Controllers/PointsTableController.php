@@ -55,9 +55,7 @@ class PointsTableController
                     COALESCE(exam_results.AgricNutri, 0) AS AgricNutri,
                     COALESCE(exam_results.Creative, 0) AS Creative,
                     COALESCE(exam_results.CRE, 0) AS CRE,
-                    COALESCE(exam_results.SST, 0) AS SST,
-                    COALESCE(exam_results.Integrated_science, 0) AS Integrated_science,
-                    COALESCE(exam_results.CA_SST_CRE, 0) AS CA_SST_CRE
+                    COALESCE(exam_results.SST, 0) AS SST
                 FROM 
                     students
                 LEFT JOIN 
@@ -74,7 +72,7 @@ class PointsTableController
             $students = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
             // Calculate grades for each student's marks
-            $subjects = ['Math', 'English', 'Kiswahili', 'SciTech', 'AgricNutri', 'Creative', 'CRE', 'SST', 'Integrated_science', 'CA_SST_CRE'];
+            $subjects = ['Math', 'English', 'Kiswahili', 'SciTech', 'AgricNutri', 'Creative', 'CRE', 'SST'];
             $gradeCounts = []; // Track count of each grade abbreviation
 
             foreach ($students as &$student) {

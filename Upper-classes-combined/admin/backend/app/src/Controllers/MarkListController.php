@@ -84,7 +84,7 @@ class MarkListController
 			$tutor = 'Class teacher not found';
 		}
 
-		$subjects = ['English', 'Math', 'Kiswahili', 'Creative', 'SciTech', 'AgricNutri', 'SST', 'Integrated_science', 'CRE'];
+		$subjects = ['English', 'Math', 'Kiswahili', 'Creative', 'SciTech', 'AgricNutri', 'SST', 'CRE'];
 
 		$sql = "SELECT s.student_id, s.name AS Name";
 		foreach ($subjects as $subject) {

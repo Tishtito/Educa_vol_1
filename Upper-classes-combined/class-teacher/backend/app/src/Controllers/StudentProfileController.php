@@ -85,9 +85,7 @@ class StudentProfileController
                     'AgricNutri' => $examResult['AgricNutri'] ?? null,
                     'Creative' => $examResult['Creative'] ?? null,
                     'CRE' => $examResult['CRE'] ?? null,
-                    'SST' => $examResult['SST'] ?? null,
-                    'Integrated_science' => $examResult['Integrated_science'] ?? null,
-                    'CA_SST_CRE' => $examResult['CA_SST_CRE'] ?? null
+                    'SST' => $examResult['SST'] ?? null
                 ];
             }
 

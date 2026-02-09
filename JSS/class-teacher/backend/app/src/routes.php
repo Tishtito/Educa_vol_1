@@ -4,10 +4,10 @@ use FastRoute\RouteCollector;
 
 return function (RouteCollector $r): void {
 	$r->addRoute('POST', '/auth/login', 'AuthController@login');
+	$r->addRoute('GET', '/auth/classes', 'AuthController@getClasses');
 	$r->addRoute('GET', '/auth/check', 'AuthController@check');
 	$r->addRoute('GET', '/auth/logout', 'AuthController@logout');
-	
-	$r->addRoute('GET', '/profile', 'ProfileController@getProfile');
+	$r->addRoute('POST', '/signup/register', 'SignUpController@register');
 
 	$r->addRoute('GET', '/dashboard', 'DashboardController@index');
 
@@ -30,4 +30,8 @@ return function (RouteCollector $r): void {
 
 	$r->addRoute('GET', '/subjects', 'SubjectsController@getSubjects');
 	$r->addRoute('GET', '/subjects/marks', 'SubjectsController@getSubjectMarks');
+
+	$r->addRoute('GET', '/reports/class-history', 'ReportsController@getClassResultsHistory');
+	$r->addRoute('POST', '/reports/student-progress', 'ReportsController@getStudentProgress');
+	$r->addRoute('GET', '/reports/class-summary', 'ReportsController@getClassSummary');
 };

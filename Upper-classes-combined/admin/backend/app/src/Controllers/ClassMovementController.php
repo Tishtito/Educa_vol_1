@@ -67,6 +67,14 @@ class ClassMovementController
 
         try {
             $now = date('Y-m-d H:i:s');
+            $currentYear = date('Y');
+
+            // Get all students to be moved
+            $students = $this->db->select('students', ['student_id'], [
+                'class' => $fromClass,
+                'status' => 'Active',
+            ]);
+
             $result = $this->db->update('students', [
                 'class' => $targetClass,
                 'updated_at' => $now,
@@ -76,6 +84,17 @@ class ClassMovementController
             ]);
 
             $count = $result ? $result->rowCount() : 0;
+
+            // Record in student_classes table
+            foreach ($students as $student) {
+                $this->db->insert('student_classes', [
+                    'student_id' => $student['student_id'],
+                    'class' => $targetClass,
+                    'academic_year' => $currentYear,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+            }
 
             header('Content-Type: application/json');
             echo json_encode([
@@ -109,12 +128,25 @@ class ClassMovementController
 
         try {
             $now = date('Y-m-d H:i:s');
+            $currentYear = date('Y');
+
             $result = $this->db->update('students', [
                 'class' => $targetClass,
                 'updated_at' => $now,
             ], ['student_id' => $studentId]);
 
             $count = $result ? $result->rowCount() : 0;
+
+            // Record in student_classes table if student was updated
+            if ($count > 0) {
+                $this->db->insert('student_classes', [
+                    'student_id' => $studentId,
+                    'class' => $targetClass,
+                    'academic_year' => $currentYear,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+            }
 
             header('Content-Type: application/json');
             echo json_encode([
@@ -148,8 +180,15 @@ class ClassMovementController
 
         try {
             $now = date('Y-m-d H:i:s');
+            $currentYear = date('Y');
 
             if ($targetClass === 'FINISHED') {
+                // Get all students to be graduated
+                $students = $this->db->select('students', ['student_id'], [
+                    'class' => $fromClass,
+                    'status' => 'Active',
+                ]);
+
                 $result = $this->db->update('students', [
                     'status' => 'Finished',
                     'class' => 'Completed',
@@ -162,6 +201,17 @@ class ClassMovementController
 
                 $count = $result ? $result->rowCount() : 0;
 
+                // Record in student_classes table
+                foreach ($students as $student) {
+                    $this->db->insert('student_classes', [
+                        'student_id' => $student['student_id'],
+                        'class' => 'Completed',
+                        'academic_year' => $currentYear,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ]);
+                }
+
                 header('Content-Type: application/json');
                 echo json_encode([
                     'success' => true,
@@ -169,6 +219,12 @@ class ClassMovementController
                 ]);
                 return;
             }
+
+            // Get all students to be graduated
+            $students = $this->db->select('students', ['student_id'], [
+                'class' => $fromClass,
+                'status' => 'Active',
+            ]);
 
             $result = $this->db->update('students', [
                 'class' => $targetClass,
@@ -179,6 +235,17 @@ class ClassMovementController
             ]);
 
             $count = $result ? $result->rowCount() : 0;
+
+            // Record in student_classes table
+            foreach ($students as $student) {
+                $this->db->insert('student_classes', [
+                    'student_id' => $student['student_id'],
+                    'class' => $targetClass,
+                    'academic_year' => $currentYear,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+            }
 
             header('Content-Type: application/json');
             echo json_encode([

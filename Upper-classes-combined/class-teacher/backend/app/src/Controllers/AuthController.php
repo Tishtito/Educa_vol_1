@@ -82,6 +82,26 @@ class AuthController
 		]);
 	}
 
+	public function getClasses(): void
+	{
+		header('Content-Type: application/json');
+		try {
+			$classes = $this->db->select('classes', ['class_id', 'class_name'], 
+				['ORDER' => ['grade' => 'ASC']]
+			);
+			echo json_encode([
+				'success' => true,
+				'classes' => $classes ?? []
+			]);
+		} catch (\Exception $e) {
+			http_response_code(500);
+			echo json_encode([
+				'success' => false,
+				'message' => 'Error fetching classes: ' . $e->getMessage()
+			]);
+		}
+	}
+
 	public function logout(): void
 	{
 		$this->startSession();

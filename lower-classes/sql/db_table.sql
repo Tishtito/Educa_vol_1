@@ -5,7 +5,7 @@ CREATE TABLE admins (
     name VARCHAR(255) NOT NULL,
     username VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,          -- Store hashed passwords
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at datetime,
     deleted_at datetime
 );
@@ -40,7 +40,7 @@ CREATE TABLE exams (
     term ENUM('Term 1', 'Term 2', 'Term 3'),
     academic_year YEAR NOT NULL,
     status ENUM('Scheduled', 'Completed', 'Cancelled') DEFAULT 'Scheduled',
-    date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at datetime,
     deleted_at datetime
 );
@@ -69,9 +69,9 @@ CREATE TABLE student_classes (
 );
 
 CREATE TABLE exam_results (
-    result_id INT AUTO_INCREMENT PRIMARY KEY,
-    exam_id INT,
-    student_id INT,
+    result_id INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
+    exam_id INT NOT NULL,
+    student_id INT NOT NULL,
     student_class_id INT NOT NULL,
     Math INT,
     English INT,
@@ -86,7 +86,7 @@ CREATE TABLE exam_results (
     updated_at datetime,
     deleted_at datetime,
     FOREIGN KEY (exam_id) REFERENCES exams(exam_id) ON DELETE CASCADE,
-    FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE
+    FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE,
     FOREIGN KEY (student_class_id) REFERENCES student_classes(student_class_id) ON DELETE CASCADE
 );
 
@@ -95,7 +95,7 @@ CREATE TABLE examiners (
     name VARCHAR(255) NOT NULL,
     username VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,          -- Store hashed passwords
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
     updated_at datetime,
     deleted_at datetime
 );
@@ -113,7 +113,6 @@ VALUES
 ('creative'),
 ('enviromental'),
 ('religious'),
-('Integrated'),
 
 CREATE TABLE classes (
     class_id INT AUTO_INCREMENT PRIMARY KEY,

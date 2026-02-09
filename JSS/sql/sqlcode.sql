@@ -5,7 +5,7 @@ CREATE TABLE admins (
     name VARCHAR(255) NOT NULL,
     username VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,          -- Store hashed passwords
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at datetime,
     deleted_at datetime
 );
@@ -14,9 +14,8 @@ CREATE TABLE  examiner(
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     username VARCHAR(255) NOT NULL,
-    class_assigned VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,          -- Store hashed passwords
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at datetime,
     deleted_at datetime
 );
@@ -28,7 +27,7 @@ CREATE TABLE exams (
     term ENUM ('Term 1', 'Term 2', 'Term 3'),	
     academic_year YEAR NOT NULL,
     status ENUM('Scheduled', 'Completed', 'Cancelled') DEFAULT 'Scheduled',
-    date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at datetime,
     deleted_at datetime
 );
@@ -36,7 +35,7 @@ CREATE TABLE exams (
 CREATE TABLE students (
     student_id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    pno. VARCHAR(20) UNIQUE,
+    pno VARCHAR(20) UNIQUE,
     class VARCHAR(50) NOT NULL,
     status ENUM('Active', 'Finished', 'Graduated') DEFAULT 'Active',
     finished_at YEAR,
@@ -58,8 +57,8 @@ CREATE TABLE student_classes (
 
 CREATE TABLE exam_results (
     result_id INT AUTO_INCREMENT PRIMARY KEY,
-    exam_id INT,
-    student_id INT,
+    exam_id INT NOT NULL,
+    student_id INT NOT NULL,
     student_class_id INT NOT NULL,
     Math INT,
     English INT,
@@ -77,16 +76,8 @@ CREATE TABLE exam_results (
     updated_at datetime,
     deleted_at datetime,
     FOREIGN KEY (exam_id) REFERENCES exams(exam_id) ON DELETE CASCADE,
-    FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE
+    FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE,
     FOREIGN KEY (student_class_id) REFERENCES student_classes(student_class_id) ON DELETE CASCADE
-);
-
-CREATE TABLE examiners (
-    examiner_id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    username VARCHAR(255) NOT NULL,
-    password VARCHAR(255) NOT NULL,          -- Store hashed passwords
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE subjects (
@@ -125,17 +116,6 @@ CREATE TABLE examiner_classes (
     FOREIGN KEY (class_id) REFERENCES classes(class_id) ON DELETE CASCADE
 );
 
-CREATE TABLE class_teachers (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    username VARCHAR(255) NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    class_assigned VARCHAR(255) NOT NULL,
-    created_at datetime,
-    updated_at datetime,
-    deleted_at datetime
-);
-
 CREATE TABLE exam_mean_scores (
     id INT AUTO_INCREMENT PRIMARY KEY,
     exam_id INT NOT NULL,
@@ -159,12 +139,22 @@ VALUES
 ('Math'),
 ('English'),
 ('Kiswahili'),
-('creative arts'),
-('pre-technical'),
-('agriculture'),
-('religious'),
-('social studies'),
-('intergrade science');
+('Creative'),
+('Technical'),
+('Agriculture'),
+('Religious'),
+('SST'),
+('Science');
+
+-- UPDATE subjects SET name = 'Math' WHERE lower(name) = 'math';
+-- UPDATE subjects SET name = 'English' WHERE lower(name) = 'english';
+-- UPDATE subjects SET name = 'Kiswahili' WHERE lower(name) = 'kiswahili';
+-- UPDATE subjects SET name = 'Creative' WHERE lower(name) = 'creative' OR lower(name) = 'creative arts';
+-- UPDATE subjects SET name = 'Technical' WHERE lower(name) = 'technical' OR lower(name) = 'pre-technical';
+-- UPDATE subjects SET name = 'Agriculture' WHERE lower(name) = 'agriculture';
+-- UPDATE subjects SET name = 'Religious' WHERE lower(name) = 'religious';
+-- UPDATE subjects SET name = 'SST' WHERE lower(name) = 'social studies';
+-- UPDATE subjects SET name = 'Science' WHERE  lower(name) = 'intergrade science';
 
 CREATE TABLE marks_out_of (
     id INT AUTO_INCREMENT PRIMARY KEY,
