@@ -5,17 +5,14 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use Medoo\Medoo;
-use App\Support\FileCache;
 
 class StudentsController
 {
 	private Medoo $db;
-	private FileCache $cache;
 
-	public function __construct(Medoo $db, FileCache $cache)
+	public function __construct(Medoo $db)
 	{
 		$this->db = $db;
-		$this->cache = $cache;
 	}
 
 	private function requireAuth(): bool
@@ -41,7 +38,7 @@ class StudentsController
 		}
 
 		try {
-			$data = $this->cache->remember('students:summary', 30, function () {
+			$data = (function () {
 				$sql = "SELECT status, COUNT(*) AS total FROM students GROUP BY status";
 				$stmt = $this->db->query($sql);
 				$rows = $stmt ? $stmt->fetchAll() : [];
@@ -62,7 +59,7 @@ class StudentsController
 					'active' => $active,
 					'finished' => $finished,
 				];
-			});
+			})();
 
 			header('Content-Type: application/json');
 			echo json_encode([
@@ -84,12 +81,12 @@ class StudentsController
 		}
 
 		try {
-			$classes = $this->cache->remember('students:active-classes', 60, function () {
+			$classes = (function () {
 				$sql = "SELECT DISTINCT class FROM students WHERE status = 'Active' AND deleted_at IS NULL ORDER BY class ASC";
 				$stmt = $this->db->query($sql);
 				$rows = $stmt ? $stmt->fetchAll() : [];
 				return array_map(fn($row) => $row['class'], $rows);
-			});
+			})();
 
 			header('Content-Type: application/json');
 			echo json_encode([
@@ -119,11 +116,11 @@ class StudentsController
 		}
 
 		try {
-			$rows = $this->cache->remember('students:active-by-class:' . $class, 30, function () use ($class) {
+			$rows = (function () use ($class) {
 				$sql = "SELECT student_id, name, class, created_at FROM students WHERE status = 'Active' AND class = :class AND deleted_at IS NULL ORDER BY name ASC";
 				$stmt = $this->db->query($sql, [':class' => $class]);
 				return $stmt ? $stmt->fetchAll() : [];
-			});
+			})();
 
 			header('Content-Type: application/json');
 			echo json_encode([
@@ -145,12 +142,12 @@ class StudentsController
 		}
 
 		try {
-			$years = $this->cache->remember('students:finished-years', 60, function () {
+			$years = (function () {
 				$sql = "SELECT DISTINCT YEAR(finished_at) AS finished_year FROM students WHERE status = 'Finished' AND updated_at IS NOT NULL ORDER BY finished_year DESC";
 				$stmt = $this->db->query($sql);
 				$rows = $stmt ? $stmt->fetchAll() : [];
 				return array_map(fn($row) => (int)$row['finished_year'], $rows);
-			});
+			})();
 
 			header('Content-Type: application/json');
 			echo json_encode([
@@ -180,13 +177,13 @@ class StudentsController
 		}
 
 		try {
-			$rows = $this->cache->remember('students:finished-by-year:' . $year, 60, function () use ($year) {
+			$rows = (function () use ($year) {
 				$start = $year . '-01-01 00:00:00';
 				$end = ((int)$year + 1) . '-01-01 00:00:00';
 				$sql = "SELECT student_id, name, class, finished_at FROM students WHERE status = 'Finished' AND updated_at >= :start AND updated_at < :end ORDER BY updated_at DESC";
 				$stmt = $this->db->query($sql, [':start' => $start, ':end' => $end]);
 				return $stmt ? $stmt->fetchAll() : [];
-			});
+			})();
 
 			header('Content-Type: application/json');
 			echo json_encode([

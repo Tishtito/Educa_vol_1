@@ -5,18 +5,15 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use Medoo\Medoo;
-use App\Support\FileCache;
 
 class MssController
 {
 	private Medoo $db;
-	private FileCache $cache;
 	private const TOKEN_SECRET = 'educa-jss-token-v1';
 
-	public function __construct(Medoo $db, FileCache $cache)
+	public function __construct(Medoo $db)
 	{
 		$this->db = $db;
-		$this->cache = $cache;
 	}
 
 	private function requireAuth(): bool
@@ -72,7 +69,7 @@ class MssController
 			return;
 		}
 
-		$mssList = $this->cache->remember('mss:list:' . $examId, 60, function () use ($examId) {
+		$mssList = (function () use ($examId) {
 			$grades = $this->db->select('students', ['class'], [
 				'GROUP' => 'class',
 				'ORDER' => ['class' => 'ASC'],
@@ -112,7 +109,7 @@ class MssController
 			});
 
 			return $mssList;
-		});
+		})();
 
 		header('Content-Type: application/json');
 		echo json_encode([

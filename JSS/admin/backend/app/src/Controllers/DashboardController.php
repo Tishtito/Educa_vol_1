@@ -5,18 +5,15 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use Medoo\Medoo;
-use App\Support\FileCache;
 
 class DashboardController
 {
 	private Medoo $db;
-	private FileCache $cache;
 	private const TOKEN_SECRET = 'educa-jss-token-v1';
 
-	public function __construct(Medoo $db, FileCache $cache)
+	public function __construct(Medoo $db)
 	{
 		$this->db = $db;
-		$this->cache = $cache;
 	}
 
 	private function requireAuth(): bool
@@ -51,12 +48,12 @@ class DashboardController
 			return;
 		}
 
-		$summary = $this->cache->remember('dashboard:summary', 30, function () {
+		$summary = (function () {
 			return [
 				'total_students' => (int)($this->db->count('students')),
 				'total_examiners' => (int)($this->db->count('examiners')),
 			];
-		});
+		})();
 
 		header('Content-Type: application/json');
 		echo json_encode([
@@ -89,10 +86,10 @@ class DashboardController
 			LIMIT 10
 		";
 
-		$rows = $this->cache->remember('dashboard:top-exams', 30, function () use ($sql) {
+		$rows = (function () use ($sql) {
 			$stmt = $this->db->query($sql);
 			return $stmt ? $stmt->fetchAll() : [];
-		});
+		})();
 
 		header('Content-Type: application/json');
 		echo json_encode([
@@ -108,7 +105,7 @@ class DashboardController
 		}
 
 		$sessionKey = session_id();
-		$data = $this->cache->remember('dashboard:exams:' . $sessionKey, 30, function () {
+		$data = (function () {
 			$rows = $this->db->select('exams', ['exam_id', 'exam_name'], [
 				'ORDER' => ['date_created' => 'DESC'],
 			]);
@@ -121,7 +118,7 @@ class DashboardController
 					'token' => $this->makeToken('exam:' . $examId),
 				];
 			}, $rows ?: []);
-		});
+		})();
 
 		header('Content-Type: application/json');
 		echo json_encode([
@@ -136,7 +133,7 @@ class DashboardController
 			return;
 		}
 
-		$grades = $this->cache->remember('dashboard:grades', 60, function () {
+		$grades = (function () {
 			$rows = $this->db->select('students', ['class'], [
 				'GROUP' => 'class',
 				'ORDER' => ['class' => 'ASC'],
@@ -145,7 +142,7 @@ class DashboardController
 			return array_map(function ($row) {
 				return $row['class'];
 			}, $rows ?: []);
-		});
+		})();
 
 		header('Content-Type: application/json');
 		echo json_encode([

@@ -7,18 +7,15 @@ namespace App\Controllers;
 use Medoo\Medoo;
 use Dompdf\Dompdf;
 use Dompdf\Options;
-use App\Support\FileCache;
 
 class ReportsController
 {
 	private Medoo $db;
-	private FileCache $cache;
 	private const TOKEN_SECRET = 'educa-jss-token-v1';
 
-	public function __construct(Medoo $db, FileCache $cache)
+	public function __construct(Medoo $db)
 	{
 		$this->db = $db;
-		$this->cache = $cache;
 	}
 
 	private function requireAuth(): bool
@@ -69,7 +66,7 @@ class ReportsController
 
 		try {
 			$sessionKey = session_id();
-			$data = $this->cache->remember('reports:exams:' . $type . ':' . $sessionKey, 30, function () use ($type) {
+			$data = (function () use ($type) {
 				$rows = $this->db->select('exams', ['exam_id', 'exam_name', 'exam_type'], [
 					'exam_type' => $type,
 					'ORDER' => ['date_created' => 'DESC'],
@@ -84,7 +81,7 @@ class ReportsController
 						'token' => $this->makeToken('exam:' . $examId),
 					];
 				}, $rows ?: []);
-			});
+			})();
 
 			header('Content-Type: application/json');
 			echo json_encode([
@@ -116,7 +113,7 @@ class ReportsController
 
 		try {
 			$sessionKey = session_id();
-			$data = $this->cache->remember('reports:grades:' . $examId . ':' . $sessionKey, 30, function () use ($examId) {
+			$data = (function () use ($examId) {
 				$stmt = $this->db->query("SELECT DISTINCT class FROM students ORDER BY class ASC");
 				$rows = $stmt ? $stmt->fetchAll() : [];
 				$grades = array_map(fn($row) => $row['class'], $rows);
@@ -126,7 +123,7 @@ class ReportsController
 						'token' => $this->makeToken('exam:' . $examId . '|grade:' . $grade),
 					];
 				}, $grades);
-			});
+			})();
 
 			header('Content-Type: application/json');
 			echo json_encode([
@@ -165,11 +162,11 @@ class ReportsController
 		}
 
 		try {
-			$rows = $this->cache->remember('reports:students:' . $examId . ':' . $grade, 30, function () use ($examId, $grade) {
+			$rows = (function () use ($examId, $grade) {
 				$sql = "SELECT students.student_id, students.name, students.class FROM students INNER JOIN exam_results ON students.student_id = exam_results.student_id WHERE students.class = :grade AND exam_results.exam_id = :exam_id ORDER BY students.name ASC";
 				$stmt = $this->db->query($sql, [':grade' => $grade, ':exam_id' => $examId]);
 				return $stmt ? $stmt->fetchAll() : [];
-			});
+			})();
 
 			header('Content-Type: application/json');
 			echo json_encode([

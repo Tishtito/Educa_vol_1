@@ -87,20 +87,17 @@
                 const grades = await gradesRes.json();
                 if (grades.success) {
                     const list = document.getElementById("stream-grades");
-                    list.innerHTML = "";
-                    grades.data.forEach((grade) => {
-                        const link = document.createElement("a");
-                        link.href = `streamlist.html?exam_id=${encodeURIComponent(examId)}&grade=${encodeURIComponent(grade.grade)}&token=${encodeURIComponent(grade.token)}`;
-                        link.innerHTML = `
+                    // Batch render all grades at once
+                    list.innerHTML = grades.data.map((grade) => `
+                        <a href="streamlist.html?exam_id=${encodeURIComponent(examId)}&grade=${encodeURIComponent(grade.grade)}&token=${encodeURIComponent(grade.token)}">
                             <li>
                                 <i class='bx bx-show-alt'></i>
                                 <span class="info-2">
                                     <p>Grade - ${grade.grade}</p>
                                 </span>
                             </li>
-                        `;
-                        list.appendChild(link);
-                    });
+                        </a>
+                    `).join('');
                 }
             } catch (error) {
                 console.error("Stream details load failed", error);

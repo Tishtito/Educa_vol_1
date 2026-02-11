@@ -116,18 +116,15 @@
             function renderList(containerId, exams, emptyText, linkBuilder) {
                 const container = document.getElementById(containerId);
                 if (!container) return;
-                container.innerHTML = '';
+                
                 if (!exams || exams.length === 0) {
-                    const li = document.createElement('li');
-                    li.className = 'no-task';
-                    li.textContent = emptyText;
-                    container.appendChild(li);
+                    container.innerHTML = '<li class="no-task">' + emptyText + '</li>';
                     return;
                 }
-                exams.forEach((exam) => {
-                    const link = document.createElement('a');
-                    link.href = linkBuilder(exam);
-                    link.innerHTML = `
+                
+                // Batch render all exams at once
+                container.innerHTML = exams.map((exam) => `
+                    <a href="${linkBuilder(exam)}">
                         <li class="completed">
                             <div class="task-title">
                                 <i class='bx bx-book'></i>
@@ -135,9 +132,8 @@
                             </div>
                             <i class='bx bx-dots-vertical-rounded'></i>
                         </li>
-                    `;
-                    container.appendChild(link);
-                });
+                    </a>
+                `).join('');
             }
 
             try {

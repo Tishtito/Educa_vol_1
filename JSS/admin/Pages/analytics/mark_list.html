@@ -84,17 +84,17 @@
                 headTop.innerHTML += "<th rowspan=\"2\">Total Marks</th>";
 
                 const body = document.getElementById("marklist-body");
-                body.innerHTML = "";
-                data.students.forEach((student) => {
-                    let row = `<tr><td>${student.rank}</td><td>${student.Name}</td>`;
+                // Batch render all student rows at once
+                body.innerHTML = data.students.map((student) => {
+                    let row = `<td>${student.rank}</td><td>${student.Name}</td>`;
                     data.subjects.forEach((subject) => {
                         const mark = student[subject] ?? "-";
                         const pl = student[`PL_${subject}`] ?? "-";
                         row += `<td>${mark}</td><td>${pl}</td>`;
                     });
-                    row += `<td>${student.total_marks ?? 0}</td></tr>`;
-                    body.innerHTML += row;
-                });
+                    row += `<td>${student.total_marks ?? 0}</td>`;
+                    return `<tr>${row}</tr>`;
+                }).join('');
 
                 const foot = document.getElementById("marklist-foot");
                 const meanRow = ["<tr><th colspan=\"2\">Mean Scores</th>"];

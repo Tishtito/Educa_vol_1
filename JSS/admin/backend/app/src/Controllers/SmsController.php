@@ -5,17 +5,14 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use Medoo\Medoo;
-use App\Support\FileCache;
 
 class SmsController
 {
     private Medoo $db;
-    private FileCache $cache;
 
-    public function __construct(Medoo $db, FileCache $cache)
+    public function __construct(Medoo $db)
     {
         $this->db = $db;
-        $this->cache = $cache;
     }
 
     private function requireAuth(): bool
@@ -51,7 +48,7 @@ class SmsController
         }
 
         try {
-            $payload = $this->cache->remember('sms:results:' . $examId . ':' . $class, 30, function () use ($examId, $class) {
+            $payload = (function () use ($examId, $class) {
                 $exam = $this->db->get('exams', ['exam_id', 'exam_name', 'exam_type', 'term'], [
                     'exam_id' => $examId,
                 ]);
@@ -110,7 +107,7 @@ class SmsController
                     'exam' => $exam,
                     'data' => $data,
                 ];
-            });
+            })();
 
             if (isset($payload['error'])) {
                 http_response_code(404);

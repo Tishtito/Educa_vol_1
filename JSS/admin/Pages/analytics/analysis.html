@@ -101,13 +101,10 @@
                 if (exams.success) {
                     const examList = document.getElementById("exam-marklists");
                     const streamList = document.getElementById("stream-marklists");
-                    examList.innerHTML = "";
-                    streamList.innerHTML = "";
-
-                    exams.data.forEach((exam) => {
-                        const examLink = document.createElement("a");
-                        examLink.href = `exam_details.html?exam_id=${encodeURIComponent(exam.exam_id)}&token=${encodeURIComponent(exam.token)}`;
-                        examLink.innerHTML = `
+                    
+                    // Batch render both lists
+                    const examHtml = exams.data.map((exam) => `
+                        <a href="exam_details.html?exam_id=${encodeURIComponent(exam.exam_id)}&token=${encodeURIComponent(exam.token)}">
                             <li class="completed">
                                 <div class="task-title">
                                     <i class='bx bx-book'></i>
@@ -115,12 +112,11 @@
                                 </div>
                                 <i class='bx bx-dots-vertical-rounded'></i>
                             </li>
-                        `;
-                        examList.appendChild(examLink);
-
-                        const streamLink = document.createElement("a");
-                        streamLink.href = `stream_details.html?exam_id=${encodeURIComponent(exam.exam_id)}&token=${encodeURIComponent(exam.token)}`;
-                        streamLink.innerHTML = `
+                        </a>
+                    `).join('');
+                    
+                    const streamHtml = exams.data.map((exam) => `
+                        <a href="stream_details.html?exam_id=${encodeURIComponent(exam.exam_id)}&token=${encodeURIComponent(exam.token)}">
                             <li class="completed">
                                 <div class="task-title">
                                     <i class='bx bx-book'></i>
@@ -128,9 +124,11 @@
                                 </div>
                                 <i class='bx bx-dots-vertical-rounded'></i>
                             </li>
-                        `;
-                        streamList.appendChild(streamLink);
-                    });
+                        </a>
+                    `).join('');
+                    
+                    examList.innerHTML = examHtml;
+                    streamList.innerHTML = streamHtml;
                 }
             } catch (error) {
                 console.error("Analysis load failed", error);

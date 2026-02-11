@@ -5,18 +5,15 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use Medoo\Medoo;
-use App\Support\FileCache;
 
 class StreamListController
 {
 	private Medoo $db;
-	private FileCache $cache;
 	private const TOKEN_SECRET = 'educa-jss-token-v1';
 
-	public function __construct(Medoo $db, FileCache $cache)
+	public function __construct(Medoo $db)
 	{
 		$this->db = $db;
-		$this->cache = $cache;
 	}
 
 	private function requireAuth(): bool
@@ -74,7 +71,7 @@ class StreamListController
 			return;
 		}
 
-		$payload = $this->cache->remember('streamlist:' . $examId . ':' . $grade, 30, function () use ($examId, $grade) {
+		$payload = (function () use ($examId, $grade) {
 			$examName = $this->db->get('exams', 'exam_name', ['exam_id' => $examId]);
 			if (!$examName) {
 				return ['error' => 'Exam not found'];
@@ -229,10 +226,10 @@ class StreamListController
 				'total_mean' => $meanTotalMarks,
 				'performance_levels' => $plRows,
 			];
-		});
-
+		})();
+		
 		if (isset($payload['error'])) {
-			http_response_code(404);
+			http_response_code(500);
 			header('Content-Type: application/json');
 			echo json_encode(['success' => false, 'message' => $payload['error']]);
 			return;

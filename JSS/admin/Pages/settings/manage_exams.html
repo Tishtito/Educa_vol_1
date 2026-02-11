@@ -364,8 +364,8 @@
                         return;
                     }
 
-                    tableBody.innerHTML = '';
-                    data.data.forEach((row) => {
+                    // Batch render all exam rows at once
+                    tableBody.innerHTML = data.data.map((row) => {
                         const statusColors = {
                             'Scheduled': '#3b82f6',
                             'Completed': '#10b981',
@@ -373,17 +373,17 @@
                         };
                         const statusBg = statusColors[row.status] || '#6b7280';
                         
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td><p>${row.exam_name}</p></td>
-                            <td><span style="background-color: ${statusBg}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600;">${row.status}</span></td>
-                            <td>
-                                <a href="#" class="edit-link" data-id="${row.exam_id}" data-name="${row.exam_name}" data-status="${row.status}"><span class="status pending">edit</span></a>
-                                <a href="#" class="delete-link" data-id="${row.exam_id}"><span class="status delete">delete</span></a>
-                            </td>
+                        return `
+                            <tr>
+                                <td><p>${row.exam_name}</p></td>
+                                <td><span style="background-color: ${statusBg}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600;">${row.status}</span></td>
+                                <td>
+                                    <a href="#" class="edit-link" data-id="${row.exam_id}" data-name="${row.exam_name}" data-status="${row.status}"><span class="status pending">edit</span></a>
+                                    <a href="#" class="delete-link" data-id="${row.exam_id}"><span class="status delete">delete</span></a>
+                                </td>
+                            </tr>
                         `;
-                        tableBody.appendChild(tr);
-                    });
+                    }).join('');
                     bindActionLinks();
                 } catch (error) {
                     console.error('Failed to load exams', error);

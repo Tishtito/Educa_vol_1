@@ -156,25 +156,21 @@
 
                 if (top.success) {
                     const tbody = document.getElementById("top-students-body");
-                    tbody.innerHTML = "";
-                    top.data.forEach((exam) => {
-                        const tr = document.createElement("tr");
-                        tr.innerHTML = `
+                    // Batch render all exam rows at once
+                    tbody.innerHTML = top.data.map((exam) => `
+                        <tr>
                             <td>${exam.name}</td>
                             <td>${exam.date}</td>
                             <td>${exam.total_students}</td>
-                        `;
-                        tbody.appendChild(tr);
-                    });
+                        </tr>
+                    `).join('');
                 }
 
                 if (exams.success) {
                     const list = document.getElementById("exam-list");
-                    list.innerHTML = "";
-                    exams.data.forEach((exam) => {
-                        const link = document.createElement("a");
-                        link.href = `../analytics/mss-detail.html?exam_id=${encodeURIComponent(exam.exam_id)}&token=${encodeURIComponent(exam.token)}`;
-                        link.innerHTML = `
+                    // Batch render all exams at once
+                    list.innerHTML = exams.data.map((exam) => `
+                        <a href="../analytics/mss-detail.html?exam_id=${encodeURIComponent(exam.exam_id)}&token=${encodeURIComponent(exam.token)}">
                             <li class="completed">
                                 <div class="task-title">
                                     <i class='bx bx-book'></i>
@@ -182,9 +178,8 @@
                                 </div>
                                 <i class='bx bx-dots-vertical-rounded'></i>
                             </li>
-                        `;
-                        list.appendChild(link);
-                    });
+                        </a>
+                    `).join('');
                 }
             } catch (error) {
                 console.error("Dashboard load failed", error);

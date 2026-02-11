@@ -156,10 +156,9 @@
                     gradeRows.innerHTML = '<tr><td colspan="3" class="text-center">No grade boundaries found.</td></tr>';
                     return;
                 }
-                gradeRows.innerHTML = '';
-                rows.forEach((row) => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
+                // Batch render all rows at once
+                gradeRows.innerHTML = rows.map((row) => `
+                    <tr>
                         <td>
                             <input type="text" class="settings-input" data-field="grade" data-id="${row.id}" value="${row.grade}" required>
                         </td>
@@ -169,9 +168,8 @@
                         <td>
                             <input type="number" class="settings-input" data-field="max_marks" data-id="${row.id}" value="${row.max_marks}" required>
                         </td>
-                    `;
-                    gradeRows.appendChild(tr);
-                });
+                    </tr>
+                `).join('');
             };
 
             try {

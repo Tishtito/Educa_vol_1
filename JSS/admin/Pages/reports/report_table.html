@@ -191,25 +191,25 @@
                     return;
                 }
 
-                tbody.innerHTML = '';
-                list.data.forEach((student, index) => {
-                    const row = document.createElement('tr');
+                // Batch render all student rows at once
+                tbody.innerHTML = list.data.map((student, index) => {
                     let viewHref = `${mode.viewPage}?student_id=${student.student_id}&exam_id=${examId}&token=${encodeURIComponent(examToken)}`;
                     if (mode.includeExamType && examType) {
                         viewHref += `&exam_type=${encodeURIComponent(examType)}`;
                     }
-                    row.innerHTML = `
-                        <td>${index + 1}</td>
-                        <td>${student.name}</td>
-                        <td>${student.class}</td>
-                        <td>
-                            <a href="${viewHref}" class="view-report">
-                                <span class="status process">View</span>
-                            </a>
-                        </td>
+                    return `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${student.name}</td>
+                            <td>${student.class}</td>
+                            <td>
+                                <a href="${viewHref}" class="view-report">
+                                    <span class="status process">View</span>
+                                </a>
+                            </td>
+                        </tr>
                     `;
-                    tbody.appendChild(row);
-                });
+                }).join('');
 
                 const downloadBtn = document.getElementById('downloadAll');
                 const printBtn = document.getElementById('printAll');

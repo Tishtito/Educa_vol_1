@@ -306,15 +306,13 @@
                         return;
                     }
 
-                    tableBody.innerHTML = '';
-                    data.data.forEach((row) => {
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
+                    // Batch render all class rows at once
+                    tableBody.innerHTML = data.data.map((row) => `
+                        <tr>
                             <td><p>${row.class_name}</p></td>
                             <td><a href="#" class="delete-link" data-id="${row.class_id}"><span class="status delete">delete</span></a></td>
-                        `;
-                        tableBody.appendChild(tr);
-                    });
+                        </tr>
+                    `).join('');
                     bindDeleteLinks();
                 } catch (error) {
                     console.error('Failed to load classes', error);

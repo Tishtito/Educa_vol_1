@@ -104,26 +104,23 @@
                 const gradesRes = await fetch(`${baseUrl}/reports/grades?exam_id=${encodeURIComponent(examId)}&token=${encodeURIComponent(examToken)}`, { credentials: "include" });
                 const grades = await gradesRes.json();
                 const list = document.getElementById('grades-list');
-                list.innerHTML = '';
 
                 if (!grades.success || (grades.data || []).length === 0) {
                     list.innerHTML = '<li class="no-task">No grades found.</li>';
                     return;
                 }
 
-                grades.data.forEach((grade) => {
-                    const link = document.createElement('a');
-                    link.href = `${tableTarget}?exam_id=${encodeURIComponent(examId)}&grade=${encodeURIComponent(grade.grade)}&exam_type=${encodeURIComponent(examType)}&token=${encodeURIComponent(grade.token)}&exam_token=${encodeURIComponent(examToken)}`;
-                    link.innerHTML = `
+                // Batch render all grade links at once
+                list.innerHTML = grades.data.map((grade) => `
+                    <a href="${tableTarget}?exam_id=${encodeURIComponent(examId)}&grade=${encodeURIComponent(grade.grade)}&exam_type=${encodeURIComponent(examType)}&token=${encodeURIComponent(grade.token)}&exam_token=${encodeURIComponent(examToken)}">
                         <li>
                             <i class='bx bx-show-alt'></i>
                             <span class="info-2">
                                 <p>${grade.grade}</p>
                             </span>
                         </li>
-                    `;
-                    list.appendChild(link);
-                });
+                    </a>
+                `).join('');
             } catch (error) {
                 console.error('Failed to load grades', error);
             }
