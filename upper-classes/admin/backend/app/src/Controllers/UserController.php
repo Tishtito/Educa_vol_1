@@ -118,7 +118,7 @@ class UserController
 		$classAssigned = isset($_POST['class_assigned']) ? trim((string)$_POST['class_assigned']) : '';
 		$password = isset($_POST['password']) ? (string)$_POST['password'] : '';
 
-		if ($id <= 0 || $name === '' || $classAssigned === '') {
+		if ($id <= 0 || $name === '') {
 			http_response_code(400);
 			header('Content-Type: application/json');
 			echo json_encode(['success' => false, 'message' => 'Invalid input']);

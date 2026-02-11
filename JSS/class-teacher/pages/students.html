@@ -205,16 +205,6 @@
 
 <h1 class="heading2">List of Students</h1>
 
-<form id="graduate-form" style="display:inline;">
-    <select name="target_class" id="target_class" required>
-        <option value="">-- Select class to graduate to --</option>
-        <option value="FINISHED">Finished (End of JSS)</option>
-    </select>
-    <button type="submit" class="dropdown-btn inline-option-btn">
-        Graduate All Students
-    </button>
-</form>
-
 <section class="teachers">
    <div class="box-container" id="students-container">
       <p style="text-align: center;">Loading students...</p>
@@ -233,10 +223,10 @@
             <label for="student-name">Student Name *</label>
             <input type="text" id="student-name" name="name" required>
          </div>
-         <div class="form-group">
+         <!-- <div class="form-group">
             <label for="student-pno">Parent Phone Number *</label>
             <input type="tel" id="student-pno" name="pno" required>
-         </div>
+         </div> -->
          <div class="form-buttons">
             <button type="button" class="btn-cancel" id="cancel-btn">Cancel</button>
             <button type="submit" class="btn-submit">Add Student</button>
@@ -593,64 +583,6 @@
       }
    }
 
-   // Graduate all students
-   async function graduateAllStudents(targetClass) {
-      const result = await Swal.fire({
-         title: 'Graduate All Students?',
-         html: `Are you sure you want to graduate all students to <b>${escapeHtml(targetClass)}</b>?`,
-         icon: 'warning',
-         showCancelButton: true,
-         confirmButtonColor: '#d33',
-         cancelButtonColor: '#3085d6',
-         confirmButtonText: 'Yes, graduate!'
-      });
-
-      if (result.isConfirmed) {
-         Swal.fire({
-            title: 'Processing...',
-            html: 'Graduating all students, please wait.',
-            allowOutsideClick: false,
-            didOpen: () => {
-               Swal.showLoading();
-            }
-         });
-
-         try {
-            const response = await fetch('../backend/public/index.php?route=/students/graduate-all', {
-               method: 'POST',
-               headers: {
-                  'Content-Type': 'application/json'
-               },
-               credentials: 'include',
-               body: JSON.stringify({
-                  target_class: targetClass
-               })
-            });
-
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
-            const data = await response.json();
-
-            Swal.fire({
-               title: data.success ? 'Success!' : 'Error!',
-               text: data.message,
-               icon: data.success ? 'success' : 'error',
-               confirmButtonText: 'OK'
-            }).then(() => {
-               if (data.success) {
-                  loadStudents();
-               }
-            });
-         } catch (error) {
-            Swal.fire({
-               title: 'Error!',
-               text: 'An error occurred: ' + error.message,
-               icon: 'error',
-               confirmButtonText: 'OK'
-            });
-         }
-      }
-   }
 
    // Initialize event listeners
    function initializeEventListeners() {
@@ -757,9 +689,10 @@
       const formData = new FormData(form);
       
       const studentName = formData.get('name');
-      const parentPhone = formData.get('pno');
+      // const parentPhone = formData.get('pno');
 
-      if (!studentName || !parentPhone) {
+      //PARENT PHONE NUMBER IS NOT REQUIRED UNTILL SMS MODULE IS PAID FOR, SO WE CAN SKIP VALIDATION FOR IT (|| !parentPhone)
+      if (!studentName) {
          Swal.fire({
             title: 'Error!',
             text: 'Please fill in all required fields.',
@@ -786,8 +719,8 @@
             },
             credentials: 'include',
             body: JSON.stringify({
-               name: studentName,
-               pno: parentPhone
+               name: studentName
+               // pno: parentPhone
             })
          });
 

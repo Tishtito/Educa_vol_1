@@ -1,5 +1,5 @@
 <?php
 //Redirect to pages folder
-header('Location: Pages/dashboard/index.html');
+header('Location: Pages/login.html');
 exit;   
 ?>
