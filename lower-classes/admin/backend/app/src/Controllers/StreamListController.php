@@ -127,7 +127,21 @@ class StreamListController
 			return;
 		}
 
-		$subjects = ['Math', 'English', 'Kiswahili', 'Enviromental', 'Creative', 'Religious'];
+		// Map display names to SQL column names with proper escaping
+		$subjectInformation = [
+			'Math' => 'Math',
+			'LS/SP' => '`LS/SP`',
+			'RDG' => 'RDG',
+			'GRM' => 'GRM',
+			'WRI' => 'WRI',
+			'KUS/KUZ' => '`KUS/KUZ`',
+			'KUS' => 'KUS',
+			'LUG' => 'LUG',
+			'KUA' => 'KUA',
+			'Enviromental' => 'Enviromental',
+			'Creative' => 'Creative',
+			'Religious' => 'Religious'
+		];
 
 		$paramKeys = [];
 		$params = [':exam_id' => $examId];
@@ -137,25 +151,19 @@ class StreamListController
 			$params[$key] = $className;
 		}
 		$placeholders = implode(',', $paramKeys);
+
+		// Build SELECT clause with aliased columns
+		$selectClauses = ['students.student_id AS student_id', 'students.name AS Name', 'students.class AS Class'];
+		$totalParts = [];
+		foreach ($subjectInformation as $displayName => $columnName) {
+			$aliasName = str_replace(['/', '-', ' '], '', $displayName);
+			$selectClauses[] = "exam_results." . $columnName . " AS " . $aliasName;
+			$totalParts[] = "COALESCE(exam_results." . $columnName . ", 0)";
+		}
+		$selectClauses[] = "(" . implode(" + ", $totalParts) . ") AS Total_marks";
+
 		$sql = "
-			SELECT 
-				students.student_id AS student_id, 
-				students.name AS Name, 
-				students.class AS Class, 
-				exam_results.Math, 
-				exam_results.English, 
-				exam_results.Kiswahili, 
-				exam_results.Enviromental, 
-				exam_results.Creative,
-				exam_results.Religious,
-				(
-					exam_results.Math + 
-					exam_results.English + 
-					exam_results.Kiswahili + 
-					exam_results.Enviromental + 
-					exam_results.Creative +
-					exam_results.Religious
-				) AS Total_marks
+			SELECT " . implode(", ", $selectClauses) . "
 			FROM 
 				students
 			LEFT JOIN 
@@ -171,8 +179,15 @@ class StreamListController
 		$stmt = $this->db->query($sql, $params);
 		$students = $stmt ? $stmt->fetchAll() : [];
 
+		// Map aliases back to display names
+		$subjectAliasMap = [];
+		foreach ($subjectInformation as $displayName => $columnName) {
+			$aliasName = str_replace(['/', '-', ' '], '', $displayName);
+			$subjectAliasMap[$displayName] = $aliasName;
+		}
+
 		$validStudents = 0;
-		$subjectTotals = array_fill_keys($subjects, 0);
+		$subjectTotals = array_fill_keys(array_keys($subjectInformation), 0);
 		$totalValidMarks = 0;
 
 		foreach ($students as $index => &$student) {
@@ -182,14 +197,14 @@ class StreamListController
 			$student['Total_marks'] = $totalMarks;
 
 			$allSubjectsFilled = true;
-			foreach ($subjectTotals as $subject => &$total) {
-				if ($student[$subject] === null) {
+			foreach ($subjectInformation as $displayName => $columnName) {
+				$aliasName = $subjectAliasMap[$displayName];
+				if (!isset($student[$aliasName]) || $student[$aliasName] === null) {
 					$allSubjectsFilled = false;
 				} else {
-					$total += (float)$student[$subject];
+					$subjectTotals[$displayName] += (float)$student[$aliasName];
 				}
 			}
-			unset($total);
 
 			if ($allSubjectsFilled) {
 				$validStudents++;
@@ -208,13 +223,13 @@ class StreamListController
 
 		$meanScores = [];
 		if ($validStudents > 0) {
-			foreach ($subjectTotals as $subject => $total) {
-				$meanScores[$subject] = round($total / $validStudents, 2);
+			foreach ($subjectInformation as $displayName => $columnName) {
+				$meanScores[$displayName] = round($subjectTotals[$displayName] / $validStudents, 2);
 			}
 			$meanTotalMarks = round($totalValidMarks / $validStudents, 2);
 		} else {
-			foreach ($subjectTotals as $subject => $total) {
-				$meanScores[$subject] = 0;
+			foreach ($subjectInformation as $displayName => $columnName) {
+				$meanScores[$displayName] = 0;
 			}
 			$meanTotalMarks = 0;
 		}
@@ -227,7 +242,7 @@ class StreamListController
 			'data' => [
 				'exam_name' => $examName,
 				'grade' => $grade,
-				'subjects' => $subjects,
+				'subjects' => array_keys($subjectInformation),
 				'students' => $students,
 				'mean_scores' => $meanScores,
 				'total_mean' => $meanTotalMarks,

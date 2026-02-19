@@ -7,93 +7,27 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css">
     <link rel="stylesheet" href="../css/Tpanel.css">
     <link rel="stylesheet" href="../css/summarycontainer.css">
-    <style>
-        .marks-table {
-            margin: 20px;
-        }
-
-        .heading {
-            text-align: center;
-            margin: 30px 0 20px 0;
-            font-size: 28px;
-            color: var(--text-color);
-        }
-
-        .content-table {
-            width: 100%;
-            border-collapse: collapse;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-        }
-
-        .content-table thead tr {
-            background-color: #f2f2f2;
-        }
-
-        .content-table thead th {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: left;
-            font-weight: bold;
-        }
-
-        .content-table tbody td {
-            border: 1px solid #ddd;
-            padding: 12px;
-        }
-
-        .content-table tbody tr {
-            transition: background-color 0.3s ease;
-        }
-
-        .content-table tbody tr:hover {
-            background-color: #f9f9f9;
-        }
-
-        .content-table tbody tr:nth-of-type(even) {
-            background-color: #f9f9f9;
-        }
-
-        .box-container {
-            overflow-x: auto;
-        }
-
-        /* Grade cell styling to show grade and ab split */
-        .grade-cell {
-            padding: 8px 6px !important;
-            text-align: center;
-            position: relative;
-            min-width: 60px;
-        }
-
-        .grade-cell .grade {
-            font-weight: bold;
-            font-size: 14px;
-            line-height: 1.2;
-        }
-
-        .grade-cell .ab {
-            font-size: 11px;
-            color: var(--text-color);
-            opacity: 0.8;
-            margin-top: 2px;
-        }
-    </style>
+    <link rel="stylesheet" href="../css/sticky-footer.css">
+    <link rel="stylesheet" href="../css/responsive-navigation.css">
+    <link rel="stylesheet" href="../css/bottom-navigator.css">
+    <link rel="stylesheet" href="../css/pointstable.css">
 </head>
 <body>
 
 <div id="headerContainer"></div>
 <div id="sidebarContainer"></div>
 
-<section class="marks-table">
+<section class="points-section">
+    <h1 class="page-heading">Points Scored</h1>
     <div id="summaryContainer"></div>
-    <h1 class="heading">Points Scored</h1>
-    <div class="box-container">
-        <div id="tableContainer">
-            <p style="text-align: center;">Loading points table...</p>
-        </div>
+    
+    <div id="tableContainer" class="table-responsive">
+        <p style="text-align: center; padding: 40px 20px;">Loading points table...</p>
     </div>
 </section>
+
+<!-- Bottom Navigator Container -->
+<div id="bottomNavContainer"></div>
 
 <div id="footerContainer"></div>
 
@@ -101,181 +35,8 @@
 <script src="../js/teacher-data.js"></script>
 <script src="../js/script.js"></script>
 <script src="../js/header-init.js"></script>
-
-<script>
-    async function loadComponentPromise(componentPath, containerId) {
-        try {
-            const response = await fetch(componentPath);
-            const html = await response.text();
-            document.getElementById(containerId).innerHTML = html;
-            
-            // Trigger header re-initialization if this is the header
-            if (containerId === 'headerContainer') {
-                document.dispatchEvent(new Event('headerLoaded'));
-            }
-        } catch (error) {
-            console.error(`Error loading component:`, error);
-        }
-    }
-
-    // Initialize page
-    window.addEventListener('DOMContentLoaded', async () => {
-        await Promise.all([
-            loadComponentPromise('components/header.html', 'headerContainer'),
-            loadComponentPromise('components/sidebar.html', 'sidebarContainer'),
-            loadComponentPromise('components/footer.html', 'footerContainer'),
-            loadTeacherData()
-        ]);
-
-        // Load points table
-        await loadPointsTable();
-    });
-
-    /**
-     * Load points table
-     */
-    async function loadPointsTable() {
-        try {
-            const response = await fetch('../backend/public/index.php?route=/points-table', {
-                method: 'GET',
-                credentials: 'include'
-            });
-
-            if (!response.ok) {
-                if (response.status === 401) {
-                    window.location.href = 'index.html';
-                    return;
-                }
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-
-            if (data.success) {
-                displayPointsTable(data);
-            } else {
-                document.getElementById('tableContainer').innerHTML = 
-                    `<p style="text-align: center; color: red;">${escapeHtml(data.message)}</p>`;
-            }
-        } catch (error) {
-            console.error('Error loading points table:', error);
-            document.getElementById('tableContainer').innerHTML = 
-                `<p style="text-align: center; color: red;">Error loading points table. Please refresh the page.</p>`;
-        }
-    }
-
-    /**
-     * Display points table
-     */
-    function displayPointsTable(data) {
-        const subjects = data.subjects || [];
-        const students = data.students || [];
-
-        // Build main table header
-        let html = '<table class="content-table"><thead><tr>';
-        html += '<th>Name</th>';
-
-        subjects.forEach(subject => {
-            html += `<th>${escapeHtml(subject)}</th>`;
-        });
-
-        html += '</tr></thead><tbody>';
-
-        // Build student rows
-        students.forEach(student => {
-            html += '<tr>';
-            html += `<td>${escapeHtml(student.Name || '')}</td>`;
-
-            subjects.forEach(subject => {
-                const grade = student['Grade_' + subject] || '-';
-                const ab = student['Ab_' + subject] || '-';
-                html += `<td class="grade-cell"><div class="grade">${escapeHtml(String(ab))}</div><div class="ab">${escapeHtml(String(grade))}</div></td>`;
-            });
-
-            html += '</tr>';
-        });
-
-        html += '</tbody></table>';
-
-        document.getElementById('tableContainer').innerHTML = html;
-
-        // Display summary table per subject
-        displaySummaryTablePerSubject(subjects, students);
-    }
-
-    /**
-     * Display grade abbreviation summary table - single table format
-     */
-    function displaySummaryTablePerSubject(subjects, students) {
-        if (!subjects || subjects.length === 0) {
-            document.getElementById('summaryContainer').innerHTML = '';
-            return;
-        }
-
-        // Count AB grades for each subject
-        const subjectGradeCounts = {};
-        const allGrades = new Set();
-
-        subjects.forEach(subject => {
-            subjectGradeCounts[subject] = {};
-
-            students.forEach(student => {
-                const ab = student['Ab_' + subject];
-                if (ab && ab !== '-') {
-                    allGrades.add(ab);
-                    subjectGradeCounts[subject][ab] = (subjectGradeCounts[subject][ab] || 0) + 1;
-                }
-            });
-        });
-
-        // Sort grades
-        const sortedGrades = Array.from(allGrades).sort();
-
-        if (sortedGrades.length === 0) {
-            document.getElementById('summaryContainer').innerHTML = '';
-            return;
-        }
-
-        // Build single table with subjects as columns and grades as rows
-        let html = '<div class="summary-section">';
-        html += '<div class="summary-heading">Grade Distribution by Subject</div>';
-        html += '<table class="summary-table"><thead><tr>';
-        html += '<th>Grade</th>';
-
-        subjects.forEach(subject => {
-            html += `<th>${escapeHtml(subject)}</th>`;
-        });
-
-        html += '</tr></thead><tbody>';
-
-        // Build rows for each grade
-        sortedGrades.forEach(grade => {
-            html += '<tr>';
-            html += `<td><strong>${escapeHtml(grade)}</strong></td>`;
-
-            subjects.forEach(subject => {
-                const count = subjectGradeCounts[subject][grade] || 0;
-                html += `<td>${count}</td>`;
-            });
-
-            html += '</tr>';
-        });
-
-        html += '</tbody></table>';
-        html += '</div>';
-
-        document.getElementById('summaryContainer').innerHTML = html;
-    }
-
-    /**
-     * Escape HTML to prevent XSS
-     */
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-</script>
+<script src="../js/pointstable.js"></script>
+<script src="../js/bottom-nav-active.js"></script>
 
 </body>
 </html>

@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="stylesheet" href="/Educa_vol_1/upper-classes/admin/css/style.css">
+    <link rel="stylesheet" href="../../css/style.css">
     <title>Students</title>
 </head>
 
@@ -33,7 +33,7 @@
                 <span class="count">12</span>
             </a>
             <a href="#" class="profile">
-                <img src="/Educa_vol_1/upper-classes/admin/images/logo.png">
+                <img src="../../images/logo.png">
             </a>
         </nav>
 
@@ -87,31 +87,9 @@
         </main>
     </div>
 
-    <script src="/Educa_vol_1/upper-classes/admin/js/index.js"></script>
-    <script src="/Educa_vol_1/upper-classes/admin/js/load-sidebar.js"></script>
-    <script>
-        (async function () {
-            const baseUrl = "/Educa_vol_1/upper-classes/admin/backend/public/index.php";
-
-            try {
-                const authRes = await fetch(`${baseUrl}/auth/check`, { credentials: "include" });
-                const auth = await authRes.json();
-                if (!auth.authenticated) {
-                    window.location.replace("/Educa_vol_1/upper-classes/admin/Pages/login.html");
-                    return;
-                }
-
-                const summaryRes = await fetch(`${baseUrl}/students/summary`, { credentials: "include" });
-                const summary = await summaryRes.json();
-                if (summary.success) {
-                    document.getElementById('active-count').textContent = summary.data.active ?? 0;
-                    document.getElementById('finished-count').textContent = summary.data.finished ?? 0;
-                }
-            } catch (error) {
-                console.error('Failed to load students summary', error);
-            }
-        })();
-    </script>
+    <script src="../../js/index.js"></script>
+    <script src="../../js/load-sidebar.js"></script>
+    <script src="../../js/students/students.js"></script>
 </body>
 
 </html>

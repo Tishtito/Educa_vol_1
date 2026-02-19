@@ -159,7 +159,7 @@ class SubjectController
 			$maxMarks = $marksOutOf ? intval($marksOutOf['marks_out_of']) : 100;
 
 			// Validate subject is valid
-			$validSubjects = ['Math', 'English', 'Kiswahili', 'Enviromental', 'Creative', 'Religious'];
+			$validSubjects = ['Math', 'LS/SP', 'RDG', 'GRM', 'WRI', 'KUS/KUZ', 'KUS', 'LUG', 'KUA', 'Enviromental', 'Creative', 'Religious'];
 			if (!in_array($subject, $validSubjects)) {
 				http_response_code(400);
 				header('Content-Type: application/json');
@@ -176,7 +176,8 @@ class SubjectController
 			}
 
 			// Convert marks to percentage (following the working logic)
-			$percentage = ($marks / $maxMarks) * 100;
+			// $percentage = ($marks / $maxMarks) * 100;
+			$percentage = $marks ;
 
 			//when you dont want to convert to percentage, just use the marks as is
 			//$percentage = $marks ;
@@ -201,27 +202,20 @@ class SubjectController
 				'exam_id' => intval($examId)
 			]);
 
-			if ($existingResult) {
-				// Record exists, UPDATE it
-				$updateData = [
-					$subject => $percentage
-				];
-				
-				$this->db->update('exam_results', $updateData, [
-					'student_class_id' => intval($studentClassId),
-					'exam_id' => intval($examId)
-				]);
-			} else {
-				// Record doesn't exist, INSERT it
-				$insertData = [
-					'exam_id' => intval($examId),
-					'student_id' => intval($studentId),
-					'student_class_id' => intval($studentClassId),
-					$subject => $percentage
-				];
-				
-				$this->db->insert('exam_results', $insertData);
-			}
+				// Escape subject column name for SQL
+				$columnName = in_array($subject, ['LS/SP', 'KUS/KUZ']) ? '`' . $subject . '`' : $subject;
+
+				if ($existingResult) {
+					// Record exists, UPDATE it using raw SQL for proper escaping
+					$updateSql = "UPDATE exam_results SET " . $columnName . " = ? WHERE student_class_id = ? AND exam_id = ?";
+					$stmt = $this->db->pdo->prepare($updateSql);
+					$stmt->execute([$percentage, intval($studentClassId), intval($examId)]);
+				} else {
+			// Record doesn't exist, INSERT it
+			$insertSql = "INSERT INTO exam_results (exam_id, student_id, student_class_id, " . $columnName . ") VALUES (?, ?, ?, ?)";
+			$stmt = $this->db->pdo->prepare($insertSql);
+			$stmt->execute([intval($examId), intval($studentId), intval($studentClassId), $percentage]);
+				}
 
 			// Recalculate total marks for this student
 			$this->recalculateTotalMarks(intval($studentClassId), intval($examId));
@@ -230,15 +224,16 @@ class SubjectController
 			echo json_encode([
 				'success' => true,
 				'message' => 'Marks updated successfully',
-				'marks' => $marks,
-				'percentage' => $percentage,
-				'subject' => $subject
+				'subject' => $subject,
+				'exam_id' => intval($examId),
+				'student_class_id' => intval($studentClassId),
+				'marks' => $marks
 			]);
 
 		} catch (\Exception $e) {
 			http_response_code(500);
 			header('Content-Type: application/json');
-			echo json_encode(['success' => false, 'message' => 'Failed to update marks', 'error' => $e->getMessage()]);
+			echo json_encode(['success' => false, 'message' => 'Failed to update marks']);
 		}
 	}
 
@@ -324,7 +319,7 @@ class SubjectController
 	private function recalculateTotalMarks(int $studentClassId, int $examId): void
 	{
 		try {
-			$subjects = ['Math', 'English', 'Kiswahili', 'Enviromental', 'Creative', 'Religious'];
+			$subjects = ['Math', 'LS/SP', 'RDG', 'GRM', 'WRI', 'KUS/KUZ', 'KUS', 'LUG', 'KUA', 'Enviromental', 'Creative', 'Religious'];
 
 			$examResult = $this->db->get('exam_results', '*', [
 				'student_class_id' => $studentClassId,
@@ -339,6 +334,7 @@ class SubjectController
 			$subjectCount = 0;
 
 			foreach ($subjects as $subject) {
+				// Handle special character column names
 				if (isset($examResult[$subject]) && $examResult[$subject] !== null) {
 					$totalMarks += floatval($examResult[$subject]);
 					$subjectCount++;
@@ -352,11 +348,10 @@ class SubjectController
 				$totalMarks = 0;
 			}
 
-			// Update total_marks in exam_results
-			$this->db->update('exam_results', ['total_marks' => $totalMarks], [
-				'student_class_id' => $studentClassId,
-				'exam_id' => $examId
-			]);
+			// Update total_marks in exam_results using raw SQL to ensure proper escaping
+			$updateSql = "UPDATE exam_results SET total_marks = ? WHERE student_class_id = ? AND exam_id = ?";
+			$stmt = $this->db->pdo->prepare($updateSql);
+			$stmt->execute([$totalMarks, $studentClassId, $examId]);
 
 		} catch (\Exception $e) {
 			// Silently fail recalculation

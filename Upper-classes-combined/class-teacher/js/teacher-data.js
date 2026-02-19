@@ -2,7 +2,7 @@
  * Load teacher data from backend and populate names in header and sidebar
  * This function can be called on any page that has header and sidebar components
  */
-let teacherDataGlobal = { name: 'Teacher' }; // Global teacher data store
+let teacherDataGlobal = { name: 'Teacher', class_assigned: '' }; // Global teacher data store
 
 async function loadTeacherData() {
    try {
@@ -20,7 +20,10 @@ async function loadTeacherData() {
 
       if (data.success) {
          const teacherName = data.teacher?.name || 'Teacher';
+         const classAssigned = data.teacher?.class_assigned || '';
+         
          teacherDataGlobal.name = teacherName; // Store globally
+         teacherDataGlobal.class_assigned = classAssigned; // Store class assignment
          
          const nameElement = document.getElementById('teacherName');
          const sidebarNameElement = document.getElementById('sidebarTeacherName');

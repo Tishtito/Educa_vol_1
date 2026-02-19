@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="stylesheet" href="/Educa_vol_1/upper-classes/admin/css/style.css">
+    <link rel="stylesheet" href="../../css/style.css">
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
     <title>Move Class</title>
     <style>
@@ -137,7 +137,7 @@
                 <span class="count">12</span>
             </a>
             <a href="#" class="profile">
-                <img src="/Educa_vol_1/upper-classes/admin/images/logo.png">
+                <img src="../../images/logo.png">
             </a>
         </nav>
 
@@ -147,7 +147,7 @@
                     <h1>Move Class</h1>
                     <p class="subtitle">Transfer students between classes without graduating them.</p>
                 </div>
-                <a href="/Educa_vol_1/upper-classes/admin/Pages/settings/settings.html" class="primary-btn">Back to Settings</a>
+                <a href="settings.html" class="primary-btn">Back to Settings</a>
             </div>
 
             <section class="panel">
@@ -191,147 +191,9 @@
         </main>
     </div>
 
-    <script src="/Educa_vol_1/upper-classes/admin/js/index.js"></script>
-    <script src="/Educa_vol_1/upper-classes/admin/js/load-sidebar.js"></script>
-    <script>
-        const baseUrl = "/Educa_vol_1/upper-classes/admin/backend/public/index.php";
-        const classesEndpoint = `${baseUrl}/settings/classes`;
-        const studentsEndpoint = `${baseUrl}/students/active-by-class`;
-        const moveAllEndpoint = `${baseUrl}/settings/classes/move-all`;
-        const moveStudentEndpoint = `${baseUrl}/settings/classes/move-student`;
-
-        const fromClass = document.getElementById('fromClass');
-        const targetClass = document.getElementById('targetClass');
-        const studentsTable = document.getElementById('studentsTable');
-        const moveAllForm = document.getElementById('moveAllForm');
-
-        function renderStudents(students) {
-            if (!students.length) {
-                studentsTable.innerHTML = '<tr><td colspan="3" class="empty-state">No students found in this class.</td></tr>';
-                return;
-            }
-            studentsTable.innerHTML = students.map((student) => `
-                <tr>
-                    <td>${student.name}</td>
-                    <td>${student.class}</td>
-                    <td><button class="action-btn" data-id="${student.student_id}">Move</button></td>
-                </tr>
-            `).join('');
-        }
-
-        async function loadStudents(className) {
-            if (!className) {
-                studentsTable.innerHTML = '<tr><td colspan="3" class="empty-state">Select a class to load students.</td></tr>';
-                return;
-            }
-            try {
-                const response = await fetch(`${studentsEndpoint}?class=${encodeURIComponent(className)}`);
-                const data = await response.json();
-                if (!data.success) {
-                    throw new Error(data.message || 'Failed to load students');
-                }
-                renderStudents(data.data || []);
-            } catch (error) {
-                studentsTable.innerHTML = `<tr><td colspan="3" class="empty-state">${error.message}</td></tr>`;
-            }
-        }
-
-        async function loadClasses() {
-            try {
-                const response = await fetch(classesEndpoint);
-                const data = await response.json();
-                if (!data.success) {
-                    throw new Error(data.message || 'Failed to load classes');
-                }
-
-                const classes = data.data || [];
-                fromClass.innerHTML = '<option value="">-- Select class --</option>';
-                targetClass.innerHTML = '<option value="">-- Select class --</option>';
-
-                classes.forEach((cls) => {
-                    const option = document.createElement('option');
-                    option.value = cls.class_name;
-                    option.textContent = cls.class_name;
-                    fromClass.appendChild(option);
-
-                    const targetOption = document.createElement('option');
-                    targetOption.value = cls.class_name;
-                    targetOption.textContent = cls.class_name;
-                    targetClass.appendChild(targetOption);
-                });
-            } catch (error) {
-                swal('Error', error.message, 'error');
-            }
-        }
-
-        fromClass.addEventListener('change', (event) => {
-            loadStudents(event.target.value);
-        });
-
-        moveAllForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const fromValue = fromClass.value;
-            const targetValue = targetClass.value;
-
-            if (!fromValue || !targetValue) {
-                swal('Missing data', 'Please select both classes.', 'warning');
-                return;
-            }
-
-            if (fromValue === targetValue) {
-                swal('Invalid selection', 'The destination class must be different.', 'warning');
-                return;
-            }
-
-            try {
-                const response = await fetch(moveAllEndpoint, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ from_class: fromValue, target_class: targetValue })
-                });
-                const data = await response.json();
-                if (!data.success) {
-                    throw new Error(data.message || 'Failed to move class');
-                }
-                swal('Success', data.message || 'Class moved successfully.', 'success');
-                loadStudents(fromValue);
-            } catch (error) {
-                swal('Error', error.message, 'error');
-            }
-        });
-
-        studentsTable.addEventListener('click', async (event) => {
-            const button = event.target.closest('button[data-id]');
-            if (!button) {
-                return;
-            }
-            const studentId = button.getAttribute('data-id');
-            const targetValue = targetClass.value;
-
-            if (!targetValue) {
-                swal('Select destination', 'Choose the target class first.', 'warning');
-                return;
-            }
-
-            try {
-                const response = await fetch(moveStudentEndpoint, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ student_id: studentId, target_class: targetValue })
-                });
-                const data = await response.json();
-                if (!data.success) {
-                    throw new Error(data.message || 'Failed to move student');
-                }
-                swal('Success', data.message || 'Student moved successfully.', 'success');
-                loadStudents(fromClass.value);
-            } catch (error) {
-                swal('Error', error.message, 'error');
-            }
-        });
-
-        loadClasses();
-    </script>
+    <script src="../../js/index.js"></script>
+    <script src="../../js/load-sidebar.js"></script>
+    <script src="../../js/settings/move_class.js"></script>
 </body>
 
 </html>

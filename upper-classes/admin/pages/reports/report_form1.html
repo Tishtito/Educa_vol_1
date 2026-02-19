@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Performance Report</title>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/Educa_vol_1/upper-classes/admin/css/report.css">
+    <link rel="stylesheet" href="../../css/report.css">
 </head>
 <body>
 <div id="invoice">
@@ -21,7 +21,7 @@
             <header>
                 <div class="row">
                     <div class="col">
-                        <img src="/Educa_vol_1/upper-classes/admin/images/logo.png" data-holder-rendered="true" />
+                        <img src="../../images/logo.png" data-holder-rendered="true" />
                     </div>
                     <div class="col company-details">
                         <h2 class="name">PCEA Junior Secondary School</h2>
@@ -109,82 +109,7 @@
     </div>
 </div>
 
-<script>
-    (async function () {
-        const baseUrl = "/Educa_vol_1/upper-classes/admin/backend/public/index.php";
-        const params = new URLSearchParams(window.location.search);
-        const studentId = params.get('student_id') || '';
-        const examId = params.get('exam_id') || '';
-        const token = params.get('token') || '';
-
-        function getPerformanceLevel(score, levels) {
-            if (score === null || score === undefined) {
-                return 'UNKNOWN';
-            }
-            for (const level of levels) {
-                if (score >= level.min_marks && score <= level.max_marks) {
-                    return level.pl;
-                }
-            }
-            return 'UNKNOWN';
-        }
-
-        if (!studentId || !examId || !token) {
-            return;
-        }
-
-        try {
-            const authRes = await fetch(`${baseUrl}/auth/check`, { credentials: "include" });
-            const auth = await authRes.json();
-            if (!auth.authenticated) {
-                window.location.replace("/Educa_vol_1/upper-classes/admin/Pages/login.html");
-                return;
-            }
-
-            const dataRes = await fetch(`${baseUrl}/reports/report-single?student_id=${encodeURIComponent(studentId)}&exam_id=${encodeURIComponent(examId)}&token=${encodeURIComponent(token)}`, { credentials: "include" });
-            const payload = await dataRes.json();
-            if (!payload.success) {
-                return;
-            }
-
-            const { student, tutor, exam, results, levels, subjects } = payload.data;
-            document.getElementById('student-name').textContent = student.name || '-';
-            document.getElementById('student-class').textContent = student.class || '-';
-            document.getElementById('tutor-name').textContent = tutor || 'Not Assigned';
-            document.getElementById('term-label').textContent = exam.term || '-';
-            document.getElementById('exam-year').textContent = exam.exam_year || '-';
-
-            const body = document.getElementById('subjects-body');
-            body.innerHTML = '';
-
-            let totalMarks = 0;
-            Object.keys(subjects || {}).forEach((key, index) => {
-                const subjectName = subjects[key];
-                const value = results[key];
-                if (value !== null && value !== undefined) {
-                    totalMarks += Number(value);
-                }
-
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td class="no">${index + 1}</td>
-                    <td class="text-left"><h3>${subjectName}</h3></td>
-                    <td class="unit">${value ?? '-'}</td>
-                    <td class="total">${getPerformanceLevel(value, levels)}</td>
-                `;
-                body.appendChild(row);
-            });
-
-            document.getElementById('total-marks').textContent = totalMarks;
-        } catch (error) {
-            console.error('Failed to load report form', error);
-        }
-    })();
-
-    document.getElementById('printInvoice').addEventListener('click', () => {
-        window.print();
-    });
-</script>
+<script src="../../js/reports/report_form1.js"></script>
 </body>
 </html>
 

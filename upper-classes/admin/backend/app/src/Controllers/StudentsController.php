@@ -348,4 +348,59 @@ class StudentsController
 			echo json_encode(['success' => false, 'message' => 'Failed to load exam result']);
 		}
 	}
+
+	public function updateName(): void
+	{
+		if (!$this->requireAuth()) {
+			return;
+		}
+
+		$input = file_get_contents('php://input');
+		$data = json_decode($input, true);
+
+		$studentId = isset($data['student_id']) ? (int)$data['student_id'] : 0;
+		$name = isset($data['name']) ? trim((string)$data['name']) : '';
+
+		if ($studentId <= 0) {
+			http_response_code(400);
+			header('Content-Type: application/json');
+			echo json_encode(['success' => false, 'message' => 'Invalid student id']);
+			return;
+		}
+
+		if (empty($name)) {
+			http_response_code(400);
+			header('Content-Type: application/json');
+			echo json_encode(['success' => false, 'message' => 'Student name is required']);
+			return;
+		}
+
+		if (strlen($name) > 255) {
+			http_response_code(400);
+			header('Content-Type: application/json');
+			echo json_encode(['success' => false, 'message' => 'Student name is too long']);
+			return;
+		}
+
+		try {
+			$student = $this->db->get('students', 'student_id', ['student_id' => $studentId]);
+
+			if (!$student) {
+				http_response_code(404);
+				header('Content-Type: application/json');
+				echo json_encode(['success' => false, 'message' => 'Student not found']);
+				return;
+			}
+
+			$this->db->update('students', ['name' => $name], ['student_id' => $studentId]);
+
+			header('Content-Type: application/json');
+			echo json_encode(['success' => true, 'message' => 'Student name updated successfully']);
+		} catch (\Throwable $e) {
+			error_log('[StudentsController] updateName error: ' . $e->getMessage());
+			http_response_code(500);
+			header('Content-Type: application/json');
+			echo json_encode(['success' => false, 'message' => 'Failed to update student name']);
+		}
+	}
 }

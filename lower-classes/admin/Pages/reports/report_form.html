@@ -24,9 +24,9 @@
                         <img src="../../images/logo.png" data-holder-rendered="true" />
                     </div>
                     <div class="col company-details">
-                        <h2 class="name">PCEA Junior Secondary School</h2>
-                        <div style="font-size:30px">143-00902, KIKUYU</div>
-                        <div style="font-size:30px">ngureprimary22@gmail.com</div>
+                        <h2 class="name">GATIMU PRIMARY AND JUNIOR SCHOOL</h2>
+                        <div style="font-size:30px">141-00217 LIMURU</div>
+                        <div style="font-size:30px">debgatimuprimary@gmail.com</div>
                     </div>
                 </div>
             </header>
@@ -119,88 +119,6 @@
     </div>
 </div>
 
-<script>
-    (async function () {
-        const baseUrl = "../../backend/public/index.php";
-        const params = new URLSearchParams(window.location.search);
-        const studentId = params.get('student_id') || '';
-        const examId = params.get('exam_id') || '';
-        const token = params.get('token') || '';
-
-        function getPerformanceLevel(score, levels) {
-            if (score === null || score === undefined) {
-                return '-';
-            }
-            for (const level of levels) {
-                if (score >= level.min_marks && score <= level.max_marks) {
-                    return level.pl;
-                }
-            }
-            return 'UNKNOWN';
-        }
-
-        if (!studentId || !examId || !token) {
-            return;
-        }
-
-        try {
-            const authRes = await fetch(`${baseUrl}/auth/check`, { credentials: "include" });
-            const auth = await authRes.json();
-            if (!auth.authenticated) {
-                    window.location.replace("Pages/login.html");
-                return;
-            }
-
-            const dataRes = await fetch(`${baseUrl}/reports/report-combined?student_id=${encodeURIComponent(studentId)}&exam_id=${encodeURIComponent(examId)}&token=${encodeURIComponent(token)}`, { credentials: "include" });
-            const payload = await dataRes.json();
-            if (!payload.success) {
-                console.error('Failed to load report:', payload.message);
-                return;
-            }
-
-            const { student, tutor, term, exam_year, mid_results, end_results, levels, subjects } = payload.data;
-            console.log('Report data:', { student, tutor, term, exam_year, mid_results, end_results, levels, subjects });
-            document.getElementById('student-name').textContent = student.name || '-';
-            document.getElementById('student-class').textContent = student.class || '-';
-            document.getElementById('tutor-name').textContent = tutor || 'Not Assigned';
-            document.getElementById('term-label').textContent = term || '-';
-            document.getElementById('exam-year').textContent = exam_year || '-';
-
-            const body = document.getElementById('subjects-body');
-            body.innerHTML = '';
-
-            let totalMid = 0;
-            let totalEnd = 0;
-
-            Object.keys(subjects || {}).forEach((key, index) => {
-                const subjectName = subjects[key];
-                const midVal = mid_results ? mid_results[key] : null;
-                const endVal = end_results ? end_results[key] : null;
-                if (midVal !== null && midVal !== undefined) totalMid += Number(midVal);
-                if (endVal !== null && endVal !== undefined) totalEnd += Number(endVal);
-
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td class="no">${index + 1}</td>
-                    <td class="text-left"><h3>${subjectName}</h3></td>
-                    <td class="unit">${midVal ?? '-'}</td>
-                    <td class="total">${getPerformanceLevel(midVal, levels)}</td>
-                    <td class="unit">${endVal ?? '-'}</td>
-                    <td class="total">${getPerformanceLevel(endVal, levels)}</td>
-                `;
-                body.appendChild(row);
-            });
-
-            document.getElementById('total-mid').textContent = totalMid;
-            document.getElementById('total-end').textContent = totalEnd;
-        } catch (error) {
-            console.error('Failed to load report form', error);
-        }
-    })();
-
-    document.getElementById('printInvoice').addEventListener('click', () => {
-        window.print();
-    });
-</script>
+<script src="../../js/reports/report_form.js"></script>
 </body>
 </html>

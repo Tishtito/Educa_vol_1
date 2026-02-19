@@ -42,19 +42,22 @@ class SubjectsController
         }
 
         // Validate subject to prevent SQL injection
-        $validSubjects = ['Math', 'English', 'Kiswahili', 'Enviromental', 'Creative', 'Religious'];
+        $validSubjects = ['Math', 'LS/SP', 'RDG', 'GRM', 'WRI', 'KUS/KUZ', 'KUS', 'LUG', 'KUA', 'Enviromental', 'Creative', 'Religious'];
         if (!in_array($subject, $validSubjects)) {
             echo json_encode(['success' => false, 'message' => 'Invalid subject']);
             return;
         }
 
         try {
+            // Escape column name for special characters
+            $columnName = in_array($subject, ['LS/SP', 'KUS/KUZ']) ? '`' . $subject . '`' : $subject;
+            
             // Query to fetch students and their marks for the specific subject
             $sql = "
                 SELECT 
                     students.student_id AS student_id,
                     students.name AS student_name,
-                    exam_results.{$subject} AS marks
+                    exam_results.{$columnName} AS marks
                 FROM 
                     students
                 LEFT JOIN 
@@ -91,8 +94,14 @@ class SubjectsController
             'success' => true,
             'subjects' => [
                 'Math',
-                'English',
-                'Kiswahili',
+                'LS/SP',
+                'RDG',
+                'GRM',
+                'WRI',
+                'KUS/KUZ',
+                'KUS',
+                'LUG',
+                'KUA',
                 'Enviromental',
                 'Creative',
                 'Religious'

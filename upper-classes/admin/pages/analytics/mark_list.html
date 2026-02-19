@@ -13,7 +13,9 @@
         .right { width: 20%; }
         @media print { button { display: none !important; } }
     </style>
-    <script>function printPage() { window.print(); }</script>
+    <script>
+        function printPage() { window.print(); }
+    </script>
 </head>
 <body>
     <button onclick="printPage()">Print</button>
@@ -25,7 +27,7 @@
                 <h1 id="marklist-tutor">Tutor:</h1>
             </div>
             <div class="column right">
-                <img src="/Educa_vol_1/upper-classes/admin/images/logo.png" alt="Logo" width="250" height="200">
+                <img src="../../images/logo.png" alt="Logo" width="250" height="200">
             </div>
         </div>
         <table>
@@ -37,106 +39,7 @@
             <tfoot id="marklist-foot"></tfoot>
         </table>
     </div>
-    <script>
-        (async function () {
-            const baseUrl = "/Educa_vol_1/upper-classes/admin/backend/public/index.php";
-            const params = new URLSearchParams(window.location.search);
-            const examId = params.get("exam_id");
-            const grade = params.get("grade");
-            const token = params.get("token");
-
-            try {
-                const authRes = await fetch(`${baseUrl}/auth/check`, { credentials: "include" });
-                const auth = await authRes.json();
-                if (!auth.authenticated) {
-                    window.location.replace("/Educa_vol_1/upper-classes/admin/Pages/login.html");
-                    return;
-                }
-
-                if (!examId || !grade || !token) {
-                    console.error("Missing exam_id or grade");
-                    return;
-                }
-
-                const res = await fetch(`${baseUrl}/marks/list?exam_id=${encodeURIComponent(examId)}&grade=${encodeURIComponent(grade)}&token=${encodeURIComponent(token)}`, {
-                    credentials: "include",
-                });
-                const payload = await res.json();
-                if (!payload.success) {
-                    console.error(payload.message || "Failed to load mark list");
-                    return;
-                }
-
-                const data = payload.data;
-                document.getElementById("marklist-exam").textContent = `Mark List - ${data.exam_name}`;
-                document.getElementById("marklist-grade").textContent = `Grade: ${data.grade_title}`;
-                document.getElementById("marklist-tutor").textContent = `Tutor: ${data.tutor}`;
-
-                const headTop = document.getElementById("marklist-head-top");
-                const headSub = document.getElementById("marklist-head-sub");
-                headTop.innerHTML = "<th rowspan=\"2\">Rank</th><th rowspan=\"2\">Name</th>";
-                headSub.innerHTML = "";
-
-                data.subjects.forEach((subject) => {
-                    headTop.innerHTML += `<th colspan=\"2\">${subject}</th>`;
-                    headSub.innerHTML += "<th>Marks</th><th>PL</th>";
-                });
-                headTop.innerHTML += "<th rowspan=\"2\">Total Marks</th>";
-
-                const body = document.getElementById("marklist-body");
-                body.innerHTML = "";
-                data.students.forEach((student) => {
-                    let row = `<tr><td>${student.rank}</td><td>${student.Name}</td>`;
-                    data.subjects.forEach((subject) => {
-                        const mark = student[subject] ?? "-";
-                        const pl = student[`PL_${subject}`] ?? "-";
-                        row += `<td>${mark}</td><td>${pl}</td>`;
-                    });
-                    row += `<td>${student.total_marks ?? 0}</td></tr>`;
-                    body.innerHTML += row;
-                });
-
-                const foot = document.getElementById("marklist-foot");
-                const meanRow = ["<tr><th colspan=\"2\">Mean Scores</th>"];
-                data.subjects.forEach((subject) => {
-                    meanRow.push(`<td colspan=\"2\">${data.mean_scores[subject] ?? 0}</td>`);
-                });
-                meanRow.push(`<td colspan=\"2\">${data.total_mean}</td></tr>`);
-
-                const prevRow = ["<tr><th colspan=\"2\">Previous Mean Scores</th>"];
-                data.subjects.forEach((subject) => {
-                    prevRow.push(`<td colspan=\"2\">${data.prev_mean_scores[subject] ?? "-"}</td>`);
-                });
-                prevRow.push(`<td colspan=\"2\">${data.prev_total_mean}</td></tr>`);
-
-                const devRow = ["<tr><th colspan=\"2\">Deviation</th>"];
-                data.subjects.forEach((subject) => {
-                    const dev = data.deviation_scores[subject] ?? "-";
-                    let color = "black";
-                    if (typeof dev === "number" || (typeof dev === "string" && dev !== "-")) {
-                        const val = Number(dev);
-                        if (val > 0) color = "green";
-                        if (val < 0) color = "red";
-                    }
-                    const display = dev !== "-" ? (Number(dev) > 0 ? `+${dev}` : dev) : "-";
-                    devRow.push(`<td colspan=\"2\" style=\"color: ${color}\">${display}</td>`);
-                });
-
-                let totalColor = "black";
-                if (typeof data.total_mean_deviation === "number" || (typeof data.total_mean_deviation === "string" && data.total_mean_deviation !== "-")) {
-                    const totalVal = Number(data.total_mean_deviation);
-                    if (totalVal > 0) totalColor = "green";
-                    if (totalVal < 0) totalColor = "red";
-                }
-                const totalDisplay = data.total_mean_deviation !== "-" ? (Number(data.total_mean_deviation) > 0 ? `+${data.total_mean_deviation}` : data.total_mean_deviation) : "-";
-                devRow.push(`<td colspan=\"2\" style=\"color: ${totalColor}\">${totalDisplay}</td></tr>`);
-
-                foot.innerHTML = meanRow.join("") + prevRow.join("") + devRow.join("");
-            } catch (error) {
-                console.error("Mark list load failed", error);
-            }
-        })();
-    </script>
+    <script src="../../js/analytics/mark_list.js"></script>
 </body>
 </html>
 

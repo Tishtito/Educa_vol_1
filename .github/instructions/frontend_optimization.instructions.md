@@ -47,3 +47,4 @@ const [classes, subjects] = await Promise.all([
 ## 5. Code Structure
 - Keep JavaScript modular and organized by feature.
 - Separate rendering logic from API logic.
+- Put all JavaScript code in the `js` folder and link it properly in the HTML files.

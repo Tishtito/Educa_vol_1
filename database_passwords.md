@@ -1,5 +1,3 @@
-
-
 -- // jss database password
 return[
   'database' => [
@@ -35,4 +33,3 @@ return[
   'charset' => 'utf8mb4'
   ],
 ];
-?>

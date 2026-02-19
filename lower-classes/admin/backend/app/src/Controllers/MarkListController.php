@@ -84,13 +84,33 @@ class MarkListController
 			$tutor = 'Class teacher not found';
 		}
 
-		$subjects = ['Math', 'English', 'Kiswahili', 'Enviromental', 'Creative', 'Religious'];
+		// Map display names to SQL column names with proper escaping
+		$subjectInformation = [
+			'Math' => 'Math',
+			'LS/SP' => '`LS/SP`',
+			'RDG' => 'RDG',
+			'GRM' => 'GRM',
+			'WRI' => 'WRI',
+			'KUS/KUZ' => '`KUS/KUZ`',
+			'KUS' => 'KUS',
+			'LUG' => 'LUG',
+			'KUA' => 'KUA',
+			'Enviromental' => 'Enviromental',
+			'Creative' => 'Creative',
+			'Religious' => 'Religious'
+		];
 
 		$sql = "SELECT s.student_id, s.name AS Name";
-		foreach ($subjects as $subject) {
-			$sql .= ", er.$subject, (SELECT ab FROM point_boundaries WHERE er.$subject BETWEEN min_marks AND max_marks LIMIT 1) AS PL_$subject";
+		foreach ($subjectInformation as $displayName => $columnName) {
+			$aliasName = str_replace(['/', '-', ' '], '', $displayName);
+			$sql .= ", er." . $columnName . " AS " . $aliasName;
+			// Get abbreviation from point_boundaries matching both subject and marks range
+			$sql .= ", (SELECT ab FROM point_boundaries WHERE subject = '" . str_replace("'", "''", $displayName) . "' AND er." . $columnName . " BETWEEN min_marks AND max_marks LIMIT 1) AS PL_" . $aliasName;
 		}
-		$sql .= ", (" . implode(" + ", array_map(fn($s) => "COALESCE(er.$s, 0)", $subjects)) . ") AS total_marks 
+		$coalesceParts = array_map(function($columnName) {
+			return "COALESCE(er." . $columnName . ", 0)";
+		}, $subjectInformation);
+		$sql .= ", (" . implode(" + ", $coalesceParts) . ") AS total_marks 
 			FROM students s
 			LEFT JOIN exam_results er ON s.student_id = er.student_id AND er.exam_id = :exam_id
 			WHERE s.class = :grade
@@ -102,17 +122,25 @@ class MarkListController
 		]);
 		$students = $stmt ? $stmt->fetchAll() : [];
 
-		$subjectTotals = array_fill_keys($subjects, 0);
-		$subjectCounts = array_fill_keys($subjects, 0);
+		// Map display names to result column aliases
+		$subjectAliasMap = [];
+		foreach ($subjectInformation as $displayName => $columnName) {
+			$aliasName = str_replace(['/', '-', ' '], '', $displayName);
+			$subjectAliasMap[$displayName] = $aliasName;
+		}
+
+		$subjectTotals = array_fill_keys(array_keys($subjectInformation), 0);
+		$subjectCounts = array_fill_keys(array_keys($subjectInformation), 0);
 		$totalScore = 0;
 		$totalStudents = 0;
 
 		$rank = 1;
 		foreach ($students as &$student) {
-			foreach ($subjects as $subject) {
-				if ($student[$subject] !== null) {
-					$subjectTotals[$subject] += (float)$student[$subject];
-					$subjectCounts[$subject]++;
+			foreach ($subjectInformation as $displayName => $columnName) {
+				$aliasName = $subjectAliasMap[$displayName];
+				if (isset($student[$aliasName]) && $student[$aliasName] !== null) {
+					$subjectTotals[$displayName] += (float)$student[$aliasName];
+					$subjectCounts[$displayName]++;
 				}
 			}
 
@@ -138,10 +166,10 @@ class MarkListController
 		unset($student);
 
 		$meanScores = [];
-		foreach ($subjects as $subject) {
-			$count = $subjectCounts[$subject] ?? 0;
-			$total = $subjectTotals[$subject] ?? 0;
-			$meanScores[$subject] = $count > 0 ? round($total / $count, 2) : 0;
+		foreach ($subjectInformation as $displayName => $columnName) {
+			$count = $subjectCounts[$displayName] ?? 0;
+			$total = $subjectTotals[$displayName] ?? 0;
+			$meanScores[$displayName] = $count > 0 ? round($total / $count, 2) : 0;
 		}
 		$meanTotalMarks = $totalStudents > 0 ? round($totalScore / $totalStudents, 2) : 0;
 
@@ -150,25 +178,54 @@ class MarkListController
 			'class' => $grade,
 		]);
 
-		$meanPayload = array_merge($meanScores, ['total_mean' => $meanTotalMarks]);
+		// Build SET clause for update with properly escaped column names
+		$setClauses = [];
+		$params = [':exam_id' => $examId, ':grade' => $grade];
+		$paramIndex = 0;
+		
+		foreach ($meanScores as $displayName => $value) {
+			$columnName = $subjectInformation[$displayName];
+			$setClauses[] = $columnName . " = :val_" . $paramIndex;
+			$params[':val_' . $paramIndex] = $value;
+			$paramIndex++;
+		}
+		$setClauses[] = "total_mean = :total_mean";
+		$params[':total_mean'] = $meanTotalMarks;
 
 		if ($exists) {
-			$this->db->update('exam_mean_scores', $meanPayload, [
-				'exam_id' => $examId,
-				'class' => $grade,
-			]);
+			$updateSql = "UPDATE exam_mean_scores SET " . implode(", ", $setClauses) . " WHERE exam_id = :exam_id AND class = :grade";
+			$this->db->query($updateSql, $params);
 		} else {
+			// Build INSERT statement
+			$columns = array_merge(['id', 'exam_id', 'class'], array_keys($meanScores), ['total_mean']);
+			$columnList = array_map(function($col) use ($subjectInformation) {
+				if (in_array($col, ['id', 'exam_id', 'class', 'total_mean'])) {
+					return $col;
+				}
+				return $subjectInformation[$col] ?? $col;
+			}, $columns);
+			
 			$nextId = (int)$this->db->max('exam_mean_scores', 'id');
 			$nextId = $nextId > 0 ? $nextId + 1 : 1;
-
-			$this->db->insert('exam_mean_scores', array_merge([
-				'id' => $nextId,
-				'exam_id' => $examId,
-				'class' => $grade,
-			], $meanPayload));
+			
+			$placeholders = ['?', '?', '?'];
+			foreach ($meanScores as $displayName => $value) {
+				$placeholders[] = '?';
+			}
+			$placeholders[] = '?';
+			
+			$insertSql = "INSERT INTO exam_mean_scores (" . implode(", ", $columnList) . ") VALUES (" . implode(", ", $placeholders) . ")";
+			$insertValues = [$nextId, $examId, $grade];
+			foreach ($meanScores as $value) {
+				$insertValues[] = $value;
+			}
+			$insertValues[] = $meanTotalMarks;
+			
+			$stmt = $this->db->pdo->prepare($insertSql);
+			$stmt->execute($insertValues);
 		}
 
-		$prevMeanScores = array_fill_keys($subjects, '-');
+		$prevMeanScores = array_fill_keys(array_keys($subjectInformation), '-');
 		$prevMeanTotalMarks = '-';
 
 		$prevRow = $this->db->get('exam_mean_scores', '*', [
@@ -185,13 +242,13 @@ class MarkListController
 
 		if ($prevExamId) {
 			if ($prevRow) {
-				foreach ($subjects as $subject) {
-					$prevMeanScores[$subject] = $prevRow[$subject] ?? '-';
+				foreach ($subjectInformation as $displayName => $columnName) {
+					$prevMeanScores[$displayName] = $prevRow[$displayName] ?? '-';
 				}
 				$prevMeanTotalMarks = $prevRow['total_mean'] ?? '-';
 			} else {
-				$prevTotals = array_fill_keys($subjects, 0);
-				$prevCounts = array_fill_keys($subjects, 0);
+				$prevTotals = array_fill_keys(array_keys($subjectInformation), 0);
+				$prevCounts = array_fill_keys(array_keys($subjectInformation), 0);
 				$prevTotalScore = 0;
 				$prevTotalStudents = 0;
 
@@ -204,11 +261,12 @@ class MarkListController
 
 				foreach ($prevStudents as $row) {
 					$studentTotal = 0;
-					foreach ($subjects as $subject) {
-						if ($row[$subject] !== null) {
-							$prevTotals[$subject] += (float)$row[$subject];
-							$prevCounts[$subject]++;
-							$studentTotal += (float)$row[$subject];
+					foreach ($subjectInformation as $displayName => $columnName) {
+						// For SELECT *, column names are the original names
+						if (isset($row[$displayName]) && $row[$displayName] !== null) {
+							$prevTotals[$displayName] += (float)$row[$displayName];
+							$prevCounts[$displayName]++;
+							$studentTotal += (float)$row[$displayName];
 						}
 					}
 
@@ -219,20 +277,20 @@ class MarkListController
 				}
 
 				$prevMeanScores = [];
-				foreach ($subjects as $subject) {
-					$count = $prevCounts[$subject] ?? 0;
-					$total = $prevTotals[$subject] ?? 0;
-					$prevMeanScores[$subject] = $count > 0 ? round($total / $count, 2) : '-';
+				foreach ($subjectInformation as $displayName => $columnName) {
+					$count = $prevCounts[$displayName] ?? 0;
+					$total = $prevTotals[$displayName] ?? 0;
+					$prevMeanScores[$displayName] = $count > 0 ? round($total / $count, 2) : '-';
 				}
 				$prevMeanTotalMarks = $prevTotalStudents > 0 ? round($prevTotalScore / $prevTotalStudents, 2) : '-';
 			}
 		}
 
 		$deviationScores = [];
-		foreach ($subjects as $subject) {
-			$prev = (is_numeric($prevMeanScores[$subject] ?? null)) ? (float)$prevMeanScores[$subject] : null;
-			$curr = (is_numeric($meanScores[$subject] ?? null)) ? (float)$meanScores[$subject] : null;
-			$deviationScores[$subject] = ($prev !== null && $curr !== null)
+		foreach ($subjectInformation as $displayName => $columnName) {
+			$prev = (is_numeric($prevMeanScores[$displayName] ?? null)) ? (float)$prevMeanScores[$displayName] : null;
+			$curr = (is_numeric($meanScores[$displayName] ?? null)) ? (float)$meanScores[$displayName] : null;
+			$deviationScores[$displayName] = ($prev !== null && $curr !== null)
 				? round($curr - $prev, 2)
 				: '-';
 		}
@@ -248,7 +306,7 @@ class MarkListController
 				'exam_name' => $examName,
 				'grade_title' => ucwords(str_replace('_', ' ', $grade)),
 				'tutor' => $tutor,
-				'subjects' => $subjects,
+				'subjects' => array_keys($subjectInformation),
 				'students' => $students,
 				'mean_scores' => $meanScores,
 				'prev_mean_scores' => $prevMeanScores,

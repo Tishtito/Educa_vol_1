@@ -57,7 +57,7 @@ class DashboardController
 
 	private function calculateMeanScores(string $class, ?int $examId = null): array
 	{
-		$subjects = ['Math', 'English', 'Kiswahili', 'Enviromental', 'Creative', 'Religious'];
+		$subjects = ['Math', 'LS/SP', 'RDG', 'GRM', 'WRI', 'KUS/KUZ', 'KUS', 'LUG', 'KUA', 'Enviromental', 'Creative', 'Religious'];
 		
 		// Initialize arrays
 		$subject_totals = array_fill_keys($subjects, 0);

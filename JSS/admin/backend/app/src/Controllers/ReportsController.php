@@ -416,6 +416,13 @@ class ReportsController
 				[':grade' => $grade, ':exam_id' => $examId]
 			)->fetchAll();
 
+			if (empty($students)) {
+				http_response_code(400);
+				header('Content-Type: application/json');
+				echo json_encode(['success' => false, 'message' => 'No students found for selected grade and exam']);
+				return;
+			}
+
 			$exam = $this->db->get('exams', ['term', 'date_created'], ['exam_id' => $examId]);
 			$term = $exam['term'] ?? '';
 			$examYear = isset($exam['date_created']) ? (int)date('Y', strtotime((string)$exam['date_created'])) : null;
@@ -425,12 +432,22 @@ class ReportsController
 
 			$rootPath = realpath(__DIR__ . '/../../../../');
 			$cssPath = $rootPath ? $rootPath . '/css/report.css' : null;
-			$css = ($cssPath && file_exists($cssPath)) ? file_get_contents($cssPath) : '';
+			$css = '';
+			if (!$cssPath || !file_exists($cssPath)) {
+				throw new \Exception("CSS file not found at: " . ($cssPath ?? 'unknown path'));
+			}
+			$css = file_get_contents($cssPath);
+			if ($css === false) {
+				throw new \Exception("Failed to read CSS file");
+			}
 
 			$logoPath = $rootPath ? $rootPath . '/images/logo.png' : null;
 			$logoData = '';
 			if ($logoPath && file_exists($logoPath)) {
-				$logoData = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
+				$logoContent = file_get_contents($logoPath);
+				if ($logoContent !== false) {
+					$logoData = 'data:image/png;base64,' . base64_encode($logoContent);
+				}
 			}
 
 			$combinedHtml = '<!DOCTYPE html><html><head><style>' . $css . '</style><style>' .
@@ -474,8 +491,7 @@ class ReportsController
 			$options->set('defaultFont', 'Helvetica');
 			$options->set('tempDir', sys_get_temp_dir());
 			$options->set('fontCache', sys_get_temp_dir());
-			$options->set('logOutputFile', sys_get_temp_dir() . '/dompdf.log');
-
+			
 			$dompdf = new Dompdf($options);
 			$dompdf->loadHtml($combinedHtml);
 			$dompdf->setPaper('A4', 'portrait');
@@ -483,15 +499,23 @@ class ReportsController
 
 			$filename = 'Class_Reports_Grade_' . str_replace(' ', '_', $grade) . '_Exam_' . $examId . '.pdf';
 			$pdfOutput = $dompdf->output();
+			
+			if (empty($pdfOutput)) {
+				throw new \Exception("PDF output is empty");
+			}
+
 			header('Content-Type: application/pdf');
 			header('Content-Disposition: attachment; filename="' . $filename . '"');
 			header('Content-Length: ' . strlen($pdfOutput));
+			header('Cache-Control: no-cache, no-store, must-revalidate');
+			header('Pragma: no-cache');
+			header('Expires: 0');
 			echo $pdfOutput;
 		} catch (\Throwable $e) {
-			error_log('[ReportsController] download error: ' . $e->getMessage());
+			error_log('[ReportsController] download error: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
 			http_response_code(500);
 			header('Content-Type: application/json');
-			echo json_encode(['success' => false, 'message' => 'Failed to generate PDF']);
+			echo json_encode(['success' => false, 'message' => 'Failed to generate PDF: ' . $e->getMessage()]);
 		}
 	}
 

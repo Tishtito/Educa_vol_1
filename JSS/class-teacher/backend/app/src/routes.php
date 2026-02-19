@@ -34,4 +34,6 @@ return function (RouteCollector $r): void {
 	$r->addRoute('GET', '/reports/class-history', 'ReportsController@getClassResultsHistory');
 	$r->addRoute('POST', '/reports/student-progress', 'ReportsController@getStudentProgress');
 	$r->addRoute('GET', '/reports/class-summary', 'ReportsController@getClassSummary');
+
+	$r->addRoute('GET', '/profile', 'ProfileController@getProfile');
 };

@@ -109,69 +109,7 @@
     </div>
     <script src="../../js/index.js"></script>
     <script src="../../js/load-sidebar.js"></script>
-    <script>
-        (async function () {
-            const baseUrl = "../../backend/public/index.php";
-
-            function renderList(containerId, exams, emptyText, linkBuilder) {
-                const container = document.getElementById(containerId);
-                if (!container) return;
-                
-                if (!exams || exams.length === 0) {
-                    container.innerHTML = '<li class="no-task">' + emptyText + '</li>';
-                    return;
-                }
-                
-                // Batch render all exams at once
-                container.innerHTML = exams.map((exam) => `
-                    <a href="${linkBuilder(exam)}">
-                        <li class="completed">
-                            <div class="task-title">
-                                <i class='bx bx-book'></i>
-                                <p>${exam.exam_name}<span></span></p>
-                            </div>
-                            <i class='bx bx-dots-vertical-rounded'></i>
-                        </li>
-                    </a>
-                `).join('');
-            }
-
-            try {
-                const authRes = await fetch(`${baseUrl}/auth/check`, { credentials: "include" });
-                const auth = await authRes.json();
-                if (!auth.authenticated) {
-                    window.location.replace("../login.html");
-                    return;
-                }
-
-                const [weeklyRes, openerRes, midtermRes, endtermRes] = await Promise.all([
-                    fetch(`${baseUrl}/reports/exams?type=Weekly`, { credentials: "include" }),
-                    fetch(`${baseUrl}/reports/exams?type=Opener`, { credentials: "include" }),
-                    fetch(`${baseUrl}/reports/exams?type=Mid-Term`, { credentials: "include" }),
-                    fetch(`${baseUrl}/reports/exams?type=End-Term`, { credentials: "include" })
-                ]);
-
-                const weekly = await weeklyRes.json();
-                const opener = await openerRes.json();
-                const midterm = await midtermRes.json();
-                const endterm = await endtermRes.json();
-
-                renderList('weekly-list', weekly.success ? weekly.data : [], 'No Weekly Exams Found',
-                    (exam) => `report_select.html?exam_id=${encodeURIComponent(exam.exam_id)}&exam_type=${encodeURIComponent(exam.exam_type)}&token=${encodeURIComponent(exam.token)}`);
-
-                renderList('opener-list', opener.success ? opener.data : [], 'No Opener Exams Found',
-                    (exam) => `report_select.html?exam_id=${encodeURIComponent(exam.exam_id)}&exam_type=${encodeURIComponent(exam.exam_type)}&token=${encodeURIComponent(exam.token)}`);
-
-                renderList('midterm-list', midterm.success ? midterm.data : [], 'No Mid-Term Exams Found',
-                    (exam) => `report_select.html?exam_id=${encodeURIComponent(exam.exam_id)}&exam_type=${encodeURIComponent(exam.exam_type)}&token=${encodeURIComponent(exam.token)}`);
-
-                renderList('endterm-list', endterm.success ? endterm.data : [], 'No End of Term Exams Found',
-                    (exam) => `report_select.html?exam_id=${encodeURIComponent(exam.exam_id)}&exam_type=${encodeURIComponent(exam.exam_type)}&token=${encodeURIComponent(exam.token)}`);
-            } catch (error) {
-                console.error('Failed to load reports', error);
-            }
-        })();
-    </script>
+    <script src="../../js/reports/reports.js"></script>
 </body>
 
 </html>

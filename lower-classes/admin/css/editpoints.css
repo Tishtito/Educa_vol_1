@@ -1,0 +1,55 @@
+.settings-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+        }
+
+        .settings-table th,
+        .settings-table td {
+            border: 1px solid #e5e7eb;
+            padding: 10px 12px;
+            text-align: left;
+        }
+
+        .settings-table thead th {
+            background: #f3f4f6;
+            font-weight: 600;
+        }
+
+        .settings-input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+        }
+
+        .settings-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-primary,
+        .btn-secondary {
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: #4caf50;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #43a047;
+        }
+
+        .btn-secondary {
+            background: #9ca3af;
+            color: #fff;
+        }
+
+        .btn-secondary:hover {
+            background: #6b7280;
+        }

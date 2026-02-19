@@ -79,7 +79,7 @@ class MssController
 			$grade = (string)$gradeRow['class'];
 			$sql = "
 				SELECT 
-					(SUM(COALESCE(Math, 0) + COALESCE(English, 0) + COALESCE(Kiswahili, 0) + 
+					(SUM(COALESCE(Math, 0) + COALESCE(`LS/SP`, 0) + COALESCE(RDG, 0) + COALESCE(GRM, 0) + COALESCE(WRI, 0) + COALESCE(`KUS/KUZ`, 0) + COALESCE(KUS, 0) + COALESCE(LUG, 0) + COALESCE(KUA, 0) + 
 					COALESCE(Enviromental, 0) + COALESCE(Creative, 0) + COALESCE(Religious, 0)) / NULLIF(COUNT(exam_results.student_id), 0)) AS MeanScore 
 				FROM exam_results
 				INNER JOIN students ON exam_results.student_id = students.student_id

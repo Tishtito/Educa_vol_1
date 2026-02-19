@@ -1,0 +1,68 @@
+html {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+}
+
+section {
+    flex: 1 0 auto;
+    width: 100%;
+    padding-bottom: 20px;
+}
+
+#footerContainer {
+    margin-top: auto;
+    flex-shrink: 0;
+    width: 100%;
+}
+
+.footer {
+    position: relative !important;
+    bottom: auto !important;
+    margin-top: auto;
+    text-align: center;
+    padding: 15px 10px;
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    font-size: 13px;
+    color: #6c757d;
+}
+
+/* Large screens (tablets and up): show footer, no bottom padding */
+@media (min-width: 769px) {
+    body {
+        padding-bottom: 0;
+    }
+
+    .footer {
+        display: block;
+    }
+}
+
+/* Mobile devices: hide footer, add bottom padding for bottom nav */
+@media (max-width: 768px) {
+    body {
+        padding-bottom: 70px;
+    }
+
+    .footer {
+        display: none;
+    }
+}
+
+@media (max-width: 600px) {
+    body {
+        padding-bottom: 65px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding-bottom: 60px;
+    }
+}

@@ -28,7 +28,7 @@ CREATE TABLE exams (
     term ENUM('Term 1', 'Term 2', 'Term 3'),
     academic_year YEAR NOT NULL,
     status ENUM('Scheduled', 'Completed', 'Cancelled') DEFAULT 'Scheduled',
-    date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at datetime,
     deleted_at datetime
 );
@@ -69,7 +69,6 @@ CREATE TABLE exam_results (
     Creative INT,
     CRE INT,
     SST INT,
-    Integrated_science INT,
     CA_SST_CRE INT,
     total_marks INT,
     position INT,
@@ -107,7 +106,6 @@ VALUES
 ('agriculture and nutrition'),
 ('social studies'),
 ('CRE'),
-('Integrated Science'),
 ('CA, SST, CRE');
 
 CREATE TABLE examiner_subjects (
@@ -161,7 +159,6 @@ CREATE TABLE exam_mean_scores (
     AgricNutri FLOAT DEFAULT NULL,
     SST FLOAT DEFAULT NULL,
     CRE FLOAT DEFAULT NULL,
-    Integrated_science FLOAT DEFAULT NULL,
     CA_SST_CRE FLOAT DEFAULT NULL,
     total_mean FLOAT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

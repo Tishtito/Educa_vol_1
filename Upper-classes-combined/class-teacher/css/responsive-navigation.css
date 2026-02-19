@@ -1,0 +1,35 @@
+/* Responsive Navigation - Sidebar vs Bottom Navigator */
+
+/* Hide sidebar on mobile (small screens) */
+@media (max-width: 768px) {
+    .side-bar,
+    #sidebarContainer {
+        display: none !important;
+    }
+}
+
+/* Show sidebar on large screens (tablets and larger) */
+@media (min-width: 769px) {
+    .side-bar,
+    #sidebarContainer {
+        display: block !important;
+    }
+
+    #bottomNavContainer {
+        display: none !important;
+    }
+}
+
+/* Show bottom navigator on mobile only */
+@media (max-width: 768px) {
+    #bottomNavContainer {
+        display: block !important;
+    }
+}
+
+/* Hide bottom navigator on large screens */
+@media (min-width: 769px) {
+    #bottomNavContainer {
+        display: none !important;
+    }
+}

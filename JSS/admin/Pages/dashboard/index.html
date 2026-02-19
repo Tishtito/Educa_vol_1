@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="../../css/style.css">
-    <title>JSS Admin</title>
+    <title>upper-classes Admin</title>
 </head>
 
 <body>
@@ -121,71 +121,9 @@
 
     </div>
 
-
-
     <script src="../../js/index.js"></script>
     <script src="../../js/load-sidebar.js"></script>
-    <script>
-        (async function () {
-            const baseUrl = "../../backend/public/index.php";
-
-            try {
-                const authRes = await fetch(`${baseUrl}/auth/check`, { credentials: "include" });
-                const auth = await authRes.json();
-                if (!auth.authenticated) {
-                    window.location.replace("../login.html");
-                    return;
-                }
-
-                const [summaryRes, topRes, examsRes] = await Promise.all([
-                    fetch(`${baseUrl}/dashboard/summary`, { credentials: "include" }),
-                    fetch(`${baseUrl}/dashboard/top-exams`, { credentials: "include" }),
-                    fetch(`${baseUrl}/dashboard/exams`, { credentials: "include" }),
-                ]);
-
-                const [summary, top, exams] = await Promise.all([
-                    summaryRes.json(),
-                    topRes.json(),
-                    examsRes.json(),
-                ]);
-
-                if (summary.success) {
-                    document.getElementById("total-students").textContent = summary.data.total_students;
-                    document.getElementById("total-teachers").textContent = summary.data.total_examiners;
-                }
-
-                if (top.success) {
-                    const tbody = document.getElementById("top-students-body");
-                    // Batch render all exam rows at once
-                    tbody.innerHTML = top.data.map((exam) => `
-                        <tr>
-                            <td>${exam.name}</td>
-                            <td>${exam.date}</td>
-                            <td>${exam.total_students}</td>
-                        </tr>
-                    `).join('');
-                }
-
-                if (exams.success) {
-                    const list = document.getElementById("exam-list");
-                    // Batch render all exams at once
-                    list.innerHTML = exams.data.map((exam) => `
-                        <a href="../analytics/mss-detail.html?exam_id=${encodeURIComponent(exam.exam_id)}&token=${encodeURIComponent(exam.token)}">
-                            <li class="completed">
-                                <div class="task-title">
-                                    <i class='bx bx-book'></i>
-                                    <p>${exam.exam_name}<span></span></p>
-                                </div>
-                                <i class='bx bx-dots-vertical-rounded'></i>
-                            </li>
-                        </a>
-                    `).join('');
-                }
-            } catch (error) {
-                console.error("Dashboard load failed", error);
-            }
-        })();
-    </script>
+    <script src="../../js/dashboard/dashboard.js"></script>
 </body>
 
 </html>

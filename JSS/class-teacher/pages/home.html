@@ -5,11 +5,29 @@
    <meta http-equiv="X-UA-Compatible" content="IE=edge">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <title>Teacher Dashboard</title>
+   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css">
    <link rel="stylesheet" href="../css/Tpanel.css">
+   <link rel="stylesheet" href="../css/sticky-footer.css">
+   <link rel="stylesheet" href="../css/responsive-navigation.css">
+   <link rel="stylesheet" href="../css/bottom-navigator.css">
    <style>
       .search-form {
          display: none;
+      }
+
+      .box-link {
+         text-decoration: none;
+         color: inherit;
+         display: flex;
+         flex-direction: column;
+         cursor: pointer;
+         transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .box-link:hover {
+         transform: translateY(-5px);
+         box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
       }
    </style>
 </head>
@@ -54,69 +72,61 @@
 
    <div class="box-container">
 
-      <div class="box">
+      <a href="subjects.html?subject=Kiswahili" class="box box-link">
          <div class="thumb">
             <img src="../photos/kiswahili.jpg" alt="">
          </div>
          <h3 class="title">Kiswahili</h3>
-         <a href="subjects.html?subject=Kiswahili" class="inline-btn">View Marks</a>
-      </div>
+      </a>
 
-      <div class="box">
+      <a href="subjects.html?subject=Math" class="box box-link">
          <div class="thumb">
             <img src="../photos/math.png" alt="">
          </div>
          <h3 class="title">Math</h3>
-         <a href="subjects.html?subject=Math" class="inline-btn">View Marks</a>
-      </div>
+      </a>
 
-      <div class="box">
+      <a href="subjects.html?subject=English" class="box box-link">
          <div class="thumb">
             <img src="../photos/english.jpg" alt="">
          </div>
          <h3 class="title">English</h3>
-         <a href="subjects.html?subject=English" class="inline-btn">View Marks</a>
-      </div>
+      </a>
 
-      <div class="box">
+      <a href="subjects.html?subject=Creative" class="box box-link">
          <div class="thumb">
             <img src="../photos/creative.jpg" alt="">
          </div>
          <h3 class="title">Creative Arts</h3>
-         <a href="subjects.html?subject=Creative" class="inline-btn">View Marks</a>
-      </div>
+      </a>
 
-      <div class="box">
+      <a href="subjects.html?subject=Religious" class="box box-link">
          <div class="thumb">
             <img src="../photos/religious.jpg" alt="">
          </div>
          <h3 class="title">Religious Activities</h3>
-         <a href="subjects.html?subject=Religious" class="inline-btn">View Marks</a>
-      </div>
+      </a>
 
-      <div class="box">
+      <a href="subjects.html?subject=Science" class="box box-link">
          <div class="thumb">
             <img src="../photos/science.png" alt="">
          </div>
          <h3 class="title">Intergrated Science</h3>
-         <a href="subjects.html?subject=Science" class="inline-btn">View Marks</a>
-      </div>
+      </a>
 
-      <div class="box">
+      <a href="subjects.html?subject=SST" class="box box-link">
          <div class="thumb">
             <img src="../photos/sst.png" alt="">
          </div>
          <h3 class="title">Social Studies</h3>
-         <a href="subjects.html?subject=SST" class="inline-btn">View Marks</a>
-      </div>
+      </a>
 
-      <div class="box">
+      <a href="subjects.html?subject=Agriculture" class="box box-link">
          <div class="thumb">
-            <img src="../photos/techinal.jpg" alt="">
+            <img src="../photos/enviromental.jpg" alt="">
          </div>
-         <h3 class="title">Pre-Technical</h3>
-         <a href="subjects.html?subject=Technical" class="inline-btn">View Marks</a>
-      </div>
+         <h3 class="title">Agriculture</h3>
+      </a>
 
    </div>
 
@@ -126,6 +136,9 @@
 
 </section>
 
+<!-- Bottom Navigator Container -->
+<div id="bottomNavContainer"></div>
+
 <!-- Footer Component Container -->
 <div id="footerContainer"></div>
 
@@ -133,81 +146,8 @@
 <script src="../js/teacher-data.js"></script>
 <script src="../js/script.js"></script>
 <script src="../js/header-init.js"></script>
-
-<script>
-async function loadComponentPromise(componentName, containerId) {
-   try {
-      const res = await fetch(`components/${componentName}.html`);
-      if (!res.ok) throw new Error(`Failed to load ${componentName}`);
-      const html = await res.text();
-      document.getElementById(containerId).innerHTML = html;
-      // Trigger header re-initialization after header loads
-      if (containerId === 'headerContainer') {
-         document.dispatchEvent(new Event('headerLoaded'));
-      }
-   } catch (err) {
-      console.error(`Error loading ${componentName} component:`, err);
-   }
-}
-
-async function loadDashboard() {
-   try {
-      const response = await fetch('../backend/public/index.php/dashboard', { credentials: 'include' });
-      
-      if (!response.ok) {
-         if (response.status === 401) {
-            window.location.href = 'index.html';
-            return;
-         }
-         throw new Error(`Failed to load dashboard data: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (data.success) {
-         // Load teacher names in header and sidebar
-         await loadTeacherData();
-
-         // Update class title
-         const classTitleElement = document.getElementById('classTitle');
-         if (classTitleElement) classTitleElement.textContent = data.title || 'Class Dashboard';
-
-         // Update mean scores
-         const means = data.means || {};
-         const elements = {
-            'englishMean': means.English,
-            'kiswahiliMean': means.Kiswahili,
-            'mathMean': means.Math,
-            'creativeMean': means.Creative,
-            'religiousMean': means.Religious,
-            'agricultureMean': means.Agriculture,
-            'technicalMean': means.Technical,
-            'sstMean': means.SST,
-            'scienceMean': means.Science,
-            'mssMean': means.total_mean
-         };
-
-         for (const [id, value] of Object.entries(elements)) {
-            const el = document.getElementById(id);
-            if (el) el.textContent = value || '-';
-         }
-      } else {
-         throw new Error(data.message || 'Unknown error');
-      }
-   } catch (error) {
-      console.error('Error loading dashboard:', error);
-   }
-}
-
-document.addEventListener('DOMContentLoaded', async () => {
-   await Promise.all([
-      loadComponentPromise('header', 'headerContainer'),
-      loadComponentPromise('sidebar', 'sidebarContainer'),
-      loadComponentPromise('footer', 'footerContainer')
-   ]);
-   await loadDashboard();
-});
-</script>
+<script src="../js/home.js"></script>
+<script src="../js/bottom-nav-active.js"></script>
 
 </body>
 </html>

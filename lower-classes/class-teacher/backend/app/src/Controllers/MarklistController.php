@@ -58,10 +58,22 @@ class MarklistController
                     s.name AS Name, 
                     er.Math, 
                     (SELECT ab FROM point_boundaries WHERE er.Math BETWEEN min_marks AND max_marks LIMIT 1) AS PL_Math,
-                    er.English, 
-                    (SELECT ab FROM point_boundaries WHERE er.English BETWEEN min_marks AND max_marks LIMIT 1) AS PL_English,
-                    er.Kiswahili, 
-                    (SELECT ab FROM point_boundaries WHERE er.Kiswahili BETWEEN min_marks AND max_marks LIMIT 1) AS PL_Kiswahili,
+                    er.`LS/SP`, 
+                    (SELECT ab FROM point_boundaries WHERE er.`LS/SP` BETWEEN min_marks AND max_marks LIMIT 1) AS PL_LSSP,
+                    er.RDG, 
+                    (SELECT ab FROM point_boundaries WHERE er.RDG BETWEEN min_marks AND max_marks LIMIT 1) AS PL_RDG,
+                    er.GRM, 
+                    (SELECT ab FROM point_boundaries WHERE er.GRM BETWEEN min_marks AND max_marks LIMIT 1) AS PL_GRM,
+                    er.WRI, 
+                    (SELECT ab FROM point_boundaries WHERE er.WRI BETWEEN min_marks AND max_marks LIMIT 1) AS PL_WRI,
+                    er.`KUS/KUZ`, 
+                    (SELECT ab FROM point_boundaries WHERE er.`KUS/KUZ` BETWEEN min_marks AND max_marks LIMIT 1) AS PL_KUSKUZ,
+                    er.KUS, 
+                    (SELECT ab FROM point_boundaries WHERE er.KUS BETWEEN min_marks AND max_marks LIMIT 1) AS PL_KUS,
+                    er.LUG, 
+                    (SELECT ab FROM point_boundaries WHERE er.LUG BETWEEN min_marks AND max_marks LIMIT 1) AS PL_LUG,
+                    er.KUA, 
+                    (SELECT ab FROM point_boundaries WHERE er.KUA BETWEEN min_marks AND max_marks LIMIT 1) AS PL_KUA,
                     er.Enviromental, 
                     (SELECT ab FROM point_boundaries WHERE er.Enviromental BETWEEN min_marks AND max_marks LIMIT 1) AS PL_Enviromental,
                     er.Creative, 
@@ -84,7 +96,7 @@ class MarklistController
             $students = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
             // Calculate mean scores
-            $subjects = ['Math', 'English', 'Kiswahili', 'Enviromental', 'Creative', 'Religious'];
+            $subjects = ['Math', 'LS/SP', 'RDG', 'GRM', 'WRI', 'KUS/KUZ', 'KUS', 'LUG', 'KUA', 'Enviromental', 'Creative', 'Religious'];
             $subjectTotals = [];
             $subjectCounts = [];
             $totalScore = 0;
@@ -198,7 +210,7 @@ class MarklistController
         $sql = "
             UPDATE exam_results
             SET total_marks = (
-                COALESCE(Math, 0) + COALESCE(English, 0) + COALESCE(Kiswahili, 0) +
+                COALESCE(Math, 0) + COALESCE(`LS/SP`, 0) + COALESCE(RDG, 0) + COALESCE(GRM, 0) + COALESCE(WRI, 0) + COALESCE(`KUS/KUZ`, 0) + COALESCE(KUS, 0) + COALESCE(LUG, 0) + COALESCE(KUA, 0) +
                 COALESCE(Enviromental, 0) + COALESCE(Creative, 0) + COALESCE(Religious, 0)
             )
             WHERE exam_id = ?";

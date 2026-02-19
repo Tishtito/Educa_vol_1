@@ -215,7 +215,7 @@ body{
     transition: all 0.3s ease;
 }
 
-.sidebar-collapsed .content{
+body.sidebar-collapsed .content{
     width: calc(100% - 60px);
     left: 60px;
 }

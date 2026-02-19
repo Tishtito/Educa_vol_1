@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="stylesheet" href="/Educa_vol_1/upper-classes/admin/css/style.css">
+    <link rel="stylesheet" href="../../css/style.css">
     <title>Exam details</title>
 </head>
 
@@ -33,7 +33,7 @@
                 <span class="count">12</span>
             </a>
             <a href="#" class="profile">
-                <img src="/Educa_vol_1/upper-classes/admin/images/logo.png">
+                <img src="../../images/logo.png">
             </a>
         </nav>
 
@@ -61,52 +61,9 @@
 
 
 
-    <script src="/Educa_vol_1/upper-classes/admin/js/index.js"></script>
-    <script src="/Educa_vol_1/upper-classes/admin/js/load-sidebar.js"></script>
-    <script>
-        (async function () {
-            const baseUrl = "/Educa_vol_1/upper-classes/admin/backend/public/index.php";
-            const params = new URLSearchParams(window.location.search);
-            const examId = params.get("exam_id");
-            const token = params.get("token");
-
-            try {
-                const authRes = await fetch(`${baseUrl}/auth/check`, { credentials: "include" });
-                const auth = await authRes.json();
-                if (!auth.authenticated) {
-                    window.location.replace("/Educa_vol_1/upper-classes/admin/Pages/login.html");
-                    return;
-                }
-
-                if (!examId || !token) {
-                    console.error("Exam ID not provided");
-                    return;
-                }
-
-                const gradesRes = await fetch(`${baseUrl}/analysis/grades?exam_id=${encodeURIComponent(examId)}&token=${encodeURIComponent(token)}`, { credentials: "include" });
-                const grades = await gradesRes.json();
-                if (grades.success) {
-                    const list = document.getElementById("stream-grades");
-                    list.innerHTML = "";
-                    grades.data.forEach((grade) => {
-                        const link = document.createElement("a");
-                        link.href = `/Educa_vol_1/upper-classes/admin/Pages/analytics/streamlist.html?exam_id=${encodeURIComponent(examId)}&grade=${encodeURIComponent(grade.grade)}&token=${encodeURIComponent(grade.token)}`;
-                        link.innerHTML = `
-                            <li>
-                                <i class='bx bx-show-alt'></i>
-                                <span class="info-2">
-                                    <p>Grade - ${grade.grade}</p>
-                                </span>
-                            </li>
-                        `;
-                        list.appendChild(link);
-                    });
-                }
-            } catch (error) {
-                console.error("Stream details load failed", error);
-            }
-        })();
-    </script>
+    <script src="../../js/index.js"></script>
+    <script src="../../js/load-sidebar.js"></script>
+    <script src="../../js/analytics/stream_details.js"></script>
 </body>
 
 </html>

@@ -63,47 +63,7 @@
 
     <script src="../../js/index.js"></script>
     <script src="../../js/load-sidebar.js"></script>
-    <script>
-        (async function () {
-            const baseUrl = "../../backend/public/index.php";
-            const params = new URLSearchParams(window.location.search);
-            const examId = params.get("exam_id");
-            const token = params.get("token");
-
-            try {
-                const authRes = await fetch(`${baseUrl}/auth/check`, { credentials: "include" });
-                const auth = await authRes.json();
-                if (!auth.authenticated) {
-                    window.location.replace("Pages/login.html");
-                    return;
-                }
-
-                if (!examId || !token) {
-                    console.error("Exam ID not provided");
-                    return;
-                }
-
-                const mssRes = await fetch(`${baseUrl}/mss?exam_id=${encodeURIComponent(examId)}&token=${encodeURIComponent(token)}`, { credentials: "include" });
-                const mss = await mssRes.json();
-                if (mss.success) {
-                    const list = document.getElementById("mss-list");
-                    list.innerHTML = "";
-                    mss.data.forEach((item) => {
-                        const li = document.createElement("li");
-                        li.innerHTML = `
-                            <i class='bx bx-check-circle'></i>
-                            <span class="info-2">
-                                <p>${item.grade} <span><b>${item.mean}</b></span></p>
-                            </span>
-                        `;
-                        list.appendChild(li);
-                    });
-                }
-            } catch (error) {
-                console.error("MSS load failed", error);
-            }
-        })();
-    </script>
+    <script src="../../js/analytics/mss-detail.js"></script>
 </body>
 
 </html>

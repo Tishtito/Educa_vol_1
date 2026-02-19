@@ -66,6 +66,26 @@ class AuthController
 		echo json_encode(['success' => true, 'message' => 'Login successful']);
 	}
 
+	public function getClasses(): void
+	{
+		header('Content-Type: application/json');
+		
+		try {
+			$classes = $this->db->select('classes', ['class_id', 'class_name']);
+			echo json_encode([
+				'success' => true,
+				'classes' => $classes ?? []
+			]);
+		} catch (\Exception $e) {
+			error_log('[AUTH] Error fetching classes: ' . $e->getMessage());
+			http_response_code(500);
+			echo json_encode([
+				'success' => false,
+				'message' => 'Failed to load classes'
+			]);
+		}
+	}
+
 	public function check(): void
 	{
 		$this->startSession();

@@ -37,14 +37,26 @@ class SettingsController
 			return;
 		}
 
+		$subject = $_GET['subject'] ?? 'Math';
+		$validSubjects = ['Math', 'LS/SP', 'RDG', 'GRM', 'WRI', 'KUS/KUZ', 'KUS', 'LUG', 'KUA', 'Enviromental', 'Creative', 'Religious'];
+		
+		if (!in_array($subject, $validSubjects)) {
+			http_response_code(400);
+			header('Content-Type: application/json');
+			echo json_encode(['success' => false, 'message' => 'Invalid subject']);
+			return;
+		}
+
 		try {
-			$rows = $this->db->select('point_boundaries', ['id', 'grade', 'min_marks', 'max_marks'], [
+			$rows = $this->db->select('point_boundaries', ['id', 'subject', 'grade', 'min_marks', 'max_marks', 'pl', 'ab'], [
+				'subject' => $subject,
 				'ORDER' => ['min_marks' => 'ASC'],
 			]);
 
 			header('Content-Type: application/json');
 			echo json_encode([
 				'success' => true,
+				'subject' => $subject,
 				'data' => $rows,
 			]);
 		} catch (\Throwable $e) {
@@ -68,10 +80,23 @@ class SettingsController
 		}
 
 		$grades = $payload['grades'] ?? [];
-		if (!is_array($grades) || $grades === []) {
+		$newGrades = $payload['new_grades'] ?? [];
+
+		// Allow either existing grades to update or new grades to insert
+		if ((!is_array($grades)) || (empty($grades) && empty($newGrades))) {
 			http_response_code(400);
 			header('Content-Type: application/json');
 			echo json_encode(['success' => false, 'message' => 'No grades provided']);
+			return;
+		}
+
+		$subject = $payload['subject'] ?? 'Math';
+		$validSubjects = ['Math', 'LS/SP', 'RDG', 'GRM', 'WRI', 'KUS/KUZ', 'KUS', 'LUG', 'KUA', 'Enviromental', 'Creative', 'Religious'];
+		
+		if (!in_array($subject, $validSubjects)) {
+			http_response_code(400);
+			header('Content-Type: application/json');
+			echo json_encode(['success' => false, 'message' => 'Invalid subject']);
 			return;
 		}
 
@@ -81,20 +106,65 @@ class SettingsController
 				$grade = isset($gradeData['grade']) ? trim((string)$gradeData['grade']) : '';
 				$minMarks = isset($gradeData['min_marks']) ? (int)$gradeData['min_marks'] : null;
 				$maxMarks = isset($gradeData['max_marks']) ? (int)$gradeData['max_marks'] : null;
+				$pl = isset($gradeData['pl']) ? trim((string)$gradeData['pl']) : '';
+				$ab = isset($gradeData['ab']) ? trim((string)$gradeData['ab']) : '';
 
 				if ($id <= 0 || $grade === '' || $minMarks === null || $maxMarks === null) {
 					continue;
 				}
 
-				$this->db->update('point_boundaries', [
+				$updateData = [
+					'subject' => $subject,
 					'grade' => $grade,
 					'min_marks' => $minMarks,
 					'max_marks' => $maxMarks,
-				], ['id' => $id]);
+				];
+
+				// Include pl and ab if provided
+				if ($pl !== '') {
+					$updateData['pl'] = $pl;
+				}
+				if ($ab !== '') {
+					$updateData['ab'] = $ab;
+				}
+
+				$this->db->update('point_boundaries', $updateData, ['id' => $id]);
+			}
+
+			// Insert new grades
+			if (is_array($newGrades) && !empty($newGrades)) {
+				foreach ($newGrades as $newGrade) {
+					$grade = isset($newGrade['grade']) ? trim((string)$newGrade['grade']) : '';
+					$minMarks = isset($newGrade['min_marks']) ? (int)$newGrade['min_marks'] : null;
+					$maxMarks = isset($newGrade['max_marks']) ? (int)$newGrade['max_marks'] : null;
+					$pl = isset($newGrade['pl']) ? trim((string)$newGrade['pl']) : '';
+					$ab = isset($newGrade['ab']) ? trim((string)$newGrade['ab']) : '';
+
+					if ($grade === '' || $minMarks === null || $maxMarks === null) {
+						continue;
+					}
+
+					$insertData = [
+						'subject' => $subject,
+						'grade' => $grade,
+						'min_marks' => $minMarks,
+						'max_marks' => $maxMarks,
+					];
+
+					// Include pl and ab if provided
+					if ($pl !== '') {
+						$insertData['pl'] = $pl;
+					}
+					if ($ab !== '') {
+						$insertData['ab'] = $ab;
+					}
+
+					$this->db->insert('point_boundaries', $insertData);
+				}
 			}
 
 			header('Content-Type: application/json');
-			echo json_encode(['success' => true]);
+			echo json_encode(['success' => true, 'subject' => $subject]);
 		} catch (\Throwable $e) {
 			error_log('[SettingsController] updatePointBoundaries error: ' . $e->getMessage());
 			http_response_code(500);

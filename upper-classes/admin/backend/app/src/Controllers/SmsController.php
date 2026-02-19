@@ -59,7 +59,7 @@ class SmsController
                 return;
             }
 
-                $subjects = ['English', 'Math', 'Kiswahili', 'Creative', 'SciTech', 'AgricNutri', 'SST', 'Integrated_science', 'CRE'];
+                $subjects = ['English', 'Math', 'Kiswahili', 'Creative', 'SciTech', 'AgricNutri', 'SST', 'CRE'];
                 $subjectSelect = implode(', ', array_map(fn($subject) => "er.$subject", $subjects));
                 $totalCalc = implode(' + ', array_map(fn($subject) => "COALESCE(er.$subject, 0)", $subjects));
 
@@ -99,7 +99,6 @@ class SmsController
                     'Creative' => $row['Creative'] ?? null,
                     'CRE' => $row['CRE'] ?? null,
                     'SST' => $row['SST'] ?? null,
-                    'Integrated_science' => $row['Integrated_science'] ?? null,
                 ];
 
                 $rank++;

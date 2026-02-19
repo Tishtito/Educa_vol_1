@@ -1,0 +1,275 @@
+.teacher-profile {
+         margin: 20px;
+         padding: 20px;
+      }
+
+      .heading {
+         text-align: center;
+         margin: 20px 0;
+         font-size: 28px;
+         color: var(--text-color);
+      }
+
+      .details {
+         display: flex;
+         align-items: center;
+         gap: 30px;
+         margin: 30px 0;
+         background: var(--bg-color);
+         padding: 20px;
+         border-radius: 8px;
+         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .details .tutor {
+         display: flex;
+         align-items: center;
+         gap: 15px;
+         flex: 1;
+      }
+
+      .details .tutor img {
+         width: 80px;
+         height: 80px;
+         border-radius: 50%;
+         object-fit: cover;
+      }
+
+      .details .tutor h3 {
+         margin: 0;
+         color: var(--text-color);
+      }
+
+      .details .tutor a {
+         color: #667eea;
+         text-decoration: none;
+         margin-left: 10px;
+      }
+
+      .details .tutor a:hover {
+         color: #764ba2;
+      }
+
+      .details .tutor span {
+         display: block;
+         color: #999;
+         font-size: 14px;
+      }
+
+      .details .flex {
+         display: flex;
+         gap: 20px;
+         flex: 1;
+      }
+
+      .details .flex p {
+         margin: 0;
+         color: var(--text-color);
+      }
+
+      .marks {
+         margin: 30px 20px;
+      }
+
+      .box-container {
+         display: grid;
+         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+         gap: 20px;
+      }
+
+      .box {
+         background: var(--bg-color);
+         padding: 20px;
+         border-radius: 8px;
+         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .box p {
+         display: flex;
+         justify-content: space-between;
+         margin: 10px 0;
+         padding: 10px 0;
+         border-bottom: 1px solid #eee;
+      }
+
+      .box p:last-child {
+         border-bottom: none;
+      }
+
+      .box b {
+         color: var(--text-color);
+         font-weight: 600;
+      }
+
+      .box span {
+         color: #667eea;
+         font-weight: 500;
+      }
+
+      .back-btn {
+         display: inline-block;
+         margin: 20px;
+         padding: 10px 20px;
+         background-color: #667eea;
+         color: white;
+         text-decoration: none;
+         border-radius: 4px;
+         transition: background-color 0.3s ease;
+      }
+
+      .back-btn:hover {
+         background-color: #764ba2;
+      }
+
+      .error-message {
+         text-align: center;
+         color: red;
+         padding: 20px;
+      }
+
+      .loading {
+         text-align: center;
+         padding: 50px 20px;
+         color: var(--text-color);
+      }
+
+      .search-form {
+        display: none;
+      }
+
+      /* Mobile responsive styles */
+      @media (max-width: 768px) {
+         .teacher-profile {
+            margin: 10px;
+            padding: 15px;
+         }
+
+         .heading {
+            font-size: 24px;
+            margin: 15px 0;
+         }
+
+         .details {
+            flex-direction: column;
+            gap: 20px;
+            margin: 20px 0;
+            padding: 15px;
+         }
+
+         .details .tutor {
+            flex-direction: column;
+            text-align: center;
+         }
+
+         .details .tutor img {
+            width: 70px;
+            height: 70px;
+         }
+
+         .details .flex {
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+         }
+
+         .back-btn {
+            margin: 15px;
+            padding: 8px 16px;
+            font-size: 14px;
+         }
+
+         .marks {
+            margin: 20px 10px;
+         }
+
+         .box-container {
+            grid-template-columns: 1fr;
+            gap: 15px;
+         }
+
+         .box {
+            padding: 15px;
+         }
+      }
+
+      @media (max-width: 480px) {
+         .teacher-profile {
+            margin: 5px;
+            padding: 10px;
+         }
+
+         .heading {
+            font-size: 20px;
+            margin: 10px 0;
+         }
+
+         .details {
+            flex-direction: column;
+            gap: 15px;
+            margin: 15px 0;
+            padding: 10px;
+         }
+
+         .details .tutor {
+            flex-direction: column;
+            text-align: center;
+            gap: 10px;
+         }
+
+         .details .tutor img {
+            width: 60px;
+            height: 60px;
+         }
+
+         .details .tutor h3 {
+            font-size: 16px;
+         }
+
+         .details .tutor span {
+            font-size: 12px;
+         }
+
+         .details .flex {
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+         }
+
+         .details .flex p {
+            font-size: 13px;
+         }
+
+         .back-btn {
+            margin: 10px;
+            padding: 8px 12px;
+            font-size: 12px;
+         }
+
+         .marks {
+            margin: 15px 5px;
+         }
+
+         h2 {
+            font-size: 18px;
+         }
+
+         .box-container {
+            grid-template-columns: 1fr;
+            gap: 10px;
+         }
+
+         .box {
+            padding: 12px;
+         }
+
+         .box p {
+            font-size: 13px;
+            margin: 8px 0;
+            padding: 8px 0;
+         }
+
+         .box b,
+         .box span {
+            font-size: 12px;
+         }
+      }
