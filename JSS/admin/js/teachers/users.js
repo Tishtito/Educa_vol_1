@@ -4,39 +4,105 @@
     let subjectsData = [];
     let classesData = [];
 
-    function renderCheckboxes(container, items, name, valueKey, labelKey, idPrefix) {
-        container.innerHTML = items.map(item => {
-            const value = item[valueKey];
-            const label = item[labelKey];
-            const id = `${idPrefix}-${value}`;
-            return `
-                <label class="checkbox-item" for="${id}">
-                    <input type="checkbox" id="${id}" name="${name}[]" value="${value}">
-                    <span>${label}</span>
-                </label>
-            `;
-        }).join('');
+    // Render subject-class assignment grid (instead of separate checkboxes)
+    function renderAssignmentGrid(container, subjects, classes, idPrefix) {
+        const html = `
+            <div class="assignment-grid">
+                <div class="assignment-header">
+                    <div class="assignment-col">Subject</div>
+                    <div class="assignment-col">Class</div>
+                    <div class="assignment-col">Action</div>
+                </div>
+                <div class="assignment-rows" id="${idPrefix}-rows">
+                    <!-- Assignment rows will be added here -->
+                </div>
+                <button type="button" class="btn btn-small" id="${idPrefix}-add-btn">+ Add Assignment</button>
+            </div>
+        `;
+        container.innerHTML = html;
+        
+        const rowsContainer = container.querySelector(`#${idPrefix}-rows`);
+        const addBtn = container.querySelector(`#${idPrefix}-add-btn`);
+        
+        addBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            addAssignmentRow(rowsContainer, subjects, classes, idPrefix);
+        });
+        
+        return rowsContainer;
     }
 
-    function setChecked(container, selected) {
-        const selectedSet = new Set((selected || []).map(String));
-        container.querySelectorAll('input[type="checkbox"]').forEach((input) => {
-            input.checked = selectedSet.has(input.value);
+    function addAssignmentRow(container, subjects, classes, idPrefix, subjectId = '', classId = '') {
+        const rowId = `${idPrefix}-row-${Date.now()}`;
+        const row = document.createElement('div');
+        row.className = 'assignment-row';
+        row.id = rowId;
+        
+        const subjectOptions = ['<option value="">-- Select Subject --</option>']
+            .concat(subjects.map(s => `<option value="${s.subject_id}" ${s.subject_id == subjectId ? 'selected' : ''}>${s.name}</option>`))
+            .join('');
+        
+        const classOptions = ['<option value="">-- Select Class --</option>']
+            .concat(classes.map(c => `<option value="${c.class_id}" ${c.class_id == classId ? 'selected' : ''}>${c.class_name}</option>`))
+            .join('');
+        
+        row.innerHTML = `
+            <select name="assignments[subject_id][]" class="assignment-subject" required>${subjectOptions}</select>
+            <select name="assignments[class_id][]" class="assignment-class" required>${classOptions}</select>
+            <button type="button" class="btn btn-danger btn-small remove-assignment">Remove</button>
+        `;
+        
+        const removeBtn = row.querySelector('.remove-assignment');
+        removeBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            row.remove();
         });
+        
+        container.appendChild(row);
+    }
+
+    function getAssignments(form) {
+        const subjectInputs = form.querySelectorAll('input[name="assignments[subject_id][]"]');
+        const classInputs = form.querySelectorAll('input[name="assignments[class_id][]"]');
+        
+        // If using selects instead
+        const subjectSelects = form.querySelectorAll('select[name="assignments[subject_id][]"]');
+        const classSelects = form.querySelectorAll('select[name="assignments[class_id][]"]');
+        
+        const assignments = [];
+        const inputs = subjectSelects.length > 0 ? subjectSelects : subjectInputs;
+        
+        inputs.forEach((input, index) => {
+            const subjectId = subjectSelects.length > 0 ? subjectSelects[index].value : input.value;
+            const classId = classSelects.length > 0 ? classSelects[index].value : classInputs[index].value;
+            
+            if (subjectId && classId) {
+                assignments.push({ subject_id: subjectId, class_id: classId });
+            }
+        });
+        
+        return assignments;
     }
 
     try {
-        const authRes = await fetch(`${baseUrl}/auth/check`, { credentials: "include" });
+        const [authRes, classesRes, subjectsRes] = await Promise.all([
+            fetch(`${baseUrl}/auth/check`, { credentials: "include" }),
+            fetch(`${baseUrl}/classes`, { credentials: "include" }),
+            fetch(`${baseUrl}/subjects`, { credentials: "include" })
+        ]);
+
         const auth = await authRes.json();
         if (!auth.authenticated) {
             window.location.replace("../login.html");
             return;
         }
 
-        const classesRes = await fetch(`${baseUrl}/classes`, { credentials: "include" });
         const classes = await classesRes.json();
+        const subjects = await subjectsRes.json();
+
         const editClassSelect = document.getElementById("edit-teacher-class");
         const addClassSelect = document.getElementById("add-teacher-class");
+        
         if (classes.success) {
             classesData = classes.data || [];
             const optionsHtml = ['<option value="">-- Select Class --</option>', '<option value="">Not class teacher</option>']
@@ -46,22 +112,26 @@
             addClassSelect.innerHTML = optionsHtml;
         }
 
-        const subjectsRes = await fetch(`${baseUrl}/subjects`, { credentials: "include" });
-        const subjects = await subjectsRes.json();
         if (subjects.success) {
             subjectsData = subjects.data || [];
         }
 
-        const examinerSubjectsContainer = document.getElementById('edit-examiner-subjects');
-        const examinerClassesContainer = document.getElementById('edit-examiner-classes');
-        const addExaminerSubjectsContainer = document.getElementById('add-examiner-subjects');
-        const addExaminerClassesContainer = document.getElementById('add-examiner-classes');
-        renderCheckboxes(examinerSubjectsContainer, subjectsData, 'subjects', 'subject_id', 'name', 'examiner-subject');
-        renderCheckboxes(examinerClassesContainer, classesData, 'classes', 'class_id', 'class_name', 'examiner-class');
-        renderCheckboxes(addExaminerSubjectsContainer, subjectsData, 'subjects', 'subject_id', 'name', 'add-examiner-subject');
-        renderCheckboxes(addExaminerClassesContainer, classesData, 'classes', 'class_id', 'class_name', 'add-examiner-class');
+        // Setup examiner assignment grids
+        const editExaminerAssignments = renderAssignmentGrid(
+            document.getElementById('edit-examiner-subjects'),
+            subjectsData,
+            classesData,
+            'edit-examiner'
+        );
 
-        // Teachers loading
+        const addExaminerAssignments = renderAssignmentGrid(
+            document.getElementById('add-examiner-subjects'),
+            subjectsData,
+            classesData,
+            'add-examiner'
+        );
+
+        // ...existing teachers loading code...
         const teachersRes = await fetch(`${baseUrl}/teachers`, { credentials: "include" });
         const teachers = await teachersRes.json();
         document.getElementById('teachers-loading').style.display = 'none';
@@ -87,11 +157,14 @@
                 tbody.innerHTML = '<tr><td colspan="4">No examiners found.</td></tr>';
             } else {
                 tbody.innerHTML = examiners.data.map((examiner) => {
-                    const subjects = examiner.subjects || 'No Subjects Assigned';
+                    const assignments = examiner.assignments || [];
+                    const assignmentText = assignments.length > 0 
+                        ? assignments.map(a => `${a.subject_name} (${a.class_name})`).join(', ')
+                        : 'No Assignments';
                     return `
                         <tr>
                             <td>${examiner.name}</td>
-                            <td>${subjects}</td>
+                            <td>${assignmentText}</td>
                             <td>
                                 <a href="#" class="edit-examiner" data-id="${examiner.examiner_id}">
                                     <span class="status process">edit</span>
@@ -108,6 +181,7 @@
             }
         }
 
+        // ...existing delete and reload functions...
         const deleteTeacher = async (teacherId) => {
             const formData = new FormData();
             formData.append('id', teacherId);
@@ -134,10 +208,24 @@
                         </tr>
                     `).join('');
                     bindDeleteTeacherLinks();
+                    bindEditTeacherLinks();
                 }
             } catch (error) {
                 console.error('Failed to reload teachers', error);
             }
+        };
+
+        const bindEditTeacherLinks = () => {
+            document.querySelectorAll('.edit-teacher').forEach((link) => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.getElementById('edit-teacher-id').value = link.dataset.id;
+                    document.getElementById('edit-teacher-name').value = link.dataset.name;
+                    document.getElementById('edit-teacher-class').value = link.dataset.class;
+                    document.getElementById('edit-teacher-password').value = '';
+                    modal.classList.add('active');
+                });
+            });
         };
 
         const bindDeleteTeacherLinks = () => {
@@ -200,11 +288,14 @@
                         tbody.innerHTML = '<tr><td colspan="4">No examiners found.</td></tr>';
                     } else {
                         tbody.innerHTML = data.data.map((examiner) => {
-                            const subjects = examiner.subjects || 'No Subjects Assigned';
+                            const assignments = examiner.assignments || [];
+                            const assignmentText = assignments.length > 0 
+                                ? assignments.map(a => `${a.subject_name} (${a.class_name})`).join(', ')
+                                : 'No Assignments';
                             return `
                                 <tr>
                                     <td>${examiner.name}</td>
-                                    <td>${subjects}</td>
+                                    <td>${assignmentText}</td>
                                     <td>
                                         <a href="#" class="edit-examiner" data-id="${examiner.examiner_id}">
                                             <span class="status process">edit</span>
@@ -220,10 +311,48 @@
                         }).join('');
                     }
                     bindDeleteExaminerLinks();
+                    bindEditExaminerLinks();
                 }
             } catch (error) {
                 console.error('Failed to reload examiners', error);
             }
+        };
+
+        const bindEditExaminerLinks = () => {
+            document.querySelectorAll('.edit-examiner').forEach((link) => {
+                link.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    const examinerId = link.dataset.id;
+                    try {
+                        const detailRes = await fetch(`${baseUrl}/examiners/detail?examiner_id=${examinerId}`, { credentials: "include" });
+                        const detail = await detailRes.json();
+                        if (!detail.success) {
+                            swal({
+                                title: 'Error',
+                                text: detail.message || 'Failed to load examiner.',
+                                icon: 'error',
+                                button: 'OK',
+                            });
+                            return;
+                        }
+
+                        document.getElementById('edit-examiner-id').value = detail.data.examiner_id;
+                        document.getElementById('edit-examiner-name').value = detail.data.name;
+                        document.getElementById('edit-examiner-password').value = '';
+                        
+                        // Clear and repopulate assignments
+                        const rowsContainer = document.getElementById('edit-examiner-rows');
+                        rowsContainer.innerHTML = '';
+                        detail.data.assignments.forEach(assignment => {
+                            addAssignmentRow(rowsContainer, subjectsData, classesData, 'edit-examiner', assignment.subject_id, assignment.class_id);
+                        });
+                        
+                        examinerModal.classList.add('active');
+                    } catch (err) {
+                        console.error('Failed to load examiner', err);
+                    }
+                });
+            });
         };
 
         const bindDeleteExaminerLinks = () => {
@@ -265,6 +394,7 @@
 
         bindDeleteExaminerLinks();
 
+        // ...existing modal setup...
         const modal = document.getElementById('edit-teacher-modal');
         const closeBtn = document.getElementById('edit-teacher-close');
         const cancelBtn = document.getElementById('edit-teacher-cancel');
@@ -300,15 +430,15 @@
         function closeExaminerModal() {
             examinerModal.classList.remove('active');
             examinerForm.reset();
-            setChecked(document.getElementById('edit-examiner-subjects'), []);
-            setChecked(document.getElementById('edit-examiner-classes'), []);
+            const rowsContainer = document.getElementById('edit-examiner-rows');
+            if (rowsContainer) rowsContainer.innerHTML = '';
         }
 
         function closeAddExaminerModal() {
             addExaminerModal.classList.remove('active');
             addExaminerForm.reset();
-            setChecked(document.getElementById('add-examiner-subjects'), []);
-            setChecked(document.getElementById('add-examiner-classes'), []);
+            const rowsContainer = document.getElementById('add-examiner-rows');
+            if (rowsContainer) rowsContainer.innerHTML = '';
         }
 
         closeBtn.addEventListener('click', closeModal);
@@ -343,45 +473,11 @@
             if (e.target === addExaminerModal) closeAddExaminerModal();
         });
 
-        document.querySelectorAll('.edit-teacher').forEach((link) => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                document.getElementById('edit-teacher-id').value = link.dataset.id;
-                document.getElementById('edit-teacher-name').value = link.dataset.name;
-                document.getElementById('edit-teacher-class').value = link.dataset.class;
-                document.getElementById('edit-teacher-password').value = '';
-                modal.classList.add('active');
-            });
-        });
+        // Bind edit teacher links
+        bindEditTeacherLinks();
 
-        document.querySelectorAll('.edit-examiner').forEach((link) => {
-            link.addEventListener('click', async (e) => {
-                e.preventDefault();
-                const examinerId = link.dataset.id;
-                try {
-                    const detailRes = await fetch(`${baseUrl}/examiners/detail?examiner_id=${examinerId}`, { credentials: "include" });
-                    const detail = await detailRes.json();
-                    if (!detail.success) {
-                        swal({
-                            title: 'Error',
-                            text: detail.message || 'Failed to load examiner.',
-                            icon: 'error',
-                            button: 'OK',
-                        });
-                        return;
-                    }
-
-                    document.getElementById('edit-examiner-id').value = detail.data.examiner_id;
-                    document.getElementById('edit-examiner-name').value = detail.data.name;
-                    document.getElementById('edit-examiner-password').value = '';
-                    setChecked(document.getElementById('edit-examiner-subjects'), detail.data.subject_ids);
-                    setChecked(document.getElementById('edit-examiner-classes'), detail.data.class_ids);
-                    examinerModal.classList.add('active');
-                } catch (err) {
-                    console.error('Failed to load examiner', err);
-                }
-            });
-        });
+        // Bind edit examiner links
+        bindEditExaminerLinks();
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -441,7 +537,26 @@
 
         examinerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            const assignments = getAssignments(examinerForm);
+            
+            if (assignments.length === 0) {
+                swal({
+                    title: 'Validation Error',
+                    text: 'Please assign at least one subject to a class.',
+                    icon: 'warning',
+                    button: 'OK',
+                });
+                return;
+            }
+
             const formData = new FormData(examinerForm);
+            // Clear old assignments and add new ones
+            formData.delete('assignments[subject_id][]');
+            formData.delete('assignments[class_id][]');
+            assignments.forEach(a => {
+                formData.append('assignments[]', JSON.stringify(a));
+            });
+
             const response = await fetch(`${baseUrl}/examiners/update`, {
                 method: 'POST',
                 body: formData,
@@ -469,7 +584,26 @@
 
         addExaminerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            const assignments = getAssignments(addExaminerForm);
+            
+            if (assignments.length === 0) {
+                swal({
+                    title: 'Validation Error',
+                    text: 'Please assign at least one subject to a class.',
+                    icon: 'warning',
+                    button: 'OK',
+                });
+                return;
+            }
+
             const formData = new FormData(addExaminerForm);
+            // Clear old assignments and add new ones
+            formData.delete('assignments[subject_id][]');
+            formData.delete('assignments[class_id][]');
+            assignments.forEach(a => {
+                formData.append('assignments[]', JSON.stringify(a));
+            });
+
             const response = await fetch(`${baseUrl}/examiners/create`, {
                 method: 'POST',
                 body: formData,

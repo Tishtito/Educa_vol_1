@@ -15,72 +15,157 @@ class DashboardController
         $this->db = $db;
     }
 
-    // GET /dashboard - get examiner's subjects and classes
-    public function getDashboard(): void
+    private function jsonResponse(array $data, int $code = 200): void
     {
-        $this->startSession();
-        // error_log('[DASHBOARD] Request started. Session status: ' . session_status());
-        // error_log('[DASHBOARD] Session data: ' . json_encode($_SESSION, JSON_UNESCAPED_SLASHES));
+        http_response_code($code);
+        header('Content-Type: application/json');
+        echo json_encode($data);
+    }
+
+    private function log(string $message): void
+    {
+        $logDir = __DIR__ . '/../../../logs';
+        $logFile = $logDir . '/php_errors.log';
         
-        if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
-            error_log('[DASHBOARD] Unauthorized: loggedin flag not set');
-            http_response_code(401);
-            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
-            return;
+        if (!is_dir($logDir)) {
+            mkdir($logDir, 0777, true);
         }
-
-        try {
-            $examinerId = $_SESSION['id'] ?? null;
-            // error_log('[DASHBOARD] Extracted examiner ID: ' . ($examinerId ?? 'NULL'));
-            
-            if (!$examinerId) {
-                error_log('[DASHBOARD] Error: Examiner ID not found in session');
-                http_response_code(400);
-                echo json_encode(['success' => false, 'message' => 'Examiner ID not found in session']);
-                return;
-            }
-
-            // Get subjects assigned to examiner
-            // error_log('[DASHBOARD] Fetching subjects for examiner_id=' . $examinerId);
-            $subjects = $this->db->select('examiner_subjects', ['[>]subjects' => ['subject_id' => 'subject_id']], 
-                ['subjects.subject_id', 'subjects.name'],
-                ['examiner_subjects.examiner_id' => $examinerId]
-            );
-            // error_log('[DASHBOARD] Subjects query result: ' . json_encode($subjects ?? []));
-
-            // Get classes assigned to examiner
-            // error_log('[DASHBOARD] Fetching classes for examiner_id=' . $examinerId);
-            $classes = $this->db->select('examiner_classes', ['[>]classes' => ['class_id' => 'class_id']], 
-                ['classes.class_id', 'classes.class_name'],
-                ['examiner_classes.examiner_id' => $examinerId]
-            );
-            // error_log('[DASHBOARD] Classes query result: ' . json_encode($classes ?? []));
-
-            // Check if examiner has assigned classes
-            if (empty($classes)) {
-                // error_log('[DASHBOARD] Warning: No classes assigned to examiner_id=' . $examinerId);
-                http_response_code(403);
-                echo json_encode(['success' => false, 'message' => 'No classes assigned. Visit Admin for assistance.']);
-                return;
-            }
-
-            header('Content-Type: application/json');
-            echo json_encode([
-                'success' => true,
-                'subjects' => $subjects ?: [],
-                'classes' => $classes ?: []
-            ]);
-        } catch (\Exception $e) {
-            error_log('[DASHBOARD] Exception: ' . $e->getMessage() . ' | Trace: ' . $e->getTraceAsString());
-            http_response_code(500);
-            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-        }
+        
+        $entry = sprintf("[%s] %s\n", date('c'), $message);
+        file_put_contents($logFile, $entry, FILE_APPEND | LOCK_EX);
     }
 
     private function startSession(): void
     {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
+        }
+    }
+
+    public function test(): void
+    {
+        $this->log('[DASHBOARD-TEST] Test logging endpoint called at ' . date('c'));
+        $this->jsonResponse([
+            'success' => true,
+            'message' => 'Test endpoint working - check logs'
+        ]);
+    }
+
+    public function getDashboard(): void
+    {
+        $this->startSession();
+        
+        if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
+            $this->log('[DASHBOARD] Unauthorized: loggedin flag not set or false');
+            $this->jsonResponse(['success' => false, 'message' => 'Unauthorized'], 401);
+            return;
+        }
+
+        try {
+            $examinerId = $_SESSION['id'] ?? null;
+            
+            if (!$examinerId) {
+                $this->log('[DASHBOARD] Error: Examiner ID not found in session');
+                $this->jsonResponse(['success' => false, 'message' => 'Examiner ID not found in session'], 400);
+                return;
+            }
+
+            // $this->log('[DASHBOARD] Fetching assignments for examiner_id=' . $examinerId);
+
+            // Fetch assignments (subject_id and class_id pairs) 
+            $assignmentRows = $this->db->select(
+                'examiner_subject_classes',
+                ['subject_id', 'class_id'],
+                ['examiner_id' => $examinerId]
+            ) ?? [];
+
+            // $this->log('[DASHBOARD] Query executed. Found ' . count($assignmentRows) . ' assignment rows');
+
+            if (empty($assignmentRows)) {
+                // $this->log('[DASHBOARD] Warning: No assignments found for examiner_id=' . $examinerId);
+                $this->jsonResponse(['success' => false, 'message' => 'No classes assigned. Visit Admin for assistance.'], 403);
+                return;
+            }
+
+            // Enrich assignments with subject and class names
+            $assignments = [];
+            foreach ($assignmentRows as $row) {
+                $subjectId = (int)($row['subject_id'] ?? 0);
+                $classId = (int)($row['class_id'] ?? 0);
+
+                if ($subjectId > 0) {
+                    $subject = $this->db->get('subjects', 'name', ['subject_id' => $subjectId]);
+                    $subjectName = $subject ?? 'Unknown Subject';
+                } else {
+                    $subjectName = 'Unknown Subject';
+                }
+
+                if ($classId > 0) {
+                    $class = $this->db->get('classes', 'class_name', ['class_id' => $classId]);
+                    $className = $class ?? 'Unknown Class';
+                } else {
+                    $className = 'Unknown Class';
+                }
+
+                $assignments[] = [
+                    'subject_id' => $subjectId,
+                    'class_id' => $classId,
+                    'subject_name' => $subjectName,
+                    'class_name' => $className,
+                ];
+            }
+
+            // $this->log('[DASHBOARD] Enriched ' . count($assignments) . ' assignments with subject and class names');
+
+            // Extract unique subjects and classes
+            $subjectsMap = [];
+            $classesMap = [];
+            
+            foreach ($assignments as $assignment) {
+                $subjectId = (int)$assignment['subject_id'];
+                $classId = (int)$assignment['class_id'];
+                
+                if (!isset($subjectsMap[$subjectId])) {
+                    $subjectsMap[$subjectId] = [
+                        'subject_id' => $subjectId,
+                        'subject_name' => $assignment['subject_name']
+                    ];
+                }
+                
+                if (!isset($classesMap[$classId])) {
+                    $classesMap[$classId] = [
+                        'class_id' => $classId,
+                        'class_name' => $assignment['class_name']
+                    ];
+                }
+            }
+
+            $subjects = array_values($subjectsMap);
+            $classes = array_values($classesMap);
+
+            // $this->log('[DASHBOARD] Successfully loaded ' . count($subjects) . ' subjects and ' . count($classes) . ' classes');
+
+            $this->jsonResponse([
+                'success' => true,
+                'data' => [
+                    'subjects' => $subjects,
+                    'classes' => $classes,
+                    'assignments' => $assignments
+                ]
+            ]);
+
+        } catch (\Throwable $e) {
+            $this->log('[DASHBOARD] Exception: ' . $e->getMessage());
+            $this->log('[DASHBOARD] File: ' . $e->getFile() . ':' . $e->getLine());
+            $this->log('[DASHBOARD] Trace: ' . $e->getTraceAsString());
+            $this->jsonResponse([
+                'success' => false, 
+                'message' => 'Failed to load dashboard',
+                'error' => $e->getMessage(),
+                'exception' => get_class($e),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ], 500);
         }
     }
 }

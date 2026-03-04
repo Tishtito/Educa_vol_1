@@ -13,6 +13,7 @@ return function (RouteCollector $r): void {
 	$r->addRoute('POST', '/exams/select', 'ExamController@selectExam');
 	
 	$r->addRoute('GET', '/dashboard', 'DashboardController@getDashboard');
+	$r->addRoute('GET', '/test', 'DashboardController@test');
 	
 	$r->addRoute('GET', '/profile', 'ProfileController@getProfile');
 	

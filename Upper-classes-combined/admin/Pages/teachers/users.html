@@ -365,6 +365,159 @@
 
             let classesData = [];
 
+            // Helper functions to attach event listeners
+            function attachTeacherListeners() {
+                document.querySelectorAll('.edit-teacher').forEach((link) => {
+                    link.removeEventListener('click', handleEditTeacher);
+                    link.addEventListener('click', handleEditTeacher);
+                });
+                document.querySelectorAll('.delete-teacher').forEach((link) => {
+                    link.removeEventListener('click', handleDeleteTeacher);
+                    link.addEventListener('click', handleDeleteTeacher);
+                });
+            }
+
+            function attachExaminerListeners() {
+                document.querySelectorAll('.edit-examiner').forEach((link) => {
+                    link.removeEventListener('click', handleEditExaminer);
+                    link.addEventListener('click', handleEditExaminer);
+                });
+                document.querySelectorAll('.delete-examiner').forEach((link) => {
+                    link.removeEventListener('click', handleDeleteExaminer);
+                    link.addEventListener('click', handleDeleteExaminer);
+                });
+            }
+
+            function handleEditTeacher(e) {
+                e.preventDefault();
+                document.getElementById('edit-teacher-id').value = this.dataset.id;
+                document.getElementById('edit-teacher-name').value = this.dataset.name;
+                document.getElementById('edit-teacher-class').value = this.dataset.class;
+                document.getElementById('edit-teacher-password').value = '';
+                document.getElementById('edit-teacher-modal').classList.add('active');
+            }
+
+            function handleDeleteTeacher(event) {
+                event.preventDefault();
+                const teacherId = this.getAttribute('data-id');
+                swal({
+                    title: "Caution!",
+                    text: "Are you sure you want to delete?",
+                    icon: "warning",
+                    buttons: true,
+                    dangerMode: true,
+                }).then(async function(isConfirmed) {
+                    if (isConfirmed) {
+                        const formData = new FormData();
+                        formData.append('id', teacherId);
+                        const response = await fetch(`${baseUrl}/teachers/delete`, {
+                            method: 'POST',
+                            body: formData,
+                            credentials: 'include',
+                        });
+                        const result = await response.json();
+                        if (result.success) {
+                            swal({
+                                title: 'Deleted',
+                                text: 'Teacher removed successfully.',
+                                icon: 'success',
+                                button: 'OK',
+                            }).then(() => {
+                                const teachersBody = document.getElementById("teachers-body");
+                                const rowsToDelete = document.querySelectorAll(`.delete-teacher[data-id="${teacherId}"]`);
+                                rowsToDelete.forEach(btn => {
+                                    const row = btn.closest('tr');
+                                    if (row) row.remove();
+                                });
+                            });
+                        } else {
+                            swal({
+                                title: 'Error',
+                                text: result.message || 'Failed to delete teacher.',
+                                icon: 'error',
+                                button: 'OK',
+                            });
+                        }
+                    }
+                });
+            }
+
+            function handleEditExaminer(e) {
+                e.preventDefault();
+                const examinerId = this.dataset.id;
+                fetch(`${baseUrl}/examiners/detail?examiner_id=${examinerId}`, { credentials: "include" })
+                    .then(res => res.json())
+                    .then(detail => {
+                        if (!detail.success) {
+                            swal({
+                                title: 'Error',
+                                text: detail.message || 'Failed to load examiner.',
+                                icon: 'error',
+                                button: 'OK',
+                            });
+                            return;
+                        }
+                        document.getElementById('edit-examiner-id').value = detail.data.examiner_id;
+                        document.getElementById('edit-examiner-name').value = detail.data.name;
+                        document.getElementById('edit-examiner-class').value = detail.data.class_assigned;
+                        document.getElementById('edit-examiner-password').value = '';
+                        document.getElementById('edit-examiner-modal').classList.add('active');
+                    })
+                    .catch(err => {
+                        console.error('Failed to load examiner', err);
+                    });
+            }
+
+            function handleDeleteExaminer(event) {
+                event.preventDefault();
+                const examinerId = this.getAttribute('data-id');
+                swal({
+                    title: "Caution!",
+                    text: "Are you sure you want to delete?",
+                    icon: "warning",
+                    buttons: true,
+                    dangerMode: true,
+                }).then(async function(isConfirmed) {
+                    if (isConfirmed) {
+                        const formData = new FormData();
+                        formData.append('examiner_id', examinerId);
+                        const response = await fetch(`${baseUrl}/examiners/delete`, {
+                            method: 'POST',
+                            body: formData,
+                            credentials: 'include',
+                        });
+                        const result = await response.json();
+                        if (result.success) {
+                            swal({
+                                title: 'Deleted',
+                                text: 'Examiner removed successfully.',
+                                icon: 'success',
+                                button: 'OK',
+                            }).then(() => {
+                                const examinersBody = document.getElementById("examiners-body");
+                                const rowsToDelete = document.querySelectorAll(`.delete-examiner[data-id="${examinerId}"]`);
+                                rowsToDelete.forEach(btn => {
+                                    const row = btn.closest('tr');
+                                    if (row) row.remove();
+                                });
+                                if (examinersBody.querySelectorAll('tr').length === 0) {
+                                    const row = document.createElement("tr");
+                                    row.innerHTML = '<td colspan="4">No examiners found.</td>';
+                                    examinersBody.appendChild(row);
+                                }
+                            });
+                        } else {
+                            swal({
+                                title: 'Error',
+                                text: result.message || 'Failed to delete examiner.',
+                                icon: 'error',
+                                button: 'OK',
+                            });
+                        }
+                    }
+                });
+            }
+
             function renderCheckboxes(container, items, name, valueKey, labelKey, idPrefix) {
                 container.innerHTML = items.map(item => {
                     const value = item[valueKey];
@@ -453,90 +606,6 @@
                     }
                 }
 
-                document.querySelectorAll('.delete-teacher').forEach(function(link) {
-                    link.addEventListener('click', function(event) {
-                        event.preventDefault();
-                        var teacherId = this.getAttribute('data-id');
-                        swal({
-                            title: "Caution!",
-                            text: "Are you sure you want to delete?",
-                            icon: "warning",
-                            buttons: true,
-                            dangerMode: true,
-                        }).then(async function(isConfirmed) {
-                            if (isConfirmed) {
-                                const formData = new FormData();
-                                formData.append('id', teacherId);
-                                const response = await fetch(`${baseUrl}/teachers/delete`, {
-                                    method: 'POST',
-                                    body: formData,
-                                    credentials: 'include',
-                                });
-                                const result = await response.json();
-                                if (result.success) {
-                                    swal({
-                                        title: 'Deleted',
-                                        text: 'Teacher removed successfully.',
-                                        icon: 'success',
-                                        button: 'OK',
-                                    }).then(() => {
-                                        window.location.reload();
-                                    });
-                                } else {
-                                    swal({
-                                        title: 'Error',
-                                        text: result.message || 'Failed to delete teacher.',
-                                        icon: 'error',
-                                        button: 'OK',
-                                    });
-                                }
-                            }
-                        });
-                    });
-                });
-
-                document.querySelectorAll('.delete-examiner').forEach(function(link) {
-                    link.addEventListener('click', function(event) {
-                        event.preventDefault();
-                        var examinerId = this.getAttribute('data-id');
-                        swal({
-                            title: "Caution!",
-                            text: "Are you sure you want to delete?",
-                            icon: "warning",
-                            buttons: true,
-                            dangerMode: true,
-                        }).then(async function(isConfirmed) {
-                            if (isConfirmed) {
-                                const formData = new FormData();
-                                formData.append('examiner_id', examinerId);
-                                const response = await fetch(`${baseUrl}/examiners/delete`, {
-                                    method: 'POST',
-                                    body: formData,
-                                    credentials: 'include',
-                                });
-                                const result = await response.json();
-                                if (result.success) {
-                                    swal({
-                                        title: 'Deleted',
-                                        text: 'Examiner removed successfully.',
-                                        icon: 'success',
-                                        button: 'OK',
-                                    }).then(() => {
-                                        window.location.reload();
-                                    });
-                                } else {
-                                    swal({
-                                        title: 'Error',
-                                        text: result.message || 'Failed to delete examiner.',
-                                        icon: 'error',
-                                        button: 'OK',
-                                    });
-                                }
-                            }
-                        });
-                    });
-                });
-
                 const modal = document.getElementById('edit-teacher-modal');
                 const closeBtn = document.getElementById('edit-teacher-close');
                 const cancelBtn = document.getElementById('edit-teacher-cancel');
@@ -611,48 +680,14 @@
                     if (e.target === addExaminerModal) closeAddExaminerModal();
                 });
 
-                document.querySelectorAll('.edit-teacher').forEach((link) => {
-                    link.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        document.getElementById('edit-teacher-id').value = link.dataset.id;
-                        document.getElementById('edit-teacher-name').value = link.dataset.name;
-                        document.getElementById('edit-teacher-class').value = link.dataset.class;
-                        document.getElementById('edit-teacher-password').value = '';
-                        modal.classList.add('active');
-                    });
-                });
-
-                document.querySelectorAll('.edit-examiner').forEach((link) => {
-                    link.addEventListener('click', async (e) => {
-                        e.preventDefault();
-                        const examinerId = link.dataset.id;
-                        try {
-                            const detailRes = await fetch(`${baseUrl}/examiners/detail?examiner_id=${examinerId}`, { credentials: "include" });
-                            const detail = await detailRes.json();
-                            if (!detail.success) {
-                                swal({
-                                    title: 'Error',
-                                    text: detail.message || 'Failed to load examiner.',
-                                    icon: 'error',
-                                    button: 'OK',
-                                });
-                                return;
-                            }
-
-                            document.getElementById('edit-examiner-id').value = detail.data.examiner_id;
-                            document.getElementById('edit-examiner-name').value = detail.data.name;
-                            document.getElementById('edit-examiner-class').value = detail.data.class_assigned;
-                            document.getElementById('edit-examiner-password').value = '';
-                            examinerModal.classList.add('active');
-                        } catch (err) {
-                            console.error('Failed to load examiner', err);
-                        }
-                    });
-                });
+                // Attach event listeners to teacher and examiner edit/delete links
+                attachTeacherListeners();
+                attachExaminerListeners();
 
                 form.addEventListener('submit', async (e) => {
                     e.preventDefault();
                     const formData = new FormData(form);
+                    const teacherId = formData.get('id');
                     const response = await fetch(`${baseUrl}/teachers/update`, {
                         method: 'POST',
                         body: formData,
@@ -666,8 +701,15 @@
                             icon: 'success',
                             button: 'OK',
                         }).then(() => {
+                            // Update the row in the DOM
+                            const row = document.querySelector(`tr:has(.edit-teacher[data-id="${teacherId}"])`);
+                            if (row) {
+                                const nameCell = row.querySelector('td:first-child p');
+                                const classCell = row.querySelector('td:nth-child(2) p');
+                                if (nameCell) nameCell.textContent = formData.get('name');
+                                if (classCell) classCell.textContent = formData.get('class_assigned') || '';
+                            }
                             closeModal();
-                            window.location.reload();
                         });
                     } else {
                         swal({
@@ -694,9 +736,27 @@
                             text: 'Teacher created successfully.',
                             icon: 'success',
                             button: 'OK',
-                        }).then(() => {
+                        }).then(async () => {
+                            // Refresh teachers list
+                            const teachersRes = await fetch(`${baseUrl}/teachers`, { credentials: "include" });
+                            const teachers = await teachersRes.json();
+                            if (teachers.success) {
+                                const tbody = document.getElementById("teachers-body");
+                                tbody.innerHTML = "";
+                                teachers.data.forEach((teacher) => {
+                                    const row = document.createElement("tr");
+                                    row.innerHTML = `
+                                        <td><p>${teacher.name}</p></td>
+                                        <td><p>${teacher.class_assigned}</p></td>
+                                        <td><a href="#" class="edit-teacher" data-id="${teacher.id}" data-name="${teacher.name}" data-class="${teacher.class_assigned}"><span class='status process'>edit</span></a></td>
+                                        <td><a href="#" class="delete-teacher" data-id="${teacher.id}"><span class='status delete'>delete</span></a></td>
+                                    `;
+                                    tbody.appendChild(row);
+                                });
+                                // Re-attach event listeners
+                                attachTeacherListeners();
+                            }
                             closeAddModal();
-                            window.location.reload();
                         });
                     } else {
                         swal({
@@ -711,6 +771,7 @@
                 examinerForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
                     const formData = new FormData(examinerForm);
+                    const examinerId = formData.get('examiner_id');
                     const response = await fetch(`${baseUrl}/examiners/update`, {
                         method: 'POST',
                         body: formData,
@@ -724,8 +785,15 @@
                             icon: 'success',
                             button: 'OK',
                         }).then(() => {
+                            // Update the row in the DOM
+                            const row = document.querySelector(`tr:has(.edit-examiner[data-id="${examinerId}"])`);
+                            if (row) {
+                                const nameCell = row.querySelector('td:first-child');
+                                const classCell = row.querySelector('td:nth-child(2)');
+                                if (nameCell) nameCell.textContent = formData.get('name');
+                                if (classCell) classCell.textContent = formData.get('class_assigned') || 'No Class Assigned';
+                            }
                             closeExaminerModal();
-                            window.location.reload();
                         });
                     } else {
                         swal({
@@ -752,9 +820,42 @@
                             text: 'Examiner created successfully.',
                             icon: 'success',
                             button: 'OK',
-                        }).then(() => {
+                        }).then(async () => {
+                            // Refresh examiners list
+                            const examinersRes = await fetch(`${baseUrl}/examiners`, { credentials: "include" });
+                            const examiners = await examinersRes.json();
+                            if (examiners.success) {
+                                const tbody = document.getElementById("examiners-body");
+                                tbody.innerHTML = "";
+                                if (examiners.data.length === 0) {
+                                    const row = document.createElement("tr");
+                                    row.innerHTML = '<td colspan="4">No examiners found.</td>';
+                                    tbody.appendChild(row);
+                                } else {
+                                    examiners.data.forEach((examiner) => {
+                                        const classAssigned = examiner.class_assigned || 'No Class Assigned';
+                                        const row = document.createElement("tr");
+                                        row.innerHTML = `
+                                            <td>${examiner.name}</td>
+                                            <td>${classAssigned}</td>
+                                            <td>
+                                                <a href="#" class="edit-examiner" data-id="${examiner.examiner_id}">
+                                                    <span class="status process">edit</span>
+                                                </a>
+                                            </td>
+                                            <td>
+                                                <a href="#" class="delete-examiner" data-id="${examiner.examiner_id}">
+                                                    <span class="status delete">delete</span>
+                                                </a>
+                                            </td>
+                                        `;
+                                        tbody.appendChild(row);
+                                    });
+                                }
+                                // Re-attach event listeners
+                                attachExaminerListeners();
+                            }
                             closeAddExaminerModal();
-                            window.location.reload();
                         });
                     } else {
                         swal({

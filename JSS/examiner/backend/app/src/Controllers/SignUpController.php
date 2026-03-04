@@ -15,6 +15,19 @@ class SignUpController
 		$this->db = $db;
 	}
 
+	private function log(string $message): void
+	{
+		$logDir = __DIR__ . '/../../../logs';
+		$logFile = $logDir . '/php_errors.log';
+		
+		if (!is_dir($logDir)) {
+			mkdir($logDir, 0777, true);
+		}
+		
+		$entry = sprintf("[%s] %s\n", date('c'), $message);
+		file_put_contents($logFile, $entry, FILE_APPEND | LOCK_EX);
+	}
+
 	public function register(): void
 	{
 		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -128,7 +141,7 @@ class SignUpController
 				'role' => $role
 			]);
 		} catch (\Exception $e) {
-			error_log('[SignUp::register] Error: ' . $e->getMessage());
+			$this->log('[SignUp::register] Error: ' . $e->getMessage());
 			http_response_code(500);
 			echo json_encode(['success' => false, 'message' => 'Failed to create account: ' . $e->getMessage()]);
 		}

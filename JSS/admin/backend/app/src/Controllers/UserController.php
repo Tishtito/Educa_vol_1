@@ -8,229 +8,246 @@ use Medoo\Medoo;
 
 class UserController
 {
-	private Medoo $db;
+    private Medoo $db;
 
-	public function __construct(Medoo $db)
-	{
-		$this->db = $db;
-	}
+    public function __construct(Medoo $db)
+    {
+        $this->db = $db;
+    }
 
-	private function requireAuth(): bool
-	{
-		if (session_status() !== PHP_SESSION_ACTIVE) {
-			session_start();
-		}
+    private function requireAuth(): bool
+    {
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
 
-		if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
-			http_response_code(401);
-			header('Content-Type: application/json');
-			echo json_encode(['success' => false, 'message' => 'Unauthorized']);
-			return false;
-		}
+        if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
+            $this->jsonResponse(['success' => false, 'message' => 'Unauthorized'], 401);
+            return false;
+        }
 
-		return true;
-	}
+        return true;
+    }
 
-	public function teachers(): void
-	{
-		if (!$this->requireAuth()) {
-			return;
-		}
+    private function jsonResponse(array $data, int $code = 200): void
+    {
+        http_response_code($code);
+        header('Content-Type: application/json');
+        echo json_encode($data);
+    }
 
-		try {
-			$rows = $this->db->select('class_teachers', ['id', 'name', 'class_assigned']);
+    public function teachers(): void
+    {
+        if (!$this->requireAuth()) {
+            return;
+        }
 
-			header('Content-Type: application/json');
-			echo json_encode([
-				'success' => true,
-				'data' => $rows,
-			]);
-		} catch (\Throwable $e) {
-			error_log('[UserController] teachers error: ' . $e->getMessage());
-			http_response_code(500);
-			header('Content-Type: application/json');
-			echo json_encode(['success' => false, 'message' => 'Failed to load teachers']);
-		}
-	}
+        try {
+            $rows = $this->db->select('class_teachers', ['id', 'name', 'class_assigned']);
+            $this->jsonResponse(['success' => true, 'data' => $rows]);
+        } catch (\Throwable $e) {
+            error_log('[UserController] teachers error: ' . $e->getMessage());
+            $this->jsonResponse(['success' => false, 'message' => 'Failed to load teachers'], 500);
+        }
+    }
 
-	public function examiners(): void
-	{
-		if (!$this->requireAuth()) {
-			return;
-		}
+    public function examiners(): void
+    {
+        if (!$this->requireAuth()) {
+            return;
+        }
 
-		try {
-			$sql = "SELECT examiners.examiner_id, examiners.name,
-				GROUP_CONCAT(subjects.name SEPARATOR ', ') AS subjects
-				FROM examiners
-				LEFT JOIN examiner_subjects ON examiners.examiner_id = examiner_subjects.examiner_id
-				LEFT JOIN subjects ON examiner_subjects.subject_id = subjects.subject_id
-				GROUP BY examiners.examiner_id";
+        try {
+            // Fetch all examiners from the examiners table
+            $examiners = $this->db->select('examiners', '*', [
+                'ORDER' => ['name' => 'ASC'],
+            ]);
 
-			$stmt = $this->db->query($sql);
-			$rows = $stmt ? $stmt->fetchAll() : [];
+            if (!is_array($examiners)) {
+                $examiners = [];
+            }
 
-			header('Content-Type: application/json');
-			echo json_encode([
-				'success' => true,
-				'data' => $rows,
-			]);
-		} catch (\Throwable $e) {
-			error_log('[UserController] examiners error: ' . $e->getMessage());
-			http_response_code(500);
-			header('Content-Type: application/json');
-			echo json_encode(['success' => false, 'message' => 'Failed to load examiners']);
-		}
-	}
+            // Build result with examiner_id and assignments
+            $result = [];
+            foreach ($examiners as $examiner) {
+                // Extract examiner_id
+                $examinerId = (int)($examiner['examiner_id'] ?? 0);
+                
+                if ($examinerId === 0) {
+                    continue;
+                }
 
-	public function classes(): void
-	{
-		if (!$this->requireAuth()) {
-			return;
-		}
+                // Fetch assignments for this examiner (subject_id and class_id)
+                $assignmentRows = $this->db->select(
+                    'examiner_subject_classes',
+                    ['subject_id', 'class_id'],
+                    ['examiner_id' => $examinerId]
+                ) ?? [];
 
-		try {
-			$rows = $this->db->select('classes', ['class_id', 'class_name'], [
-				'ORDER' => ['class_name' => 'ASC'],
-			]);
+                // Enrich assignments with subject and class names
+                $assignments = [];
+                foreach ($assignmentRows as $row) {
+                    $subjectId = (int)($row['subject_id'] ?? 0);
+                    $classId = (int)($row['class_id'] ?? 0);
 
-			header('Content-Type: application/json');
-			echo json_encode([
-				'success' => true,
-				'data' => $rows,
-			]);
-		} catch (\Throwable $e) {
-			error_log('[UserController] classes error: ' . $e->getMessage());
-			http_response_code(500);
-			header('Content-Type: application/json');
-			echo json_encode(['success' => false, 'message' => 'Failed to load classes']);
-		}
-	}
+                    if ($subjectId > 0) {
+                        $subject = $this->db->get('subjects', 'name', ['subject_id' => $subjectId]);
+                        $subjectName = $subject ?? 'Unknown Subject';
+                    } else {
+                        $subjectName = 'Unknown Subject';
+                    }
 
-	public function updateTeacher(): void
-	{
-		if (!$this->requireAuth()) {
-			return;
-		}
+                    if ($classId > 0) {
+                        $class = $this->db->get('classes', 'class_name', ['class_id' => $classId]);
+                        $className = $class ?? 'Unknown Class';
+                    } else {
+                        $className = 'Unknown Class';
+                    }
 
-		$id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
-		$name = isset($_POST['name']) ? trim((string)$_POST['name']) : '';
-		$classAssigned = isset($_POST['class_assigned']) ? trim((string)$_POST['class_assigned']) : '';
-		$password = isset($_POST['password']) ? (string)$_POST['password'] : '';
+                    $assignments[] = [
+                        'subject_id' => $subjectId,
+                        'class_id' => $classId,
+                        'subject_name' => $subjectName,
+                        'class_name' => $className,
+                    ];
+                }
 
-		if ($id <= 0 || $name === '') {
-			http_response_code(400);
-			header('Content-Type: application/json');
-			echo json_encode(['success' => false, 'message' => 'Invalid input']);
-			return;
-		}
+                $result[] = [
+                    'examiner_id' => $examinerId,
+                    'name' => $examiner['name'] ?? '',
+                    'assignments' => $assignments,
+                ];
+            }
 
-		try {
-			$existing = $this->db->get('class_teachers', ['password'], ['id' => $id]);
-			if (!$existing) {
-				http_response_code(404);
-				header('Content-Type: application/json');
-				echo json_encode(['success' => false, 'message' => 'Teacher not found']);
-				return;
-			}
+            $this->jsonResponse(['success' => true, 'data' => $result]);
+        } catch (\Throwable $e) {
+            error_log('[UserController] examiners error: ' . $e->getMessage());
+            error_log('[UserController] Stack trace: ' . $e->getTraceAsString());
+            $this->jsonResponse(['success' => false, 'message' => 'Failed to load examiners: ' . $e->getMessage()], 500);
+        }
+    }
 
-			$hash = $existing['password'];
-			if ($password !== '') {
-				$hash = password_hash($password, PASSWORD_DEFAULT);
-			}
+    public function classes(): void
+    {
+        if (!$this->requireAuth()) {
+            return;
+        }
 
-			$this->db->update('class_teachers', [
-				'name' => $name,
-				'class_assigned' => $classAssigned,
-				'password' => $hash,
-			], ['id' => $id]);
+        try {
+            $rows = $this->db->select('classes', ['class_id', 'class_name'], [
+                'ORDER' => ['class_name' => 'ASC'],
+            ]);
 
-			header('Content-Type: application/json');
-			echo json_encode(['success' => true]);
-		} catch (\Throwable $e) {
-			error_log('[UserController] updateTeacher error: ' . $e->getMessage());
-			http_response_code(500);
-			header('Content-Type: application/json');
-			echo json_encode(['success' => false, 'message' => 'Failed to update teacher']);
-		}
-	}
+            $this->jsonResponse(['success' => true, 'data' => $rows]);
+        } catch (\Throwable $e) {
+            error_log('[UserController] classes error: ' . $e->getMessage());
+            $this->jsonResponse(['success' => false, 'message' => 'Failed to load classes'], 500);
+        }
+    }
 
-	public function createTeacher(): void
-	{
-		if (!$this->requireAuth()) {
-			return;
-		}
+    public function updateTeacher(): void
+    {
+        if (!$this->requireAuth()) {
+            return;
+        }
 
-		$name = isset($_POST['name']) ? trim((string)$_POST['name']) : '';
-		$username = isset($_POST['username']) ? trim((string)$_POST['username']) : '';
-		$password = isset($_POST['password']) ? (string)$_POST['password'] : '';
-		$confirm = isset($_POST['confirm_password']) ? (string)$_POST['confirm_password'] : '';
-		$classAssigned = isset($_POST['class_assigned']) ? trim((string)$_POST['class_assigned']) : '';
+        $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+        $name = isset($_POST['name']) ? trim((string)$_POST['name']) : '';
+        $classAssigned = isset($_POST['class_assigned']) ? trim((string)$_POST['class_assigned']) : '';
+        $password = isset($_POST['password']) ? (string)$_POST['password'] : '';
 
-		if ($name === '' || $username === '' || $password === '' || $classAssigned === '') {
-			http_response_code(400);
-			header('Content-Type: application/json');
-			echo json_encode(['success' => false, 'message' => 'All fields are required']);
-			return;
-		}
+        if ($id <= 0 || $name === '') {
+            $this->jsonResponse(['success' => false, 'message' => 'Invalid input'], 400);
+            return;
+        }
 
-		if ($password !== $confirm) {
-			http_response_code(400);
-			header('Content-Type: application/json');
-			echo json_encode(['success' => false, 'message' => 'Passwords do not match']);
-			return;
-		}
+        try {
+            $existing = $this->db->get('class_teachers', ['password'], ['id' => $id]);
+            if (!$existing) {
+                $this->jsonResponse(['success' => false, 'message' => 'Teacher not found'], 404);
+                return;
+            }
 
-		try {
-			$exists = $this->db->has('class_teachers', ['username' => $username]);
-			if ($exists) {
-				http_response_code(409);
-				header('Content-Type: application/json');
-				echo json_encode(['success' => false, 'message' => 'Username already taken']);
-				return;
-			}
+            $hash = $existing['password'];
+            if ($password !== '') {
+                $hash = password_hash($password, PASSWORD_DEFAULT);
+            }
 
-			$hash = password_hash($password, PASSWORD_DEFAULT);
-			$this->db->insert('class_teachers', [
-				'name' => $name,
-				'username' => $username,
-				'password' => $hash,
-				'class_assigned' => $classAssigned,
-			]);
+            $this->db->update('class_teachers', [
+                'name' => $name,
+                'class_assigned' => $classAssigned,
+                'password' => $hash,
+            ], ['id' => $id]);
 
-			header('Content-Type: application/json');
-			echo json_encode(['success' => true]);
-		} catch (\Throwable $e) {
-			error_log('[UserController] createTeacher error: ' . $e->getMessage());
-			http_response_code(500);
-			header('Content-Type: application/json');
-			echo json_encode(['success' => false, 'message' => 'Failed to create teacher']);
-		}
-	}
+            $this->jsonResponse(['success' => true]);
+        } catch (\Throwable $e) {
+            error_log('[UserController] updateTeacher error: ' . $e->getMessage());
+            $this->jsonResponse(['success' => false, 'message' => 'Failed to update teacher'], 500);
+        }
+    }
 
-	public function deleteTeacher(): void
-	{
-		if (!$this->requireAuth()) {
-			return;
-		}
+    public function createTeacher(): void
+    {
+        if (!$this->requireAuth()) {
+            return;
+        }
 
-		$id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
-		if ($id <= 0) {
-			http_response_code(400);
-			header('Content-Type: application/json');
-			echo json_encode(['success' => false, 'message' => 'Invalid teacher id']);
-			return;
-		}
+        $name = isset($_POST['name']) ? trim((string)$_POST['name']) : '';
+        $username = isset($_POST['username']) ? trim((string)$_POST['username']) : '';
+        $password = isset($_POST['password']) ? (string)$_POST['password'] : '';
+        $confirm = isset($_POST['confirm_password']) ? (string)$_POST['confirm_password'] : '';
+        $classAssigned = isset($_POST['class_assigned']) ? trim((string)$_POST['class_assigned']) : '';
 
-		try {
-			$this->db->delete('class_teachers', ['id' => $id]);
-			header('Content-Type: application/json');
-			echo json_encode(['success' => true]);
-		} catch (\Throwable $e) {
-			error_log('[UserController] deleteTeacher error: ' . $e->getMessage());
-			http_response_code(500);
-			header('Content-Type: application/json');
-			echo json_encode(['success' => false, 'message' => 'Failed to delete teacher']);
-		}
-	}
+        if ($name === '' || $username === '' || $password === '' || $classAssigned === '') {
+            $this->jsonResponse(['success' => false, 'message' => 'All fields are required'], 400);
+            return;
+        }
+
+        if ($password !== $confirm) {
+            $this->jsonResponse(['success' => false, 'message' => 'Passwords do not match'], 400);
+            return;
+        }
+
+        try {
+            $exists = $this->db->has('class_teachers', ['username' => $username]);
+            if ($exists) {
+                $this->jsonResponse(['success' => false, 'message' => 'Username already taken'], 409);
+                return;
+            }
+
+            $hash = password_hash($password, PASSWORD_DEFAULT);
+            $this->db->insert('class_teachers', [
+                'name' => $name,
+                'username' => $username,
+                'password' => $hash,
+                'class_assigned' => $classAssigned,
+            ]);
+
+            $this->jsonResponse(['success' => true]);
+        } catch (\Throwable $e) {
+            error_log('[UserController] createTeacher error: ' . $e->getMessage());
+            $this->jsonResponse(['success' => false, 'message' => 'Failed to create teacher'], 500);
+        }
+    }
+
+    public function deleteTeacher(): void
+    {
+        if (!$this->requireAuth()) {
+            return;
+        }
+
+        $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+        if ($id <= 0) {
+            $this->jsonResponse(['success' => false, 'message' => 'Invalid teacher id'], 400);
+            return;
+        }
+
+        try {
+            $this->db->delete('class_teachers', ['id' => $id]);
+            $this->jsonResponse(['success' => true]);
+        } catch (\Throwable $e) {
+            error_log('[UserController] deleteTeacher error: ' . $e->getMessage());
+            $this->jsonResponse(['success' => false, 'message' => 'Failed to delete teacher'], 500);
+        }
+    }
 }

@@ -91,6 +91,21 @@ CREATE TABLE examiners (
     deleted_at datetime
 );
 
+CREATE TABLE examiner_subject_classes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    examiner_id INT NOT NULL,
+    subject_id INT NOT NULL,
+    class_id INT NOT NULL,
+    assigned_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_at datetime,
+    updated_at datetime,
+    deleted_at datetime,
+    FOREIGN KEY (examiner_id) REFERENCES examiners(examiner_id) ON DELETE CASCADE,
+    FOREIGN KEY (subject_id) REFERENCES subjects(subject_id) ON DELETE CASCADE,
+    FOREIGN KEY (class_id) REFERENCES classes(class_id) ON DELETE CASCADE,
+    UNIQUE (examiner_id, subject_id, class_id)
+);
+
 CREATE TABLE subjects (
     subject_id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL
@@ -108,17 +123,7 @@ VALUES
 ('CRE'),
 ('CA, SST, CRE');
 
-CREATE TABLE examiner_subjects (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    examiner_id INT NOT NULL,
-    subject_id INT NOT NULL,
-    created_at datetime,
-    updated_at datetime,
-    deleted_at datetime,
-    FOREIGN KEY (examiner_id) REFERENCES examiners(examiner_id) ON DELETE CASCADE,
-    FOREIGN KEY (subject_id) REFERENCES subjects(subject_id) ON DELETE CASCADE,
-    UNIQUE (examiner_id, subject_id)         -- Ensure no duplicate assignments
-);
+
 
 CREATE TABLE classes (
     class_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -127,14 +132,6 @@ CREATE TABLE classes (
     year YEAR
 );
 
-CREATE TABLE examiner_classes (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    examiner_id INT NOT NULL,
-    class_id INT NOT NULL,
-    assigned_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (examiner_id) REFERENCES examiners(examiner_id) ON DELETE CASCADE,
-    FOREIGN KEY (class_id) REFERENCES classes(class_id) ON DELETE CASCADE
-);
 
 CREATE TABLE class_teachers (
     id INT AUTO_INCREMENT PRIMARY KEY,

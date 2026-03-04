@@ -41,26 +41,21 @@ class ExaminerController
 
 		$examinerId = isset($_GET['examiner_id']) ? (int)$_GET['examiner_id'] : 0;
 		if ($examinerId <= 0) {
-			http_response_code(400);
-			header('Content-Type: application/json');
-			echo json_encode(['success' => false, 'message' => 'Invalid examiner id']);
+			$this->jsonResponse(['success' => false, 'message' => 'Invalid examiner id'], 400);
 			return;
 		}
 
 		try {
-			$examiner = $this->db->get('examiners', ['examiner_id', 'name', 'password', 'class_assigned'], [
+			$examiner = $this->db->get('examiners', ['examiner_id', 'name', 'class_assigned'], [
 				'examiner_id' => $examinerId,
 			]);
 
 			if (!$examiner) {
-				http_response_code(404);
-				header('Content-Type: application/json');
-				echo json_encode(['success' => false, 'message' => 'Examiner not found']);
+				$this->jsonResponse(['success' => false, 'message' => 'Examiner not found'], 404);
 				return;
 			}
 
-			header('Content-Type: application/json');
-			echo json_encode([
+			$this->jsonResponse([
 				'success' => true,
 				'data' => [
 					'examiner_id' => $examiner['examiner_id'],
@@ -70,9 +65,7 @@ class ExaminerController
 			]);
 		} catch (\Throwable $e) {
 			error_log('[ExaminerController] detail error: ' . $e->getMessage());
-			http_response_code(500);
-			header('Content-Type: application/json');
-			echo json_encode(['success' => false, 'message' => 'Failed to load examiner']);
+			$this->jsonResponse(['success' => false, 'message' => 'Failed to load examiner'], 500);
 		}
 	}
 
@@ -88,18 +81,14 @@ class ExaminerController
 		$classAssigned = isset($_POST['class_assigned']) ? trim((string)$_POST['class_assigned']) : '';
 
 		if ($examinerId <= 0 || $name === '' || $classAssigned === '') {
-			http_response_code(400);
-			header('Content-Type: application/json');
-			echo json_encode(['success' => false, 'message' => 'Invalid input']);
+			$this->jsonResponse(['success' => false, 'message' => 'Invalid input'], 400);
 			return;
 		}
 
 		try {
 			$existing = $this->db->get('examiners', ['password'], ['examiner_id' => $examinerId]);
 			if (!$existing) {
-				http_response_code(404);
-				header('Content-Type: application/json');
-				echo json_encode(['success' => false, 'message' => 'Examiner not found']);
+				$this->jsonResponse(['success' => false, 'message' => 'Examiner not found'], 404);
 				return;
 			}
 
@@ -114,13 +103,10 @@ class ExaminerController
 				'class_assigned' => $classAssigned,
 			], ['examiner_id' => $examinerId]);
 
-			header('Content-Type: application/json');
-			echo json_encode(['success' => true]);
+			$this->jsonResponse(['success' => true]);
 		} catch (\Throwable $e) {
 			error_log('[ExaminerController] update error: ' . $e->getMessage());
-			http_response_code(500);
-			header('Content-Type: application/json');
-			echo json_encode(['success' => false, 'message' => 'Failed to update examiner']);
+			$this->jsonResponse(['success' => false, 'message' => 'Failed to update examiner'], 500);
 		}
 	}
 
@@ -137,39 +123,29 @@ class ExaminerController
 		$classAssigned = isset($_POST['class_assigned']) ? trim((string)$_POST['class_assigned']) : '';
 
 		if ($name === '' || $username === '' || $password === '' || $classAssigned === '') {
-			http_response_code(400);
-			header('Content-Type: application/json');
-			echo json_encode(['success' => false, 'message' => 'All fields are required']);
+			$this->jsonResponse(['success' => false, 'message' => 'All fields are required'], 400);
 			return;
 		}
 
 		if (!preg_match('/^[a-zA-Z0-9_]+$/', $username)) {
-			http_response_code(400);
-			header('Content-Type: application/json');
-			echo json_encode(['success' => false, 'message' => 'Username can only contain letters, numbers, and underscores']);
+			$this->jsonResponse(['success' => false, 'message' => 'Username can only contain letters, numbers, and underscores'], 400);
 			return;
 		}
 
 		if (strlen($password) < 6) {
-			http_response_code(400);
-			header('Content-Type: application/json');
-			echo json_encode(['success' => false, 'message' => 'Password must be at least 6 characters']);
+			$this->jsonResponse(['success' => false, 'message' => 'Password must be at least 6 characters'], 400);
 			return;
 		}
 
 		if ($password !== $confirm) {
-			http_response_code(400);
-			header('Content-Type: application/json');
-			echo json_encode(['success' => false, 'message' => 'Passwords do not match']);
+			$this->jsonResponse(['success' => false, 'message' => 'Passwords do not match'], 400);
 			return;
 		}
 
 		try {
 			$exists = $this->db->has('examiners', ['username' => $username]);
 			if ($exists) {
-				http_response_code(409);
-				header('Content-Type: application/json');
-				echo json_encode(['success' => false, 'message' => 'Username already taken']);
+				$this->jsonResponse(['success' => false, 'message' => 'Username already taken'], 409);
 				return;
 			}
 
@@ -181,14 +157,18 @@ class ExaminerController
 				'class_assigned' => $classAssigned,
 			]);
 
-			header('Content-Type: application/json');
-			echo json_encode(['success' => true]);
+			$this->jsonResponse(['success' => true]);
 		} catch (\Throwable $e) {
 			error_log('[ExaminerController] create error: ' . $e->getMessage());
-			http_response_code(500);
-			header('Content-Type: application/json');
-			echo json_encode(['success' => false, 'message' => 'Failed to create examiner']);
+			$this->jsonResponse(['success' => false, 'message' => 'Failed to create examiner'], 500);
 		}
+	}
+
+	private function jsonResponse(array $data, int $code = 200): void
+	{
+		http_response_code($code);
+		header('Content-Type: application/json');
+		echo json_encode($data);
 	}
 
 	public function delete(): void
@@ -199,24 +179,25 @@ class ExaminerController
 
 		$examinerId = isset($_POST['examiner_id']) ? (int)$_POST['examiner_id'] : 0;
 		if ($examinerId <= 0) {
-			http_response_code(400);
-			header('Content-Type: application/json');
-			echo json_encode(['success' => false, 'message' => 'Invalid examiner id']);
+			$this->jsonResponse(['success' => false, 'message' => 'Invalid examiner id'], 400);
 			return;
 		}
 
 		try {
-			$this->db->delete('examiner_subjects', ['examiner_id' => $examinerId]);
-			$this->db->delete('examiner_classes', ['examiner_id' => $examinerId]);
+			// Verify examiner exists before deletion
+			$examiner = $this->db->get('examiners', ['examiner_id'], ['examiner_id' => $examinerId]);
+			if (!$examiner) {
+				$this->jsonResponse(['success' => false, 'message' => 'Examiner not found'], 404);
+				return;
+			}
+
+			// Delete examiner - cascade delete will handle related records
 			$this->db->delete('examiners', ['examiner_id' => $examinerId]);
 
-			header('Content-Type: application/json');
-			echo json_encode(['success' => true]);
+			$this->jsonResponse(['success' => true]);
 		} catch (\Throwable $e) {
 			error_log('[ExaminerController] delete error: ' . $e->getMessage());
-			http_response_code(500);
-			header('Content-Type: application/json');
-			echo json_encode(['success' => false, 'message' => 'Failed to delete examiner']);
+			$this->jsonResponse(['success' => false, 'message' => 'Failed to delete examiner'], 500);
 		}
 	}
 }

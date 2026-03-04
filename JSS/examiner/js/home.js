@@ -74,39 +74,37 @@ async function loadDashboard() {
             throw new Error(data.message || 'Failed to load dashboard');
         }
         
-        const { subjects, classes } = data;
+        const { assignments } = data.data;
         
-        if (!subjects || subjects.length === 0 || !classes || classes.length === 0) {
+        if (!assignments || assignments.length === 0) {
             coursesContainer.innerHTML = '<p>No subjects or classes assigned.</p>';
             return;
         }
         
         coursesContainer.innerHTML = '';
         
-        // Create boxes for each subject-class combination
-        subjects.forEach(subject => {
-            classes.forEach(classItem => {
-                const box = document.createElement('a');
-                box.className = 'box box-link';
-                box.href = '#';
-                const subjectName = escapeHtml(subject.name);
-                const className = escapeHtml(classItem.class_name);
-                const subjectImage = subjectImages[subject.name] || '../photos/default.jpg';
-                
-                box.innerHTML = `
-                    <div class="thumb">
-                        <img src="${subjectImage}" alt="${subjectName} Image">
-                    </div>
-                    <h3 class="title">${subjectName} - ${className}</h3>
-                `;
-                
-                box.onclick = (e) => {
-                    e.preventDefault();
-                    goToSubject(subjectName, subject.subject_id, classItem.class_id, className);
-                };
-                
-                coursesContainer.appendChild(box);
-            });
+        // Create boxes for each assigned subject-class combination
+        assignments.forEach(assignment => {
+            const box = document.createElement('a');
+            box.className = 'box box-link';
+            box.href = '#';
+            const subjectName = escapeHtml(assignment.subject_name);
+            const className = escapeHtml(assignment.class_name);
+            const subjectImage = subjectImages[assignment.subject_name] || '../photos/default.jpg';
+            
+            box.innerHTML = `
+                <div class="thumb">
+                    <img src="${subjectImage}" alt="${subjectName} Image">
+                </div>
+                <h3 class="title">${subjectName} - ${className}</h3>
+            `;
+            
+            box.onclick = (e) => {
+                e.preventDefault();
+                goToSubject(subjectName, assignment.subject_id, assignment.class_id, className);
+            };
+            
+            coursesContainer.appendChild(box);
         });
     } catch (err) {
         coursesContainer.innerHTML = `<p style="color:red;">${err.message}</p>`;

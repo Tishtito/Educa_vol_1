@@ -15,6 +15,19 @@ class ProfileController
 		$this->db = $db;
 	}
 
+	private function log(string $message): void
+	{
+		$logDir = __DIR__ . '/../../../logs';
+		$logFile = $logDir . '/php_errors.log';
+		
+		if (!is_dir($logDir)) {
+			mkdir($logDir, 0777, true);
+		}
+		
+		$entry = sprintf("[%s] %s\n", date('c'), $message);
+		file_put_contents($logFile, $entry, FILE_APPEND | LOCK_EX);
+	}
+
 	public function getProfile(): void
 	{
 		// Start session if not already started
@@ -26,7 +39,7 @@ class ProfileController
 
 		// Check if examiner is authenticated
 		if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
-			error_log('[ProfileController::getProfile] UNAUTHORIZED - loggedin flag not set');
+			$this->log('[ProfileController::getProfile] UNAUTHORIZED - loggedin flag not set');
 			http_response_code(401);
 			echo json_encode(['success' => false, 'message' => 'Unauthorized']);
 			return;
@@ -35,7 +48,7 @@ class ProfileController
 		$examiner_id = $_SESSION['id'] ?? null;
 
 		if (!$examiner_id) {
-			error_log('[ProfileController::getProfile] ERROR - Examiner ID not found in session');
+			$this->log('[ProfileController::getProfile] ERROR - Examiner ID not found in session');
 			http_response_code(400);
 			echo json_encode(['success' => false, 'message' => 'Invalid session']);
 			return;
@@ -52,7 +65,7 @@ class ProfileController
 			]);
 
 			if (!$examiner) {
-				error_log('[ProfileController::getProfile] ERROR - Examiner not found: ID=' . $examiner_id);
+				$this->log('[ProfileController::getProfile] ERROR - Examiner not found: ID=' . $examiner_id);
 				http_response_code(404);
 				echo json_encode(['success' => false, 'message' => 'Examiner not found']);
 				return;
@@ -75,7 +88,7 @@ class ProfileController
 				]
 			]);
 		} catch (\Exception $e) {
-			error_log('[ProfileController::getProfile] EXCEPTION - ' . $e->getMessage() . ' Stack: ' . $e->getTraceAsString());
+			$this->log('[ProfileController::getProfile] EXCEPTION - ' . $e->getMessage() . ' Stack: ' . $e->getTraceAsString());
 			http_response_code(500);
 			echo json_encode([
 				'success' => false,
