@@ -83,10 +83,15 @@ class MarkListController
 			}
 
 			$subjects = ['English', 'Math', 'Kiswahili', 'Creative', 'Technical', 'Agriculture', 'SST', 'Science', 'Religious'];
+			$componentSubjects = ['English', 'Kiswahili'];
 
 			$sql = "SELECT s.student_id, s.name AS Name";
 			foreach ($subjects as $subject) {
-				$sql .= ", er.$subject, (SELECT ab FROM point_boundaries WHERE er.$subject BETWEEN min_marks AND max_marks LIMIT 1) AS PL_$subject";
+				if (in_array($subject, $componentSubjects)) {
+					$sql .= ", er.Paper1$subject, er.Paper2$subject, er.$subject, (SELECT ab FROM point_boundaries WHERE er.$subject BETWEEN min_marks AND max_marks LIMIT 1) AS PL_$subject";
+				} else {
+					$sql .= ", er.$subject, (SELECT ab FROM point_boundaries WHERE er.$subject BETWEEN min_marks AND max_marks LIMIT 1) AS PL_$subject";
+				}
 			}
 			$sql .= ", (" . implode(" + ", array_map(fn($s) => "COALESCE(er.$s, 0)", $subjects)) . ") AS total_marks 
 				FROM students s
@@ -244,6 +249,7 @@ class MarkListController
 				'grade_title' => ucwords(str_replace('_', ' ', $grade)),
 				'tutor' => $tutor,
 				'subjects' => $subjects,
+				'component_subjects' => $componentSubjects,
 				'students' => $students,
 				'mean_scores' => $meanScores,
 				'prev_mean_scores' => $prevMeanScores,

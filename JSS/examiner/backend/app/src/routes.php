@@ -19,5 +19,6 @@ return function (RouteCollector $r): void {
 	
 	$r->addRoute('GET', '/subjects', 'SubjectController@getSubjects');
 	$r->addRoute('GET', '/subjects/students', 'SubjectController@getSubjectStudents');
+	$r->addRoute('GET', '/subjects/marks-out-of', 'SubjectController@getMarksOutOf');
 	$r->addRoute('POST', '/subjects/students/marks', 'SubjectController@updateMarks');
 };

@@ -97,6 +97,7 @@ async function loadMarkList() {
  */
 function displayMarkList(data) {
    const subjects = data.subjects || [];
+   const componentSubjects = data.component_subjects || [];
    const students = data.students || [];
    const subjectMeans = data.subjectMeans || {};
    const totalMean = data.totalMean || 0;
@@ -111,14 +112,32 @@ function displayMarkList(data) {
    html += '<th rowspan="2">Name</th>';
 
    subjects.forEach(subject => {
-      html += `<th colspan="2">${escapeHtml(subject)}</th>`;
+      if (componentSubjects.includes(subject)) {
+         // Component subjects: 4 columns
+         if (subject === 'English') {
+            html += '<th colspan="4">English</th>';
+         } else if (subject === 'Kiswahili') {
+            html += '<th colspan="4">Kiswahili</th>';
+         }
+      } else {
+         // Regular subjects: 2 columns (Marks, PL)
+         html += `<th colspan="2">${escapeHtml(subject)}</th>`;
+      }
    });
 
    html += '<th colspan="2">Total Marks</th>';
    html += '</tr><tr>';
 
-   subjects.forEach(() => {
-      html += '<th>Marks</th><th>PL</th>';
+   subjects.forEach(subject => {
+      if (componentSubjects.includes(subject)) {
+         if (subject === 'English') {
+            html += '<th>Gramma</th><th>Compo</th><th>Total</th><th>PL</th>';
+         } else if (subject === 'Kiswahili') {
+            html += '<th>Lugha</th><th>Insha</th><th>Total</th><th>PL</th>';
+         }
+      } else {
+         html += '<th>Marks</th><th>PL</th>';
+      }
    });
 
    html += '<th>TOTAL</th><th>PL</th>';
@@ -132,10 +151,35 @@ function displayMarkList(data) {
       html += `<td>${escapeHtml(student.Name || '')}</td>`;
 
       subjects.forEach(subject => {
-         const mark = student[subject] || '-';
-         const pl = student[`PL_${subject}`] || '-';
-         html += `<td>${escapeHtml(String(mark))}</td>`;
-         html += `<td>${escapeHtml(String(pl))}</td>`;
+         if (componentSubjects.includes(subject)) {
+            if (subject === 'English') {
+               // English: show Gramma, Compo, Total, PL
+               const gramma = student.Gramma || '-';
+               const compo = student.Compo || '-';
+               const total = student.English || '-';
+               const pl = student.PL_English || '-';
+               html += `<td>${escapeHtml(String(gramma))}</td>`;
+               html += `<td>${escapeHtml(String(compo))}</td>`;
+               html += `<td>${escapeHtml(String(total))}</td>`;
+               html += `<td>${escapeHtml(String(pl))}</td>`;
+            } else if (subject === 'Kiswahili') {
+               // Kiswahili: show Lugha, Insha, Total, PL
+               const lugha = student.Lugha || '-';
+               const insha = student.Insha || '-';
+               const total = student.Kiswahili || '-';
+               const pl = student.PL_Kiswahili || '-';
+               html += `<td>${escapeHtml(String(lugha))}</td>`;
+               html += `<td>${escapeHtml(String(insha))}</td>`;
+               html += `<td>${escapeHtml(String(total))}</td>`;
+               html += `<td>${escapeHtml(String(pl))}</td>`;
+            }
+         } else {
+            // Regular subjects: show Marks and PL
+            const mark = student[subject] || '-';
+            const pl = student[`PL_${subject}`] || '-';
+            html += `<td>${escapeHtml(String(mark))}</td>`;
+            html += `<td>${escapeHtml(String(pl))}</td>`;
+         }
       });
 
       const totalMarks = student.total_marks || '-';
@@ -152,8 +196,9 @@ function displayMarkList(data) {
    html += '<td colspan="2">Mean Score</td>';
 
    subjects.forEach(subject => {
+      const colspan = componentSubjects.includes(subject) ? '4' : '2';
       const mean = subjectMeans[subject] || 0;
-      html += `<td colspan="2">${mean}</td>`;
+      html += `<td colspan="${colspan}">${mean}</td>`;
    });
 
    html += `<td colspan="2">${totalMean}</td>`;
@@ -164,8 +209,9 @@ function displayMarkList(data) {
    html += '<td colspan="2">Previous Mean</td>';
 
    subjects.forEach(subject => {
+      const colspan = componentSubjects.includes(subject) ? '4' : '2';
       const prevMean = previousMeans[subject] || 0;
-      html += `<td colspan="2">${prevMean}</td>`;
+      html += `<td colspan="${colspan}">${prevMean}</td>`;
    });
 
    const prevTotalMean = previousMeans.total_mean || 0;
@@ -177,10 +223,11 @@ function displayMarkList(data) {
    html += '<td colspan="2">Deviation</td>';
 
    subjects.forEach(subject => {
+      const colspan = componentSubjects.includes(subject) ? '4' : '2';
       const current = subjectMeans[subject] || 0;
       const previous = previousMeans[subject] || 0;
       const deviation = (current - previous).toFixed(2);
-      html += `<td colspan="2">${deviation}</td>`;
+      html += `<td colspan="${colspan}">${deviation}</td>`;
    });
 
    const totalDeviation = (totalMean - (previousMeans.total_mean || 0)).toFixed(2);

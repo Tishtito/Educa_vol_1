@@ -56,8 +56,15 @@
         let headTopHtml = "<th rowspan=\"2\">Rank</th><th rowspan=\"2\">Name</th>";
         let headSubHtml = "";
         data.subjects.forEach((subject) => {
-            headTopHtml += `<th colspan=\"2\">${subject}</th>`;
-            headSubHtml += "<th>Marks</th><th>PL</th>";
+            if (data.component_subjects && data.component_subjects.includes(subject)) {
+                // Component subjects: Paper1, Paper2, Total, PL
+                headTopHtml += `<th colspan=\"4\">${subject}</th>`;
+                headSubHtml += "<th>Paper 1</th><th>Paper 2</th><th>Total</th><th>PL</th>";
+            } else {
+                // Regular subjects: Marks, PL
+                headTopHtml += `<th colspan=\"2\">${subject}</th>`;
+                headSubHtml += "<th>Marks</th><th>PL</th>";
+            }
         });
         headTopHtml += "<th rowspan=\"2\">Total Marks</th>";
         headTop.innerHTML = headTopHtml;
@@ -67,9 +74,19 @@
         const bodyRows = data.students.map((student) => {
             let row = `<tr><td>${student.rank}</td><td>${student.Name}</td>`;
             data.subjects.forEach((subject) => {
-                const mark = student[subject] ?? "-";
-                const pl = student[`PL_${subject}`] ?? "-";
-                row += `<td>${mark}</td><td>${pl}</td>`;
+                if (data.component_subjects && data.component_subjects.includes(subject)) {
+                    // Component subjects: show Paper1, Paper2, Total, PL
+                    const paper1 = student[`Paper1${subject}`] ?? "-";
+                    const paper2 = student[`Paper2${subject}`] ?? "-";
+                    const total = student[subject] ?? "-";
+                    const pl = student[`PL_${subject}`] ?? "-";
+                    row += `<td>${paper1}</td><td>${paper2}</td><td>${total}</td><td>${pl}</td>`;
+                } else {
+                    // Regular subjects: show Marks and PL
+                    const mark = student[subject] ?? "-";
+                    const pl = student[`PL_${subject}`] ?? "-";
+                    row += `<td>${mark}</td><td>${pl}</td>`;
+                }
             });
             row += `<td>${student.total_marks ?? 0}</td></tr>`;
             return row;
@@ -79,18 +96,21 @@
         // Batch build table foot
         const meanRow = ["<tr><th colspan=\"2\">Mean Scores</th>"];
         data.subjects.forEach((subject) => {
-            meanRow.push(`<td colspan=\"2\">${data.mean_scores[subject] ?? 0}</td>`);
+            const colspan = (data.component_subjects && data.component_subjects.includes(subject)) ? "4" : "2";
+            meanRow.push(`<td colspan=\"${colspan}\">${data.mean_scores[subject] ?? 0}</td>`);
         });
         meanRow.push(`<td colspan=\"2\">${data.total_mean}</td></tr>`);
 
         const prevRow = ["<tr><th colspan=\"2\">Previous Mean Scores</th>"];
         data.subjects.forEach((subject) => {
-            prevRow.push(`<td colspan=\"2\">${data.prev_mean_scores[subject] ?? "-"}</td>`);
+            const colspan = (data.component_subjects && data.component_subjects.includes(subject)) ? "4" : "2";
+            prevRow.push(`<td colspan=\"${colspan}\">${data.prev_mean_scores[subject] ?? "-"}</td>`);
         });
         prevRow.push(`<td colspan=\"2\">${data.prev_total_mean}</td></tr>`);
 
         const devRow = ["<tr><th colspan=\"2\">Deviation</th>"];
         data.subjects.forEach((subject) => {
+            const colspan = (data.component_subjects && data.component_subjects.includes(subject)) ? "4" : "2";
             const dev = data.deviation_scores[subject] ?? "-";
             let color = "black";
             if (typeof dev === "number" || (typeof dev === "string" && dev !== "-")) {
@@ -99,7 +119,7 @@
                 if (val < 0) color = "red";
             }
             const display = dev !== "-" ? (Number(dev) > 0 ? `+${dev}` : dev) : "-";
-            devRow.push(`<td colspan=\"2\" style=\"color: ${color}\">${display}</td>`);
+            devRow.push(`<td colspan=\"${colspan}\" style=\"color: ${color}\">${display}</td>`);
         });
 
         let totalColor = "black";

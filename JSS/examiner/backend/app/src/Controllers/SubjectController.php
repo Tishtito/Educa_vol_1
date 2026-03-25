@@ -238,10 +238,7 @@ class SubjectController
     // POST /subjects/students/marks - update marks for a student in a subject
     public function updateMarks(): void
     {
-        // error_log('[SubjectController::updateMarks] START - ' . date('Y-m-d H:i:s'));
-        
         $this->startSession();
-        // error_log('[SubjectController::updateMarks] Session data: ' . json_encode($_SESSION));
         
         if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
             $this->log('[SubjectController::updateMarks] UNAUTHORIZED');
@@ -253,8 +250,6 @@ class SubjectController
         try {
             $examinerId = $_SESSION['id'] ?? null;
             $examId = $_SESSION['exam_id'] ?? null;
-            
-            // error_log('[SubjectController::updateMarks] Examiner ID: ' . ($examinerId ?? 'NULL') . ', Exam ID: ' . ($examId ?? 'NULL'));
 
             if (!$examinerId || !$examId) {
                 $this->log('[SubjectController::updateMarks] ERROR - Missing examiner or exam ID');
@@ -266,54 +261,84 @@ class SubjectController
             $input = json_decode(file_get_contents('php://input'), true);
             $studentId = $input['student_id'] ?? null;
             $studentClassId = $input['student_class_id'] ?? null;
-            $subjectId = $input['subject_id'] ?? null;
             $marks = $input['marks'] ?? null;
             $marksOutOf = $input['marks_out_of'] ?? null;
+            $paperType = $input['paper_type'] ?? null;
             
-            // error_log('[SubjectController::updateMarks] Student ID: ' . ($studentId ?? 'NULL') . ', Student Class ID: ' . ($studentClassId ?? 'NULL') . ', Subject ID: ' . ($subjectId ?? 'NULL') . ', Marks: ' . ($marks ?? 'NULL') . ', Marks Out Of: ' . ($marksOutOf ?? 'NULL'));
+            // Get subject from input (for component subjects) or subject_id
+            $subject = $input['subject'] ?? null;
+            $subjectId = $input['subject_id'] ?? null;
 
-            if (!$studentId || !$studentClassId || !$subjectId || $marks === null) {
+            if (!$studentId || !$studentClassId || $marks === null) {
                 $this->log('[SubjectController::updateMarks] ERROR - Missing required fields');
                 http_response_code(400);
                 echo json_encode(['success' => false, 'message' => 'Missing required fields']);
                 return;
             }
 
-            // Convert marks to percentage
-            if ($marksOutOf && $marksOutOf > 0) {
-                $percentageMarks = ($marks / $marksOutOf) * 100;
-                $marksToStore = $percentageMarks;
+            // Handle component subjects (Paper1, Paper2)
+            if ($subject && $paperType) {
+                // Paper1 and Paper2 are stored as raw marks (not percentages)
+                if ($subject === 'English') {
+                    $columnName = $paperType === 'Paper1' ? 'Paper1English' : ($paperType === 'Paper2' ? 'Paper2English' : 'English');
+                } elseif ($subject === 'Kiswahili') {
+                    $columnName = $paperType === 'Paper1' ? 'Paper1Kiswahili' : ($paperType === 'Paper2' ? 'Paper2Kiswahili' : 'Kiswahili');
+                } else {
+                    http_response_code(400);
+                    echo json_encode(['success' => false, 'message' => 'Invalid subject']);
+                    return;
+                }
+                
+                $marksToStore = $marks; // Store raw marks for Paper1 and Paper2
             } else {
-                $this->log('[SubjectController::updateMarks] WARNING - No marks out of provided, storing raw marks');
-                $marksToStore = $marks;
-            }
+                // Regular subject - convert to percentage
+                if (!$subjectId) {
+                    $this->log('[SubjectController::updateMarks] ERROR - Missing subject ID for regular subject');
+                    http_response_code(400);
+                    echo json_encode(['success' => false, 'message' => 'Subject ID required']);
+                    return;
+                }
 
-            // Verify examiner has access to this subject
-            $hasAccess = $this->db->count('examiner_subject_classes', 
-                [
-                    'AND' => [
-                        'examiner_id' => $examinerId,
-                        'subject_id' => $subjectId
+                // Verify examiner has access to this subject
+                $hasAccess = $this->db->count('examiner_subject_classes', 
+                    [
+                        'AND' => [
+                            'examiner_id' => $examinerId,
+                            'subject_id' => $subjectId
+                        ]
                     ]
-                ]
-            );
-            
-            if (!$hasAccess) {
-                $this->log('[SubjectController::updateMarks] FORBIDDEN - No access to subject');
-                http_response_code(403);
-                echo json_encode(['success' => false, 'message' => 'Access denied']);
-                return;
-            }
+                );
+                
+                if (!$hasAccess) {
+                    $this->log('[SubjectController::updateMarks] FORBIDDEN - No access to subject');
+                    http_response_code(403);
+                    echo json_encode(['success' => false, 'message' => 'Access denied']);
+                    return;
+                }
 
-            // Get subject name to determine which column to update
-            $subject = $this->db->get('subjects', '*', ['subject_id' => $subjectId]);
-            $subjectColumn = $subject['name'] ?? null;
+                $subjectObj = $this->db->get('subjects', '*', ['subject_id' => $subjectId]);
+                $columnName = $subjectObj['name'] ?? null;
 
-            if (!$subjectColumn) {
-                $this->log('[SubjectController::updateMarks] ERROR - Invalid subject');
-                http_response_code(400);
-                echo json_encode(['success' => false, 'message' => 'Invalid subject']);
-                return;
+                if (!$columnName) {
+                    $this->log('[SubjectController::updateMarks] ERROR - Invalid subject');
+                    http_response_code(400);
+                    echo json_encode(['success' => false, 'message' => 'Invalid subject']);
+                    return;
+                }
+                
+                // Convert marks to percentage for regular subjects (except English and Kiswahili which are already percentages)
+                if ($columnName === 'English' || $columnName === 'Kiswahili') {
+                    // These are percentage totals from Paper1+Paper2
+                    $marksToStore = $marks;
+                } else {
+                    // Convert to percentage
+                    if ($marksOutOf && $marksOutOf > 0) {
+                        $percentageMarks = ($marks / $marksOutOf) * 100;
+                        $marksToStore = $percentageMarks;
+                    } else {
+                        $marksToStore = $marks;
+                    }
+                }
             }
 
             // Check if exam result exists for this student
@@ -330,7 +355,7 @@ class SubjectController
             if ($existingResult) {
                 // Update existing record
                 $this->db->update('exam_results', 
-                    [$subjectColumn => $marksToStore],
+                    [$columnName => $marksToStore],
                     [
                         'AND' => [
                             'student_id' => $studentId,
@@ -345,16 +370,61 @@ class SubjectController
                     'student_id' => $studentId,
                     'exam_id' => $examId,
                     'student_class_id' => $studentClassId,
-                    $subjectColumn => $marksToStore
+                    $columnName => $marksToStore
                 ]);
             }
 
-            // error_log('[SubjectController::updateMarks] SUCCESS - Marks updated');
             header('Content-Type: application/json');
             echo json_encode(['success' => true, 'message' => 'Marks updated successfully']);
         } catch (\Exception $e) {
             $this->log('[SubjectController::updateMarks] EXCEPTION: ' . $e->getMessage());
             $this->log('[SubjectController::updateMarks] Stack: ' . $e->getTraceAsString());
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        }
+    }
+
+    // GET /subjects/marks-out-of - get marks out of for component subjects
+    public function getMarksOutOf(): void
+    {
+        $this->startSession();
+        
+        if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
+            http_response_code(401);
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            return;
+        }
+
+        try {
+            $subject = $_GET['subject'] ?? null;
+            
+            if (!$subject) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'Subject parameter required']);
+                return;
+            }
+
+            if ($subject === 'English') {
+                // Return Paper1 and Paper2 max marks for English
+                $marksOutOf = [
+                    'Paper1' => 50,
+                    'Paper2' => 50
+                ];
+            } elseif ($subject === 'Kiswahili') {
+                // Return Paper1 and Paper2 max marks for Kiswahili
+                $marksOutOf = [
+                    'Paper1' => 50,
+                    'Paper2' => 50
+                ];
+            } else {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'Invalid subject for marks out of']);
+                return;
+            }
+
+            header('Content-Type: application/json');
+            echo json_encode(['success' => true, 'marks_out_of' => $marksOutOf]);
+        } catch (\Exception $e) {
             http_response_code(500);
             echo json_encode(['success' => false, 'message' => $e->getMessage()]);
         }

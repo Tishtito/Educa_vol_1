@@ -92,11 +92,20 @@ async function loadDashboard() {
             const className = escapeHtml(assignment.class_name);
             const subjectImage = subjectImages[assignment.subject_name] || '../photos/default.jpg';
             
+            // Add component description for dual-component subjects
+            let componentDescription = '';
+            if (assignment.subject_name === 'English') {
+                componentDescription = '<p style="font-size: 12px; color: #666; margin-top: 5px;">Paper 1 + Paper 2</p>';
+            } else if (assignment.subject_name === 'Kiswahili') {
+                componentDescription = '<p style="font-size: 12px; color: #666; margin-top: 5px;">Paper 1 + Paper 2</p>';
+            }
+            
             box.innerHTML = `
                 <div class="thumb">
                     <img src="${subjectImage}" alt="${subjectName} Image">
                 </div>
                 <h3 class="title">${subjectName} - ${className}</h3>
+                ${componentDescription}
             `;
             
             box.onclick = (e) => {

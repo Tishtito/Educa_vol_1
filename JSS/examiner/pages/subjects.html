@@ -27,11 +27,26 @@
     <div class="error-message" id="errorMessage"></div>
     <div class="success-message" id="successMessage"></div>
 
-    <!-- Marks Out Of -->
-    <div class="marks-out-of">
+    <!-- Marks Out Of (for regular subjects) -->
+    <div class="marks-out-of" id="regularMarksOutOfSection" style="display: none;">
         <label for="marksOutOf">Marks Out Of:</label>
         <input type="number" id="marksOutOf" min="1" max="100" placeholder="e.g., 100">
         <button type="button" id="setMarksBtn">Set</button>
+    </div>
+
+    <!-- Paper Marks Out Of (for English and Kiswahili) -->
+    <div class="marks-out-of" id="paperMarksOutOfSection" style="display: none;">
+        <div class="paper-marks-container">
+            <div class="paper-input-group">
+                <label for="paper1OutOf">Paper 1 Out Of:</label>
+                <input type="number" id="paper1OutOf" min="1" max="100" placeholder="e.g., 50">
+            </div>
+            <div class="paper-input-group">
+                <label for="paper2OutOf">Paper 2 Out Of:</label>
+                <input type="number" id="paper2OutOf" min="1" max="100" placeholder="e.g., 50">
+            </div>
+            <button type="button" id="setPaperBtn" class="paper-set-btn">Set Both</button>
+        </div>
     </div>
 
     <!-- Loading Indicator -->
@@ -72,9 +87,43 @@
                             <label for="modalStudentName" class="form-label">Student Name</label>
                             <input type="text" class="form-control" id="modalStudentName" readonly>
                         </div>
-                        <div class="mb-3">
-                            <label for="modalMarksInput" class="form-label">Marks (Out of <span id="modalMarksOutOf">100</span>)</label>
-                            <input type="number" class="form-control" id="modalMarksInput" min="0" required>
+                        
+                        <!-- Regular subject input (single) -->
+                        <div id="regularSubjectInputGroup" style="display: none;">
+                            <div class="mb-3">
+                                <label for="modalMarksInput" class="form-label">Marks (Out of <span id="modalMarksOutOf">100</span>)</label>
+                                <input type="number" class="form-control" id="modalMarksInput" name="regularMarks" min="0">
+                            </div>
+                        </div>
+                        
+                        <!-- English dual inputs (Paper 1 + Paper 2) -->
+                        <div id="englishInputGroup" style="display: none;">
+                            <div class="mb-3">
+                                <label for="paper1EnglishMarks" class="form-label">Paper 1 (Out of <span id="paper1EnglishOutOf">100</span>)</label>
+                                <input type="number" class="form-control" id="paper1EnglishMarks" name="paper1English" min="0">
+                            </div>
+                            <div class="mb-3">
+                                <label for="paper2EnglishMarks" class="form-label">Paper 2 (Out of <span id="paper2EnglishOutOf">100</span>)</label>
+                                <input type="number" class="form-control" id="paper2EnglishMarks" name="paper2English" min="0">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Total Percentage: <span id="englishTotalPercentage">0%</span></label>
+                            </div>
+                        </div>
+                        
+                        <!-- Kiswahili dual inputs (Paper 1 + Paper 2) -->
+                        <div id="kiswahiliInputGroup" style="display: none;">
+                            <div class="mb-3">
+                                <label for="paper1KiswahiliMarks" class="form-label">Paper 1 (Out of <span id="paper1KiswahiliOutOf">100</span>)</label>
+                                <input type="number" class="form-control" id="paper1KiswahiliMarks" name="paper1Kiswahili" min="0">
+                            </div>
+                            <div class="mb-3">
+                                <label for="paper2KiswahiliMarks" class="form-label">Paper 2 (Out of <span id="paper2KiswahiliOutOf">100</span>)</label>
+                                <input type="number" class="form-control" id="paper2KiswahiliMarks" name="paper2Kiswahili" min="0">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Total Percentage: <span id="kiswahiliTotalPercentage">0%</span></label>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">

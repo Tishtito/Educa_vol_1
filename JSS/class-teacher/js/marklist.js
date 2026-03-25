@@ -97,6 +97,7 @@ async function loadMarkList() {
  */
 function displayMarkList(data) {
    const subjects = data.subjects || [];
+   const componentSubjects = data.component_subjects || [];
    const students = data.students || [];
    const subjectMeans = data.subjectMeans || {};
    const totalMean = data.totalMean || 0;
@@ -111,14 +112,24 @@ function displayMarkList(data) {
    html += '<th rowspan="2">Name</th>';
 
    subjects.forEach(subject => {
-      html += `<th colspan="2">${escapeHtml(subject)}</th>`;
+      if (componentSubjects.includes(subject)) {
+         // Component subjects: 4 columns (Paper1, Paper2, Total, PL)
+         html += `<th colspan="4">${escapeHtml(subject)}</th>`;
+      } else {
+         // Regular subjects: 2 columns (Marks, PL)
+         html += `<th colspan="2">${escapeHtml(subject)}</th>`;
+      }
    });
 
    html += '<th colspan="2">Total Marks</th>';
    html += '</tr><tr>';
 
-   subjects.forEach(() => {
-      html += '<th>Marks</th><th>PL</th>';
+   subjects.forEach(subject => {
+      if (componentSubjects.includes(subject)) {
+         html += '<th>Paper 1</th><th>Paper 2</th><th>Total</th><th>PL</th>';
+      } else {
+         html += '<th>Marks</th><th>PL</th>';
+      }
    });
 
    html += '<th>TOTAL</th><th>PL</th>';
@@ -132,10 +143,23 @@ function displayMarkList(data) {
       html += `<td>${escapeHtml(student.Name || '')}</td>`;
 
       subjects.forEach(subject => {
-         const mark = student[subject] || '-';
-         const pl = student[`PL_${subject}`] || '-';
-         html += `<td>${escapeHtml(String(mark))}</td>`;
-         html += `<td>${escapeHtml(String(pl))}</td>`;
+         if (componentSubjects.includes(subject)) {
+            // Component subjects: show Paper1, Paper2, Total, PL
+            const paper1 = student[`Paper1${subject}`] || '-';
+            const paper2 = student[`Paper2${subject}`] || '-';
+            const total = student[subject] || '-';
+            const pl = student[`PL_${subject}`] || '-';
+            html += `<td>${escapeHtml(String(paper1))}</td>`;
+            html += `<td>${escapeHtml(String(paper2))}</td>`;
+            html += `<td>${escapeHtml(String(total))}</td>`;
+            html += `<td>${escapeHtml(String(pl))}</td>`;
+         } else {
+            // Regular subjects: show Marks and PL
+            const mark = student[subject] || '-';
+            const pl = student[`PL_${subject}`] || '-';
+            html += `<td>${escapeHtml(String(mark))}</td>`;
+            html += `<td>${escapeHtml(String(pl))}</td>`;
+         }
       });
 
       const totalMarks = student.total_marks || '-';
@@ -152,8 +176,9 @@ function displayMarkList(data) {
    html += '<td colspan="2">Mean Score</td>';
 
    subjects.forEach(subject => {
+      const colspan = componentSubjects.includes(subject) ? '4' : '2';
       const mean = subjectMeans[subject] || 0;
-      html += `<td colspan="2">${mean}</td>`;
+      html += `<td colspan="${colspan}">${mean}</td>`;
    });
 
    html += `<td colspan="2">${totalMean}</td>`;
@@ -164,8 +189,9 @@ function displayMarkList(data) {
    html += '<td colspan="2">Previous Mean</td>';
 
    subjects.forEach(subject => {
+      const colspan = componentSubjects.includes(subject) ? '4' : '2';
       const prevMean = previousMeans[subject] || 0;
-      html += `<td colspan="2">${prevMean}</td>`;
+      html += `<td colspan="${colspan}">${prevMean}</td>`;
    });
 
    const prevTotalMean = previousMeans.total_mean || 0;
@@ -177,10 +203,11 @@ function displayMarkList(data) {
    html += '<td colspan="2">Deviation</td>';
 
    subjects.forEach(subject => {
+      const colspan = componentSubjects.includes(subject) ? '4' : '2';
       const current = subjectMeans[subject] || 0;
       const previous = previousMeans[subject] || 0;
       const deviation = (current - previous).toFixed(2);
-      html += `<td colspan="2">${deviation}</td>`;
+      html += `<td colspan="${colspan}">${deviation}</td>`;
    });
 
    const totalDeviation = (totalMean - (previousMeans.total_mean || 0)).toFixed(2);

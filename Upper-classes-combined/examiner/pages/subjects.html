@@ -34,12 +34,44 @@
    <!-- Marks Out Of Section -->
    <div class="marks-out-of-section" id="marksOutOfSection" style="display: none;">
        <h2>Configure Marks</h2>
-       <div class="marks-out-of-form">
+       
+       <!-- Single marks out of for regular subjects -->
+       <div class="marks-out-of-form" id="singleMarksOutOfForm">
            <div class="form-group">
                <label for="marksOutOf">Marks Out Of:</label>
                <input type="number" id="marksOutOf" min="1" placeholder="e.g., 50" required>
            </div>
            <button type="button" onclick="setMarksOutOf()">Set Marks</button>
+       </div>
+
+       <!-- Separate marks out of for English (Gramma + Compo) -->
+       <div class="marks-out-of-form" id="englishMarksOutOfForm" style="display: none;">
+           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+               <div class="form-group">
+                   <label for="grammaMarksOutOf">Gramma - Marks Out Of:</label>
+                   <input type="number" id="grammaMarksOutOf" min="1" placeholder="e.g., 50" required>
+               </div>
+               <div class="form-group">
+                   <label for="compoMarksOutOf">Compo - Marks Out Of:</label>
+                   <input type="number" id="compoMarksOutOf" min="1" placeholder="e.g., 50" required>
+               </div>
+           </div>
+           <button type="button" onclick="setEnglishMarksOutOf()">Set Marks</button>
+       </div>
+
+       <!-- Separate marks out of for Kiswahili (Lugha + Insha) -->
+       <div class="marks-out-of-form" id="kiswahiliMarksOutOfForm" style="display: none;">
+           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+               <div class="form-group">
+                   <label for="lughaMarksOutOf">Lugha - Marks Out Of:</label>
+                   <input type="number" id="lughaMarksOutOf" min="1" placeholder="e.g., 50" required>
+               </div>
+               <div class="form-group">
+                   <label for="inshaMarksOutOf">Insha - Marks Out Of:</label>
+                   <input type="number" id="inshaMarksOutOf" min="1" placeholder="e.g., 50" required>
+               </div>
+           </div>
+           <button type="button" onclick="setKiswahiliMarksOutOf()">Set Marks</button>
        </div>
    </div>
 
@@ -76,17 +108,77 @@
             <button class="modal-close" onclick="closeEditModal()">&times;</button>
         </div>
         <form onsubmit="saveMarks(event)">
-            <div class="form-group">
+            <!-- Single input for regular subjects -->
+            <div id="singleInputGroup" class="form-group" style="display: none;">
                 <label for="studentMarks">Marks (out of <span id="maxMarks">100</span>):</label>
                 <input 
                     type="number" 
                     id="studentMarks" 
+                    name="studentMarks"
                     min="0" 
                     step="0.01"
                     placeholder="Enter marks"
-                    required
                 >
             </div>
+
+            <!-- Dual inputs for English (Gramma + Compo) -->
+            <div id="englishInputGroup" style="display: none;">
+                <div class="form-group">
+                    <label for="grammaMarks">Gramma (out of <span id="maxGramma">100</span>):</label>
+                    <input 
+                        type="number" 
+                        id="grammaMarks" 
+                        name="grammaMarks"
+                        min="0" 
+                        step="0.01"
+                        placeholder="Enter gramma marks"
+                    >
+                </div>
+                <div class="form-group">
+                    <label for="compoMarks">Compo (out of <span id="maxCompo">100</span>):</label>
+                    <input 
+                        type="number" 
+                        id="compoMarks" 
+                        name="compoMarks"
+                        min="0" 
+                        step="0.01"
+                        placeholder="Enter compo marks"
+                    >
+                </div>
+                <div class="form-group" style="background: #f0f8ff; padding: 10px; border-radius: 4px; margin-top: 10px;">
+                    <strong>English Total (percentage): <span id="englishTotalDisplay">-</span>%</strong>
+                </div>
+            </div>
+
+            <!-- Dual inputs for Kiswahili (Lugha + Insha) -->
+            <div id="kiswahiliInputGroup" style="display: none;">
+                <div class="form-group">
+                    <label for="lughaMarks">Lugha (out of <span id="maxLugha">100</span>):</label>
+                    <input 
+                        type="number" 
+                        id="lughaMarks" 
+                        name="lughaMarks"
+                        min="0" 
+                        step="0.01"
+                        placeholder="Enter lugha marks"
+                    >
+                </div>
+                <div class="form-group">
+                    <label for="inshaMarks">Insha (out of <span id="maxInsha">100</span>):</label>
+                    <input 
+                        type="number" 
+                        id="inshaMarks" 
+                        name="inshaMarks"
+                        min="0" 
+                        step="0.01"
+                        placeholder="Enter insha marks"
+                    >
+                </div>
+                <div class="form-group" style="background: #f0f8ff; padding: 10px; border-radius: 4px; margin-top: 10px;">
+                    <strong>Kiswahili Total (percentage): <span id="kiswahiliTotalDisplay">-</span>%</strong>
+                </div>
+            </div>
+
             <div class="modal-buttons">
                 <button type="button" class="btn-cancel" onclick="closeEditModal()">Cancel</button>
                 <button type="submit" class="btn-save">Save Marks</button>

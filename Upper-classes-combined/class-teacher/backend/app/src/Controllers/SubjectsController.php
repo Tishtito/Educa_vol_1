@@ -94,11 +94,10 @@ class SubjectsController
                 'Math',
                 'Kiswahili',
                 'Creative',
-                'Religious',
-                'Agriculture',
+                'CRE',
+                'AgricNutri',
                 'SST',
-                'Technical',
-                'Science'
+                'SciTech',
             ]
         ]);
     }

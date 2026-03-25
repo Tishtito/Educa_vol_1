@@ -56,24 +56,28 @@ class MarklistController
                 SELECT 
                     s.student_id, 
                     s.name AS Name, 
+                    er.Paper1English,
+                    er.Paper2English,
                     er.English, 
-                    (SELECT ab FROM point_boundaries WHERE er.English BETWEEN min_marks AND max_marks LIMIT 1) AS PL_English,
-                    er.Math, 
-                    (SELECT ab FROM point_boundaries WHERE er.Math BETWEEN min_marks AND max_marks LIMIT 1) AS PL_Math,
+                    (SELECT ab FROM point_boundaries WHERE er.English BETWEEN min_marks AND max_marks ORDER BY min_marks DESC LIMIT 1) AS PL_English,
+                    er.Paper1Kiswahili,
+                    er.Paper2Kiswahili,
                     er.Kiswahili, 
-                    (SELECT ab FROM point_boundaries WHERE er.Kiswahili BETWEEN min_marks AND max_marks LIMIT 1) AS PL_Kiswahili,
+                    (SELECT ab FROM point_boundaries WHERE er.Kiswahili BETWEEN min_marks AND max_marks ORDER BY min_marks DESC LIMIT 1) AS PL_Kiswahili,
+                    er.Math, 
+                    (SELECT ab FROM point_boundaries WHERE er.Math BETWEEN min_marks AND max_marks ORDER BY min_marks DESC LIMIT 1) AS PL_Math,
                     er.Creative, 
-                    (SELECT ab FROM point_boundaries WHERE er.Creative BETWEEN min_marks AND max_marks LIMIT 1) AS PL_Creative,
+                    (SELECT ab FROM point_boundaries WHERE er.Creative BETWEEN min_marks AND max_marks ORDER BY min_marks DESC LIMIT 1) AS PL_Creative,
                     er.Technical, 
-                    (SELECT ab FROM point_boundaries WHERE er.Technical BETWEEN min_marks AND max_marks LIMIT 1) AS PL_Technical,
+                    (SELECT ab FROM point_boundaries WHERE er.Technical BETWEEN min_marks AND max_marks ORDER BY min_marks DESC LIMIT 1) AS PL_Technical,
                     er.Agriculture, 
-                    (SELECT ab FROM point_boundaries WHERE er.Agriculture BETWEEN min_marks AND max_marks LIMIT 1) AS PL_Agriculture,
+                    (SELECT ab FROM point_boundaries WHERE er.Agriculture BETWEEN min_marks AND max_marks ORDER BY min_marks DESC LIMIT 1) AS PL_Agriculture,
                     er.SST, 
-                    (SELECT ab FROM point_boundaries WHERE er.SST BETWEEN min_marks AND max_marks LIMIT 1) AS PL_SST,
+                    (SELECT ab FROM point_boundaries WHERE er.SST BETWEEN min_marks AND max_marks ORDER BY min_marks DESC LIMIT 1) AS PL_SST,
                     er.Science, 
-                    (SELECT ab FROM point_boundaries WHERE er.Science BETWEEN min_marks AND max_marks LIMIT 1) AS PL_Science,
+                    (SELECT ab FROM point_boundaries WHERE er.Science BETWEEN min_marks AND max_marks ORDER BY min_marks DESC LIMIT 1) AS PL_Science,
                     er.Religious, 
-                    (SELECT ab FROM point_boundaries WHERE er.Religious BETWEEN min_marks AND max_marks LIMIT 1) AS PL_Religious,
+                    (SELECT ab FROM point_boundaries WHERE er.Religious BETWEEN min_marks AND max_marks ORDER BY min_marks DESC LIMIT 1) AS PL_Religious,
                     er.total_marks,
                     er.position
                 FROM 
@@ -90,7 +94,7 @@ class MarklistController
             $students = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
             // Calculate mean scores
-            $subjects = ['English', 'Math', 'Kiswahili', 'Creative', 'Technical', 'Agriculture', 'SST', 'Science', 'Religious'];
+            $subjects = ['English', 'Kiswahili', 'Math', 'Creative', 'Technical', 'Agriculture', 'SST', 'Science', 'Religious'];
             $subjectTotals = [];
             $subjectCounts = [];
             $totalScore = 0;
@@ -129,6 +133,7 @@ class MarklistController
                 'success' => true,
                 'students' => $students,
                 'subjects' => $subjects,
+                'component_subjects' => ['English', 'Kiswahili'],
                 'subjectMeans' => $subjectMeans,
                 'totalMean' => $totalMean,
                 'previousMeans' => $prevMeans,
@@ -204,7 +209,7 @@ class MarklistController
         $sql = "
             UPDATE exam_results
             SET total_marks = (
-                COALESCE(English, 0) + COALESCE(Math, 0) + COALESCE(Kiswahili, 0) +
+                COALESCE(English, 0) + COALESCE(Kiswahili, 0) + COALESCE(Math, 0) +
                 COALESCE(Creative, 0) + COALESCE(Science, 0) + COALESCE(Technical, 0) + 
                 COALESCE(SST, 0) + COALESCE(Agriculture, 0) + COALESCE(Religious, 0)
             )

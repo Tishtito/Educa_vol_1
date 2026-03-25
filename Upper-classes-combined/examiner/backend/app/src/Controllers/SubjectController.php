@@ -159,24 +159,46 @@ class SubjectController
 			$maxMarks = $marksOutOf ? intval($marksOutOf['marks_out_of']) : 100;
 
 			// Validate subject is valid
-			$validSubjects = ['English', 'Math', 'Kiswahili', 'Creative', 'Integrated_science', 'AgricNutri', 'SST', 'CRE', 'SciTech'];
-			if (!in_array($subject, $validSubjects)) {
-				http_response_code(400);
-				header('Content-Type: application/json');
+		$validSubjects = ['Gramma', 'Compo', 'English', 'Lugha', 'Insha', 'Kiswahili', 'Math', 'Creative', 'Integrated_science', 'AgricNutri', 'SST', 'CRE', 'SciTech'];
+		if (!in_array($subject, $validSubjects)) {
 				echo json_encode(['success' => false, 'message' => "Invalid subject: {$subject}. Valid subjects are: " . implode(', ', $validSubjects)]);
 				return;
 			}
 
-			// Validate marks are within bounds
-			if ($marks < 0 || $marks > $maxMarks) {
-				http_response_code(400);
-				header('Content-Type: application/json');
-				echo json_encode(['success' => false, 'message' => "Marks must be between 0 and {$maxMarks}"]);
-				return;
+			// For English and Kiswahili, marks are already percentages (0-100)
+			// For Gramma, Compo, Lugha, Insha, keep as raw marks (no conversion)
+			// For other subjects, convert to percentage
+			if ($subject === 'English' || $subject === 'Kiswahili') {
+				// These are calculated percentages, validate against 100
+				if ($marks < 0 || $marks > 100) {
+					http_response_code(400);
+					header('Content-Type: application/json');
+					echo json_encode(['success' => false, 'message' => "Percentage must be between 0 and 100"]);
+					return;
+				}
+				// Marks are already percentages, don't convert
+				$percentage = $marks;
+			} else if ($subject === 'Gramma' || $subject === 'Compo' || $subject === 'Lugha' || $subject === 'Insha') {
+				// Component subjects - keep as raw marks, no conversion
+				if ($marks < 0 || $marks > $maxMarks) {
+					http_response_code(400);
+					header('Content-Type: application/json');
+					echo json_encode(['success' => false, 'message' => "Marks must be between 0 and {$maxMarks}"]);
+					return;
+				}
+				// Store as raw marks, no percentage conversion
+				$percentage = $marks;
+			} else {
+				// Other subjects - convert to percentage
+				if ($marks < 0 || $marks > $maxMarks) {
+					http_response_code(400);
+					header('Content-Type: application/json');
+					echo json_encode(['success' => false, 'message' => "Marks must be between 0 and {$maxMarks}"]);
+					return;
+				}
+				// Convert marks to percentage
+				$percentage = ($marks / $maxMarks) * 100;
 			}
-
-			// Convert marks to percentage (following the working logic)
-			$percentage = ($marks / $maxMarks) * 100;
 
 			// Get student_id from student_classes table
 			$studentClass = $this->db->get('student_classes', ['student_id'], [
@@ -236,6 +258,65 @@ class SubjectController
 			http_response_code(500);
 			header('Content-Type: application/json');
 			echo json_encode(['success' => false, 'message' => 'Failed to update marks', 'error' => $e->getMessage()]);
+		}
+	}
+
+	/**
+	 * GET /subjects/marks-out-of
+	 * Get the marks out of for a specific subject in an exam
+	 */
+	public function getMarksOutOf(): void
+	{
+		$this->startSession();
+
+		// Check authentication
+		if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
+			http_response_code(401);
+			header('Content-Type: application/json');
+			echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+			return;
+		}
+
+		$subject = $_GET['subject'] ?? null;
+		$examId = $_GET['exam_id'] ?? null;
+
+		if (!$subject || !$examId) {
+			http_response_code(400);
+			header('Content-Type: application/json');
+			echo json_encode(['success' => false, 'message' => 'Subject and exam ID are required']);
+			return;
+		}
+
+		try {
+			// Get marks out of for this subject and exam
+			$marksOutOf = $this->db->get('marks_out_of', ['marks_out_of'], [
+				'exam_id' => intval($examId),
+				'subject' => $subject
+			]);
+
+			if ($marksOutOf) {
+				header('Content-Type: application/json');
+				echo json_encode([
+					'success' => true,
+					'subject' => $subject,
+					'exam_id' => intval($examId),
+					'marks_out_of' => intval($marksOutOf['marks_out_of'])
+				]);
+			} else {
+				// Return default value if not set
+				header('Content-Type: application/json');
+				echo json_encode([
+					'success' => true,
+					'subject' => $subject,
+					'exam_id' => intval($examId),
+					'marks_out_of' => 100
+				]);
+			}
+
+		} catch (\Exception $e) {
+			http_response_code(500);
+			header('Content-Type: application/json');
+			echo json_encode(['success' => false, 'message' => 'Failed to get marks out of', 'error' => $e->getMessage()]);
 		}
 	}
 
@@ -311,7 +392,7 @@ class SubjectController
 		} catch (\Exception $e) {
 			http_response_code(500);
 			header('Content-Type: application/json');
-			echo json_encode(['success' => false, 'message' => 'Failed to set marks out of']);
+			echo json_encode(['success' => false, 'message' => 'Failed to set marks out of', 'error' => $e->getMessage()]);
 		}
 	}
 
@@ -321,7 +402,8 @@ class SubjectController
 	private function recalculateTotalMarks(int $studentClassId, int $examId): void
 	{
 		try {
-			$subjects = ['English', 'Math', 'Kiswahili', 'Creative', 'Integrated_science', 'AgricNutri', 'SST', 'CRE', 'SciTech'];
+			// New subjects that replace English and Kiswahili
+			$subjects = ['Gramma', 'Compo', 'Lugha', 'Insha', 'Math', 'Creative', 'Integrated_science', 'AgricNutri', 'SST', 'CRE', 'SciTech'];
 
 			$examResult = $this->db->get('exam_results', '*', [
 				'student_class_id' => $studentClassId,
@@ -335,7 +417,27 @@ class SubjectController
 			$totalMarks = 0;
 			$subjectCount = 0;
 
-			foreach ($subjects as $subject) {
+			// Calculate English = Gramma + Compo
+			$grammaMarks = isset($examResult['Gramma']) && $examResult['Gramma'] !== null ? floatval($examResult['Gramma']) : 0;
+			$compoMarks = isset($examResult['Compo']) && $examResult['Compo'] !== null ? floatval($examResult['Compo']) : 0;
+			$englishTotal = $grammaMarks + $compoMarks;
+			if ($englishTotal > 0) {
+				$totalMarks += $englishTotal;
+				$subjectCount++;
+			}
+
+			// Calculate Kiswahili = Lugha + Insha
+			$lughaMarks = isset($examResult['Lugha']) && $examResult['Lugha'] !== null ? floatval($examResult['Lugha']) : 0;
+			$inshaMarks = isset($examResult['Insha']) && $examResult['Insha'] !== null ? floatval($examResult['Insha']) : 0;
+			$kiswahiliTotal = $lughaMarks + $inshaMarks;
+			if ($kiswahiliTotal > 0) {
+				$totalMarks += $kiswahiliTotal;
+				$subjectCount++;
+			}
+
+			// Add other subjects
+			$otherSubjects = ['Math', 'Creative', 'Integrated_science', 'AgricNutri', 'SST', 'CRE', 'SciTech'];
+			foreach ($otherSubjects as $subject) {
 				if (isset($examResult[$subject]) && $examResult[$subject] !== null) {
 					$totalMarks += floatval($examResult[$subject]);
 					$subjectCount++;

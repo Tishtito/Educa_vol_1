@@ -19,6 +19,7 @@ return function (RouteCollector $r): void {
 
     // Subject routes
     $r->addRoute('GET', '/subjects/marks', 'SubjectController@getMarks');
+    $r->addRoute('GET', '/subjects/marks-out-of', 'SubjectController@getMarksOutOf');
     $r->addRoute('POST', '/subjects/marks/update', 'SubjectController@updateMarks');
     $r->addRoute('POST', '/subjects/marks-out-of', 'SubjectController@setMarksOutOf');
 

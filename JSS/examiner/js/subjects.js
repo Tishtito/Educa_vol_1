@@ -46,6 +46,12 @@ let currentSubjectName = null;
 let currentClassName = null;
 let currentExamId = null;
 
+// Paper marks out of (for component subjects)
+let paper1EnglishOutOf = 0;
+let paper2EnglishOutOf = 0;
+let paper1KiswahiliOutOf = 0;
+let paper2KiswahiliOutOf = 0;
+
 // ========================================
 // DOM ELEMENTS
 // ========================================
@@ -57,6 +63,11 @@ const successMessage = document.getElementById('successMessage');
 const studentTableBody = document.getElementById('studentTableBody');
 const marksOutOfInput = document.getElementById('marksOutOf');
 const setMarksBtn = document.getElementById('setMarksBtn');
+const regularMarksOutOfSection = document.getElementById('regularMarksOutOfSection');
+const paperMarksOutOfSection = document.getElementById('paperMarksOutOfSection');
+const paper1OutOfInput = document.getElementById('paper1OutOf');
+const paper2OutOfInput = document.getElementById('paper2OutOf');
+const setPaperBtn = document.getElementById('setPaperBtn');
 
 // ========================================
 // INITIALIZATION
@@ -173,6 +184,35 @@ function displayStudents(data) {
     const heading = document.querySelector('.heading');
     if (heading && data.subject_name) {
         heading.textContent = `Subject Marks Management - ${data.subject_name}`;
+        currentSubjectName = data.subject_name;
+    }
+    
+    // Show/hide appropriate marks-out-of section based on subject
+    const isEnglish = data.subject_name === 'English';
+    const isKiswahili = data.subject_name === 'Kiswahili';
+    
+    if (isEnglish || isKiswahili) {
+        regularMarksOutOfSection.style.display = 'none';
+        paperMarksOutOfSection.style.display = 'block';
+        
+        // Load saved paper marks out of values from localStorage
+        const savedPaper1 = localStorage.getItem(`paper1OutOf_${data.subject_name}`);
+        const savedPaper2 = localStorage.getItem(`paper2OutOf_${data.subject_name}`);
+        
+        if (savedPaper1) paper1OutOfInput.value = savedPaper1;
+        if (savedPaper2) paper2OutOfInput.value = savedPaper2;
+        
+        // Load component marks-out-of from API
+        loadComponentMarksOutOf(data.subject_name);
+    } else {
+        regularMarksOutOfSection.style.display = 'block';
+        paperMarksOutOfSection.style.display = 'none';
+        
+        // Load saved regular marks out of value
+        const savedMarksOutOf = localStorage.getItem('marksOutOf');
+        if (savedMarksOutOf) {
+            marksOutOfInput.value = savedMarksOutOf;
+        }
     }
 
     data.students.forEach(student => {
@@ -212,29 +252,142 @@ function displayStudents(data) {
 }
 
 // ========================================
+// LOAD COMPONENT MARKS OUT OF
+// ========================================
+async function loadComponentMarksOutOf(subject) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/subjects/marks-out-of?subject=${encodeURIComponent(subject)}`, {
+            credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.marks_out_of) {
+            if (subject === 'English') {
+                paper1EnglishOutOf = data.marks_out_of.Paper1;
+                paper2EnglishOutOf = data.marks_out_of.Paper2;
+            } else if (subject === 'Kiswahili') {
+                paper1KiswahiliOutOf = data.marks_out_of.Paper1;
+                paper2KiswahiliOutOf = data.marks_out_of.Paper2;
+            }
+        }
+    } catch (error) {
+        console.error('Error loading component marks out of:', error);
+    }
+}
+
+// ========================================
 // MODAL MANAGEMENT
 // ========================================
 const editMarksModal = new bootstrap.Modal(document.getElementById('editMarksModal'));
 const editMarksForm = document.getElementById('editMarksForm');
 
 window.openEditModal = function(studentId, studentClassId, studentName, currentMarks) {
-    // Check if marks out of is set
-    const marksOutOf = marksOutOfInput.value;
-    if (!marksOutOf) {
-        swal({
-            title: 'Warning!',
-            text: 'Please set the "Marks Out Of" value first.',
-            icon: 'warning',
-            button: 'OK'
-        });
-        return;
-    }
-    
     document.getElementById('modalStudentId').value = studentId;
     document.getElementById('modalStudentClassId').value = studentClassId;
     document.getElementById('modalStudentName').value = studentName;
-    document.getElementById('modalMarksInput').value = currentMarks === 0 ? '' : currentMarks;
-    document.getElementById('modalMarksOutOf').textContent = marksOutOf;
+    
+    // Show/hide input groups based on current subject
+    const isEnglish = currentSubjectName === 'English';
+    const isKiswahili = currentSubjectName === 'Kiswahili';
+    
+    document.getElementById('regularSubjectInputGroup').style.display = isEnglish || isKiswahili ? 'none' : 'block';
+    document.getElementById('englishInputGroup').style.display = isEnglish ? 'block' : 'none';
+    document.getElementById('kiswahiliInputGroup').style.display = isKiswahili ? 'block' : 'none';
+    
+    if (isEnglish) {
+        // Check if paper marks out of are set in input fields
+        const paper1Value = paper1OutOfInput.value.trim();
+        const paper2Value = paper2OutOfInput.value.trim();
+        
+        // Require explicit values from input fields - don't fall back to API/state values
+        if (!paper1Value || !paper2Value) {
+            swal({
+                title: 'Warning!',
+                text: 'Please set both Paper 1 and Paper 2 marks out of values first.',
+                icon: 'warning',
+                button: 'OK'
+            });
+            return;
+        }
+        
+        const paper1OutOf = parseInt(paper1Value);
+        const paper2OutOf = parseInt(paper2Value);
+        
+        if (isNaN(paper1OutOf) || paper1OutOf <= 0 || isNaN(paper2OutOf) || paper2OutOf <= 0) {
+            swal({
+                title: 'Error!',
+                text: 'Paper marks must be valid numbers greater than 0.',
+                icon: 'error',
+                button: 'OK'
+            });
+            return;
+        }
+        
+        document.getElementById('paper1EnglishMarks').value = '';
+        document.getElementById('paper2EnglishMarks').value = '';
+        document.getElementById('englishTotalPercentage').textContent = '0%';
+        
+        document.getElementById('paper1EnglishOutOf').textContent = paper1OutOf;
+        document.getElementById('paper2EnglishOutOf').textContent = paper2OutOf;
+        
+        // Update state variables with validated values
+        paper1EnglishOutOf = parseInt(paper1OutOf);
+        paper2EnglishOutOf = parseInt(paper2OutOf);
+    } else if (isKiswahili) {
+        // Check if paper marks out of are set in input fields
+        const paper1Value = paper1OutOfInput.value.trim();
+        const paper2Value = paper2OutOfInput.value.trim();
+        
+        // Require explicit values from input fields - don't fall back to API/state values
+        if (!paper1Value || !paper2Value) {
+            swal({
+                title: 'Warning!',
+                text: 'Please set both Paper 1 and Paper 2 marks out of values first.',
+                icon: 'warning',
+                button: 'OK'
+            });
+            return;
+        }
+        
+        const paper1OutOf = parseInt(paper1Value);
+        const paper2OutOf = parseInt(paper2Value);
+        
+        if (isNaN(paper1OutOf) || paper1OutOf <= 0 || isNaN(paper2OutOf) || paper2OutOf <= 0) {
+            swal({
+                title: 'Error!',
+                text: 'Paper marks must be valid numbers greater than 0.',
+                icon: 'error',
+                button: 'OK'
+            });
+            return;
+        }
+        
+        document.getElementById('paper1KiswahiliMarks').value = '';
+        document.getElementById('paper2KiswahiliMarks').value = '';
+        document.getElementById('kiswahiliTotalPercentage').textContent = '0%';
+        
+        document.getElementById('paper1KiswahiliOutOf').textContent = paper1OutOf;
+        document.getElementById('paper2KiswahiliOutOf').textContent = paper2OutOf;
+        
+        // Update state variables with validated values
+        paper1KiswahiliOutOf = parseInt(paper1OutOf);
+        paper2KiswahiliOutOf = parseInt(paper2OutOf);
+    } else {
+        const marksOutOf = marksOutOfInput.value;
+        if (!marksOutOf) {
+            swal({
+                title: 'Warning!',
+                text: 'Please set the "Marks Out Of" value first.',
+                icon: 'warning',
+                button: 'OK'
+            });
+            return;
+        }
+        document.getElementById('modalMarksInput').value = currentMarks === 0 ? '' : currentMarks;
+        document.getElementById('modalMarksOutOf').textContent = marksOutOf;
+    }
+    
     editMarksModal.show();
 };
 
@@ -242,30 +395,128 @@ editMarksForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const studentId = parseInt(document.getElementById('modalStudentId').value);
     const studentClassId = parseInt(document.getElementById('modalStudentClassId').value);
-    const marks = parseInt(document.getElementById('modalMarksInput').value);
-
-    if (isNaN(marks) || marks < 0) {
+    
+    const isEnglish = currentSubjectName === 'English';
+    const isKiswahili = currentSubjectName === 'Kiswahili';
+    
+    let marks = 0;
+    let marksOutOf = 100;
+    
+    if (isEnglish) {
+        const paper1 = parseInt(document.getElementById('paper1EnglishMarks').value) || 0;
+        const paper2 = parseInt(document.getElementById('paper2EnglishMarks').value) || 0;
+        
+        if (paper1 < 0 || paper2 < 0) {
+            swal({
+                title: 'Error!',
+                text: 'Please enter valid marks.',
+                icon: 'error',
+                button: 'OK'
+            });
+            return;
+        }
+        
+        if (paper1 > paper1EnglishOutOf || paper2 > paper2EnglishOutOf) {
+            swal({
+                title: 'Error!',
+                text: `Paper 1 cannot exceed ${paper1EnglishOutOf}, Paper 2 cannot exceed ${paper2EnglishOutOf}.`,
+                icon: 'error',
+                button: 'OK'
+            });
+            return;
+        }
+        
+        await updatePaperMarks(studentId, studentClassId, 'English', paper1, paper1EnglishOutOf, 'Paper1');
+        await updatePaperMarks(studentId, studentClassId, 'English', paper2, paper2EnglishOutOf, 'Paper2');
+        
+        const totalMarks = paper1 + paper2;
+        const totalOutOf = paper1EnglishOutOf + paper2EnglishOutOf;
+        const percentage = totalOutOf > 0 ? Math.round((totalMarks / totalOutOf) * 100) : 0;
+        await updatePaperMarks(studentId, studentClassId, 'English', percentage, 100, 'Total');
+        
+        // Update table display in real-time
+        document.getElementById(`marks-${studentId}`).textContent = percentage + '%';
+        
+        editMarksModal.hide();
         swal({
-            title: 'Error!',
-            text: 'Please enter a valid mark.',
-            icon: 'error',
+            title: 'Success!',
+            text: `Marks updated successfully (Paper1: ${paper1}/${paper1EnglishOutOf}, Paper2: ${paper2}/${paper2EnglishOutOf} = ${percentage}%)`,
+            icon: 'success',
             button: 'OK'
         });
         return;
-    }
-
-    const marksOutOf = marksOutOfInput.value || 100;
-    if (marks > marksOutOf) {
+        
+    } else if (isKiswahili) {
+        const paper1 = parseInt(document.getElementById('paper1KiswahiliMarks').value) || 0;
+        const paper2 = parseInt(document.getElementById('paper2KiswahiliMarks').value) || 0;
+        
+        if (paper1 < 0 || paper2 < 0) {
+            swal({
+                title: 'Error!',
+                text: 'Please enter valid marks.',
+                icon: 'error',
+                button: 'OK'
+            });
+            return;
+        }
+        
+        if (paper1 > paper1KiswahiliOutOf || paper2 > paper2KiswahiliOutOf) {
+            swal({
+                title: 'Error!',
+                text: `Paper 1 cannot exceed ${paper1KiswahiliOutOf}, Paper 2 cannot exceed ${paper2KiswahiliOutOf}.`,
+                icon: 'error',
+                button: 'OK'
+            });
+            return;
+        }
+        
+        await updatePaperMarks(studentId, studentClassId, 'Kiswahili', paper1, paper1KiswahiliOutOf, 'Paper1');
+        await updatePaperMarks(studentId, studentClassId, 'Kiswahili', paper2, paper2KiswahiliOutOf, 'Paper2');
+        
+        const totalMarks = paper1 + paper2;
+        const totalOutOf = paper1KiswahiliOutOf + paper2KiswahiliOutOf;
+        const percentage = totalOutOf > 0 ? Math.round((totalMarks / totalOutOf) * 100) : 0;
+        await updatePaperMarks(studentId, studentClassId, 'Kiswahili', percentage, 100, 'Total');
+        
+        // Update table display in real-time
+        document.getElementById(`marks-${studentId}`).textContent = percentage + '%';
+        
+        editMarksModal.hide();
         swal({
-            title: 'Error!',
-            text: `Marks cannot exceed ${marksOutOf}.`,
-            icon: 'error',
+            title: 'Success!',
+            text: `Marks updated successfully (Paper1: ${paper1}/${paper1KiswahiliOutOf}, Paper2: ${paper2}/${paper2KiswahiliOutOf} = ${percentage}%)`,
+            icon: 'success',
             button: 'OK'
         });
         return;
+        
+    } else {
+        marks = parseInt(document.getElementById('modalMarksInput').value);
+        
+        if (isNaN(marks) || marks < 0) {
+            swal({
+                title: 'Error!',
+                text: 'Please enter a valid mark.',
+                icon: 'error',
+                button: 'OK'
+            });
+            return;
+        }
+        
+        const marksOutOfValue = marksOutOfInput.value || 100;
+        if (marks > marksOutOfValue) {
+            swal({
+                title: 'Error!',
+                text: `Marks cannot exceed ${marksOutOfValue}.`,
+                icon: 'error',
+                button: 'OK'
+            });
+            return;
+        }
+        
+        await updateMarks(studentId, studentClassId, subjectId, marks);
     }
-
-    await updateMarks(studentId, studentClassId, subjectId, marks);
+    
     editMarksModal.hide();
 });
 
@@ -325,6 +576,71 @@ async function updateMarks(studentId, studentClassId, subjectId, marks) {
 }
 
 // ========================================
+// UPDATE PAPER MARKS (for component subjects)
+// ========================================
+async function updatePaperMarks(studentId, studentClassId, subject, marks, marksOutOf, paperType) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/subjects/students/marks`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                student_id: studentId,
+                student_class_id: studentClassId,
+                subject: subject,
+                marks: marks,
+                marks_out_of: marksOutOf,
+                paper_type: paperType
+            })
+        });
+
+        const data = await response.json();
+        
+        if (!data.success) {
+            console.error('Error updating paper marks:', data.message);
+        }
+    } catch (error) {
+        console.error('Error updating paper marks:', error);
+    }
+}
+
+// ========================================
+// PERCENTAGE CALCULATION
+// ========================================
+function calculateEnglishTotal() {
+    const paper1 = parseInt(document.getElementById('paper1EnglishMarks').value) || 0;
+    const paper2 = parseInt(document.getElementById('paper2EnglishMarks').value) || 0;
+    const totalOutOf = paper1EnglishOutOf + paper2EnglishOutOf;
+    const totalMarks = paper1 + paper2;
+    const percentage = totalOutOf > 0 ? Math.round((totalMarks / totalOutOf) * 100) : 0;
+    document.getElementById('englishTotalPercentage').textContent = percentage + '%';
+}
+
+function calculateKiswahiliTotal() {
+    const paper1 = parseInt(document.getElementById('paper1KiswahiliMarks').value) || 0;
+    const paper2 = parseInt(document.getElementById('paper2KiswahiliMarks').value) || 0;
+    const totalOutOf = paper1KiswahiliOutOf + paper2KiswahiliOutOf;
+    const totalMarks = paper1 + paper2;
+    const percentage = totalOutOf > 0 ? Math.round((totalMarks / totalOutOf) * 100) : 0;
+    document.getElementById('kiswahiliTotalPercentage').textContent = percentage + '%';
+}
+
+// Add event listeners for real-time calculation
+document.addEventListener('DOMContentLoaded', () => {
+    const paper1EnglishInput = document.getElementById('paper1EnglishMarks');
+    const paper2EnglishInput = document.getElementById('paper2EnglishMarks');
+    const paper1KiswahiliInput = document.getElementById('paper1KiswahiliMarks');
+    const paper2KiswahiliInput = document.getElementById('paper2KiswahiliMarks');
+    
+    if (paper1EnglishInput) paper1EnglishInput.addEventListener('input', calculateEnglishTotal);
+    if (paper2EnglishInput) paper2EnglishInput.addEventListener('input', calculateEnglishTotal);
+    if (paper1KiswahiliInput) paper1KiswahiliInput.addEventListener('input', calculateKiswahiliTotal);
+    if (paper2KiswahiliInput) paper2KiswahiliInput.addEventListener('input', calculateKiswahiliTotal);
+});
+
+// ========================================
 // SET MARKS OUT OF
 // ========================================
 setMarksBtn.addEventListener('click', () => {
@@ -349,6 +665,44 @@ setMarksBtn.addEventListener('click', () => {
         button: 'OK'
     });
     // Keep the value in the input field
+});
+
+// ========================================
+// SET PAPER MARKS OUT OF
+// ========================================
+setPaperBtn.addEventListener('click', () => {
+    const paper1OutOf = paper1OutOfInput.value;
+    const paper2OutOf = paper2OutOfInput.value;
+
+    if (!paper1OutOf || !paper2OutOf) {
+        swal({
+            title: 'Error!',
+            text: 'Please enter values for both Paper 1 and Paper 2.',
+            icon: 'error',
+            button: 'OK'
+        });
+        return;
+    }
+
+    // Store in localStorage
+    localStorage.setItem(`paper1OutOf_${currentSubjectName}`, paper1OutOf);
+    localStorage.setItem(`paper2OutOf_${currentSubjectName}`, paper2OutOf);
+    
+    // Update state variables
+    if (currentSubjectName === 'English') {
+        paper1EnglishOutOf = parseInt(paper1OutOf);
+        paper2EnglishOutOf = parseInt(paper2OutOf);
+    } else if (currentSubjectName === 'Kiswahili') {
+        paper1KiswahiliOutOf = parseInt(paper1OutOf);
+        paper2KiswahiliOutOf = parseInt(paper2OutOf);
+    }
+    
+    swal({
+        title: 'Success!',
+        text: `Paper marks set: Paper 1 = ${paper1OutOf}, Paper 2 = ${paper2OutOf}`,
+        icon: 'success',
+        button: 'OK'
+    });
 });
 
 // ========================================
