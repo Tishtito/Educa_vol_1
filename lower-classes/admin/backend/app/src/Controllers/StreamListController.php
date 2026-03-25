@@ -71,49 +71,35 @@ class StreamListController
 			return;
 		}
 
-		$examName = $this->db->get('exams', 'exam_name', ['exam_id' => $examId]);
-		if (!$examName) {
-			http_response_code(404);
-			header('Content-Type: application/json');
-			echo json_encode(['success' => false, 'message' => 'Exam not found']);
-			return;
-		}
+		$payload = (function () use ($examId, $grade) {
+			$examName = $this->db->get('exams', 'exam_name', ['exam_id' => $examId]);
+			if (!$examName) {
+				return ['error' => 'Exam not found'];
+			}
 
-		$classes = [];
-		try {
-			$classNames = $this->db->select('classes', ['class_name'], [
-				'grade' => $grade,
-				'ORDER' => ['class_name' => 'ASC'],
-			]);
+			// Extract numeric part from grade if it starts with "grade_"
+			$gradeValue = $grade;
+			if (strpos($grade, 'grade_') === 0) {
+				$gradeValue = substr($grade, 6); // Remove "grade_" prefix
+			}
 
-			$classes = array_map(function ($row) {
-				return $row['class_name'];
-			}, $classNames ?: []);
-		} catch (\Throwable $e) {
+			$classes = [];
 			try {
 				$classNames = $this->db->select('classes', ['class_name'], [
-					'class_name[~]' => $grade . '%',
+					'grade' => $gradeValue,
 					'ORDER' => ['class_name' => 'ASC'],
 				]);
 
 				$classes = array_map(function ($row) {
 					return $row['class_name'];
 				}, $classNames ?: []);
-			} catch (\Throwable $fallbackError) {
+			} catch (\Throwable $e) {
 				error_log('[StreamListController] classes error: ' . $e->getMessage());
-				error_log('[StreamListController] classes fallback error: ' . $fallbackError->getMessage());
-				http_response_code(500);
-				header('Content-Type: application/json');
-				echo json_encode(['success' => false, 'message' => 'Failed to load classes']);
-				return;
+				return ['error' => 'Failed to load classes'];
 			}
-		}
 
-		if (empty($classes)) {
-			header('Content-Type: application/json');
-			echo json_encode([
-				'success' => true,
-				'data' => [
+			if (empty($classes)) {
+				return [
 					'exam_name' => $examName,
 					'grade' => $grade,
 					'subjects' => [],
@@ -122,40 +108,47 @@ class StreamListController
 					'total_mean' => 0,
 					'performance_levels' => [],
 					'classes' => [],
-				],
-			]);
-			return;
-		}
+				];
+			}
 
-		$subjects = ['Math', 'English', 'Kiswahili', 'Enviromental', 'Creative', 'Religious'];
+			$subjectInformation = [
+				'Math' => 'Math',
+				'LS/SP' => '`LS/SP`',
+				'RDG' => 'RDG',
+				'GRM' => 'GRM',
+				'WRI' => 'WRI',
+				'KUS/KUZ' => '`KUS/KUZ`',
+				'KUS' => 'KUS',
+				'LUG' => 'LUG',
+				'KUA' => 'KUA',
+				'Enviromental' => 'Enviromental',
+				'Creative' => 'Creative',
+				'Religious' => 'Religious'
+			];
 
-		$paramKeys = [];
-		$params = [':exam_id' => $examId];
-		foreach ($classes as $index => $className) {
-			$key = ':class_' . $index;
-			$paramKeys[] = $key;
-			$params[$key] = $className;
-		}
-		$placeholders = implode(',', $paramKeys);
-		$sql = "
-			SELECT 
-				students.student_id AS student_id, 
-				students.name AS Name, 
-				students.class AS Class, 
-				exam_results.Math, 
-				exam_results.English, 
-				exam_results.Kiswahili, 
-				exam_results.Enviromental, 
-				exam_results.Creative,
-				exam_results.Religious,
-				(
-					exam_results.Math + 
-					exam_results.English + 
-					exam_results.Kiswahili + 
-					exam_results.Enviromental + 
-					exam_results.Creative +
-					exam_results.Religious
-				) AS Total_marks
+			$subjects = array_keys($subjectInformation);
+
+			$paramKeys = [];
+			$params = [':exam_id' => $examId];
+			foreach ($classes as $index => $className) {
+				$key = ':class_' . $index;
+				$paramKeys[] = $key;
+				$params[$key] = $className;
+			}
+			$placeholders = implode(',', $paramKeys);
+
+			// Build SELECT clause with subject columns
+			$selectClauses = ['students.student_id AS student_id', 'students.name AS Name', 'students.class AS Class'];
+			$totalParts = [];
+			foreach ($subjectInformation as $displayName => $columnName) {
+				$aliasName = str_replace(['/', '-', ' '], '', $displayName);
+				$selectClauses[] = "exam_results." . $columnName . " AS " . $aliasName;
+				$totalParts[] = "COALESCE(exam_results." . $columnName . ", 0)";
+			}
+			$selectClauses[] = "(" . implode(" + ", $totalParts) . ") AS Total_marks";
+
+			$sql = "
+			SELECT " . implode(", ", $selectClauses) . "
 			FROM 
 				students
 			LEFT JOIN 
@@ -168,63 +161,67 @@ class StreamListController
 				Total_marks DESC
 		";
 
-		$stmt = $this->db->query($sql, $params);
-		$students = $stmt ? $stmt->fetchAll() : [];
+			$stmt = $this->db->query($sql, $params);
+			$students = $stmt ? $stmt->fetchAll() : [];
 
-		$validStudents = 0;
-		$subjectTotals = array_fill_keys($subjects, 0);
-		$totalValidMarks = 0;
+			// Map aliases back to display names
+			$subjectAliasMap = [];
+			foreach ($subjectInformation as $displayName => $columnName) {
+				$aliasName = str_replace(['/', '-', ' '], '', $displayName);
+				$subjectAliasMap[$displayName] = $aliasName;
+			}
 
-		foreach ($students as $index => &$student) {
-			$rank = $index + 1;
-			$student['rank'] = $rank;
-			$totalMarks = isset($student['Total_marks']) ? (int)$student['Total_marks'] : 0;
-			$student['Total_marks'] = $totalMarks;
+			$validStudents = 0;
+			$subjectTotals = array_fill_keys($subjects, 0);
+			$totalValidMarks = 0;
 
-			$allSubjectsFilled = true;
-			foreach ($subjectTotals as $subject => &$total) {
-				if ($student[$subject] === null) {
-					$allSubjectsFilled = false;
-				} else {
-					$total += (float)$student[$subject];
+			foreach ($students as $index => &$student) {
+				$rank = $index + 1;
+				$student['rank'] = $rank;
+				$totalMarks = isset($student['Total_marks']) ? (int)$student['Total_marks'] : 0;
+				$student['Total_marks'] = $totalMarks;
+
+				$allSubjectsFilled = true;
+				foreach ($subjects as $displayName) {
+					$aliasName = $subjectAliasMap[$displayName];
+					if (!isset($student[$aliasName]) || $student[$aliasName] === null) {
+						$allSubjectsFilled = false;
+					} else {
+						$subjectTotals[$displayName] += (float)$student[$aliasName];
+					}
 				}
+
+				if ($allSubjectsFilled) {
+					$validStudents++;
+					$totalValidMarks += $totalMarks;
+				}
+
+				$this->db->update('exam_results', [
+					'total_marks' => $totalMarks,
+					'stream_position' => $rank,
+				], [
+					'student_id' => $student['student_id'],
+					'exam_id' => $examId,
+				]);
 			}
-			unset($total);
+			unset($student);
 
-			if ($allSubjectsFilled) {
-				$validStudents++;
-				$totalValidMarks += $totalMarks;
+			$meanScores = [];
+			if ($validStudents > 0) {
+				foreach ($subjects as $displayName) {
+					$meanScores[$displayName] = round($subjectTotals[$displayName] / $validStudents, 2);
+				}
+				$meanTotalMarks = round($totalValidMarks / $validStudents, 2);
+			} else {
+				foreach ($subjects as $displayName) {
+					$meanScores[$displayName] = 0;
+				}
+				$meanTotalMarks = 0;
 			}
 
-			$this->db->update('exam_results', [
-				'total_marks' => $totalMarks,
-				'stream_position' => $rank,
-			], [
-				'student_id' => $student['student_id'],
-				'exam_id' => $examId,
-			]);
-		}
-		unset($student);
+			$plRows = $this->db->select('point_boundaries', ['min_marks', 'max_marks', 'ab']);
 
-		$meanScores = [];
-		if ($validStudents > 0) {
-			foreach ($subjectTotals as $subject => $total) {
-				$meanScores[$subject] = round($total / $validStudents, 2);
-			}
-			$meanTotalMarks = round($totalValidMarks / $validStudents, 2);
-		} else {
-			foreach ($subjectTotals as $subject => $total) {
-				$meanScores[$subject] = 0;
-			}
-			$meanTotalMarks = 0;
-		}
-
-		$plRows = $this->db->select('point_boundaries', ['min_marks', 'max_marks', 'ab']);
-
-		header('Content-Type: application/json');
-		echo json_encode([
-			'success' => true,
-			'data' => [
+			return [
 				'exam_name' => $examName,
 				'grade' => $grade,
 				'subjects' => $subjects,
@@ -232,7 +229,20 @@ class StreamListController
 				'mean_scores' => $meanScores,
 				'total_mean' => $meanTotalMarks,
 				'performance_levels' => $plRows,
-			],
+			];
+		})();
+		
+		if (isset($payload['error'])) {
+			http_response_code(500);
+			header('Content-Type: application/json');
+			echo json_encode(['success' => false, 'message' => $payload['error']]);
+			return;
+		}
+
+		header('Content-Type: application/json');
+		echo json_encode([
+			'success' => true,
+			'data' => $payload,
 		]);
 	}
 }

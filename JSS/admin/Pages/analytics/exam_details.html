@@ -63,50 +63,7 @@
 
     <script src="../../js/index.js"></script>
     <script src="../../js/load-sidebar.js"></script>
-    <script>
-        (async function () {
-            const baseUrl = "../../backend/public/index.php";
-            const params = new URLSearchParams(window.location.search);
-            const examId = params.get("exam_id");
-            const token = params.get("token");
-
-            try {
-                const authRes = await fetch(`${baseUrl}/auth/check`, { credentials: "include" });
-                const auth = await authRes.json();
-                if (!auth.authenticated) {
-                    window.location.replace("../login.html");
-                    return;
-                }
-
-                if (!examId || !token) {
-                    console.error("Exam ID not provided");
-                    return;
-                }
-
-                const gradesRes = await fetch(`${baseUrl}/analysis/grades?exam_id=${encodeURIComponent(examId)}&token=${encodeURIComponent(token)}`, { credentials: "include" });
-                const grades = await gradesRes.json();
-                if (grades.success) {
-                    const list = document.getElementById("grades-list");
-                    list.innerHTML = "";
-                    grades.data.forEach((grade) => {
-                        const link = document.createElement("a");
-                        link.href = `mark_list.html?exam_id=${encodeURIComponent(examId)}&grade=${encodeURIComponent(grade.grade)}&token=${encodeURIComponent(grade.token)}`;
-                        link.innerHTML = `
-                            <li>
-                                <i class='bx bx-show-alt'></i>
-                                <span class="info-2">
-                                    <p>${grade.grade}</p>
-                                </span>
-                            </li>
-                        `;
-                        list.appendChild(link);
-                    });
-                }
-            } catch (error) {
-                console.error("Exam details load failed", error);
-            }
-        })();
-    </script>
+    <script src="../../js/analytics/exam_details.js"></script>
 </body>
 
 </html>

@@ -80,7 +80,7 @@ class MssController
 			$sql = "
 				SELECT 
 					(SUM(COALESCE(English, 0) + COALESCE(Math, 0) + COALESCE(Kiswahili, 0) + 
-					COALESCE(Creative, 0) + COALESCE(CRE, 0) + COALESCE(AgricNutri, 0) + COALESCE(SST, 0) + COALESCE(SciTech, 0) + COALESCE(Integrated_science, 0)) / NULLIF(COUNT(exam_results.student_id), 0)) AS MeanScore 
+					COALESCE(Creative, 0) + COALESCE(CRE, 0) + COALESCE(AgricNutri, 0) + COALESCE(SST, 0) + COALESCE(SciTech, 0)) / NULLIF(COUNT(exam_results.student_id), 0)) AS MeanScore 
 				FROM exam_results
 				INNER JOIN students ON exam_results.student_id = students.student_id
 				WHERE students.class = :grade AND exam_results.exam_id = :exam_id

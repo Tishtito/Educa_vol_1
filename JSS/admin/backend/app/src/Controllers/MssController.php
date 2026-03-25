@@ -69,43 +69,47 @@ class MssController
 			return;
 		}
 
-		$grades = $this->db->select('students', ['class'], [
-			'GROUP' => 'class',
-			'ORDER' => ['class' => 'ASC'],
-		]);
-
-		$mssList = [];
-		foreach ($grades as $gradeRow) {
-			$grade = (string)$gradeRow['class'];
-			$sql = "
-				SELECT 
-					(SUM(COALESCE(English, 0) + COALESCE(Math, 0) + COALESCE(Kiswahili, 0) + 
-					COALESCE(Creative, 0) + COALESCE(Religious, 0) + COALESCE(Agriculture, 0) + COALESCE(SST, 0) + COALESCE(Technical, 0) + COALESCE(Science, 0)) / NULLIF(COUNT(exam_results.student_id), 0)) AS MeanScore 
-				FROM exam_results
-				INNER JOIN students ON exam_results.student_id = students.student_id
-				WHERE students.class = :grade AND exam_results.exam_id = :exam_id
-			";
-
-			$stmt = $this->db->query($sql, [
-				':grade' => $grade,
-				':exam_id' => $examId,
+		$mssList = (function () use ($examId) {
+			$grades = $this->db->select('students', ['class'], [
+				'GROUP' => 'class',
+				'ORDER' => ['class' => 'ASC'],
 			]);
 
-			$row = $stmt ? $stmt->fetch() : null;
-			$meanScore = 0.0;
-			if ($row && isset($row['MeanScore']) && $row['MeanScore'] !== null) {
-				$meanScore = round((float)$row['MeanScore'], 2);
+			$mssList = [];
+			foreach ($grades as $gradeRow) {
+				$grade = (string)$gradeRow['class'];
+				$sql = "
+					SELECT 
+						(SUM(COALESCE(English, 0) + COALESCE(Math, 0) + COALESCE(Kiswahili, 0) + 
+						COALESCE(Creative, 0) + COALESCE(Religious, 0) + COALESCE(Agriculture, 0) + COALESCE(SST, 0) + COALESCE(Technical, 0) + COALESCE(Science, 0)) / NULLIF(COUNT(exam_results.student_id), 0)) AS MeanScore 
+					FROM exam_results
+					INNER JOIN students ON exam_results.student_id = students.student_id
+					WHERE students.class = :grade AND exam_results.exam_id = :exam_id
+				";
+
+				$stmt = $this->db->query($sql, [
+					':grade' => $grade,
+					':exam_id' => $examId,
+				]);
+
+				$row = $stmt ? $stmt->fetch() : null;
+				$meanScore = 0.0;
+				if ($row && isset($row['MeanScore']) && $row['MeanScore'] !== null) {
+					$meanScore = round((float)$row['MeanScore'], 2);
+				}
+
+				$mssList[] = [
+					'grade' => ucfirst($grade),
+					'mean' => $meanScore,
+				];
 			}
 
-			$mssList[] = [
-				'grade' => ucfirst($grade),
-				'mean' => $meanScore,
-			];
-		}
+			usort($mssList, function ($a, $b) {
+				return $b['mean'] <=> $a['mean'];
+			});
 
-		usort($mssList, function ($a, $b) {
-			return $b['mean'] <=> $a['mean'];
-		});
+			return $mssList;
+		})();
 
 		header('Content-Type: application/json');
 		echo json_encode([

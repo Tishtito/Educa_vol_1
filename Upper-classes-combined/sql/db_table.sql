@@ -40,7 +40,7 @@ CREATE TABLE exams (
     term ENUM('Term 1', 'Term 2', 'Term 3'),
     academic_year YEAR NOT NULL,  -- Added for clarity
     status ENUM('Scheduled', 'Completed', 'Cancelled') DEFAULT 'Scheduled',
-    date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at datetime,
     deleted_at datetime
 );
@@ -74,14 +74,17 @@ CREATE TABLE exam_results (
     student_id INT NOT NULL,
     student_class_id INT NOT NULL,
     Math INT,
+    Gramma INT,
+    Compo INT,
     English INT,
+    Lugha INT,
+    Insha INT,
     Kiswahili INT,
     SciTech INT,
     AgricNutri INT,
     Creative INT,
     CRE INT,
     SST INT,
-    CA, SST, CRE INT,
     total_marks INT,
     position INT,
     stream_position INT,
@@ -101,14 +104,15 @@ CREATE TABLE subjects (
 INSERT INTO subjects(name)
 VALUES
 ('Math'),
-('English'),
-('Kiswahili'),
-('creative'),
-('science and technology'),
-('agriculture and nutrition'),
-('social studies'),
-('CRE'),
-('CA, SST, CRE');
+('Gramma'),
+('Compo'),
+('Lugha'),
+('Insha'),
+('Creative'),
+('SciTech'),
+('AgricNutri'),
+('SST'),
+('CRE');
 
 CREATE TABLE examiner_subjects (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -143,9 +147,13 @@ CREATE TABLE exam_mean_scores (
     id INT AUTO_INCREMENT PRIMARY KEY,
     exam_id INT NOT NULL,
     class VARCHAR(50) NOT NULL,
+    Gramma FLOAT DEFAULT NULL,
+    Compo FLOAT DEFAULT NULL,
     English FLOAT DEFAULT NULL,
-    Math FLOAT DEFAULT NULL,
+    Lugha FLOAT DEFAULT NULL,
+    Insha FLOAT DEFAULT NULL,
     Kiswahili FLOAT DEFAULT NULL,
+    Math FLOAT DEFAULT NULL,
     Creative FLOAT DEFAULT NULL,
     SciTech FLOAT DEFAULT NULL,
     AgricNutri FLOAT DEFAULT NULL,

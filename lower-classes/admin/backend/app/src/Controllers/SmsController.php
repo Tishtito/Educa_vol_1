@@ -59,14 +59,33 @@ class SmsController
                 return;
             }
 
-                $subjects = ['Math', 'English', 'Kiswahili', 'Enviromental', 'Creative', 'Religious'];
-                $subjectSelect = implode(', ', array_map(fn($subject) => "er.$subject", $subjects));
-                $totalCalc = implode(' + ', array_map(fn($subject) => "COALESCE(er.$subject, 0)", $subjects));
+            // Map display names to SQL column names with proper escaping
+            $subjectInformation = [
+                'Math' => 'Math',
+                'LS/SP' => '`LS/SP`',
+                'RDG' => 'RDG',
+                'GRM' => 'GRM',
+                'WRI' => 'WRI',
+                'KUS/KUZ' => '`KUS/KUZ`',
+                'KUS' => 'KUS',
+                'LUG' => 'LUG',
+                'KUA' => 'KUA',
+                'Enviromental' => 'Enviromental',
+                'Creative' => 'Creative',
+                'Religious' => 'Religious'
+            ];
 
-                $sql = "SELECT s.student_id, s.name AS student_name, s.class, er.exam_id,
-                    er.total_marks, er.position,
-                    er.Math, er.English, er.Kiswahili, er.Enviromental, er.Creative, er.Religious,
-                    (er.Math + er.English + er.Kiswahili + er.Enviromental + er.Creative + er.Religious) AS computed_total
+            // Build SELECT clause with aliased columns
+            $selectClauses = ['s.student_id', 's.name AS student_name', 's.class', 'er.exam_id', 'er.total_marks', 'er.position'];
+            $totalParts = [];
+            foreach ($subjectInformation as $displayName => $columnName) {
+                $aliasName = str_replace(['/', '-', ' '], '', $displayName);
+                $selectClauses[] = "er." . $columnName . " AS " . $aliasName;
+                $totalParts[] = "COALESCE(er." . $columnName . ", 0)";
+            }
+            $selectClauses[] = "(" . implode(" + ", $totalParts) . ") AS computed_total";
+
+            $sql = "SELECT " . implode(", ", $selectClauses) . "
                     FROM students s
                     LEFT JOIN exam_results er ON s.student_id = er.student_id AND er.exam_id = :exam_id
                     WHERE s.class = :class AND s.deleted_at IS NULL
@@ -78,27 +97,35 @@ class SmsController
             ]);
             $rows = $stmt ? $stmt->fetchAll() : [];
 
+            // Map aliases back to display names
+            $subjectAliasMap = [];
+            foreach ($subjectInformation as $displayName => $columnName) {
+                $aliasName = str_replace(['/', '-', ' '], '', $displayName);
+                $subjectAliasMap[$displayName] = $aliasName;
+            }
+
             $data = [];
             $rank = 1;
             foreach ($rows as $row) {
                 $total = (int)($row['computed_total'] ?? 0);
                 $position = $rank;
 
-                $data[] = [
+                $record = [
                     'student_id' => (int)($row['student_id'] ?? 0),
                     'student_name' => $row['student_name'] ?? '',
                     'class' => $row['class'] ?? '',
                     'exam_id' => (int)($row['exam_id'] ?? $examId),
                     'total_marks' => $total,
                     'position' => $position,
-                    'Math' => $row['Math'] ?? null,
-                    'English' => $row['English'] ?? null,
-                    'Kiswahili' => $row['Kiswahili'] ?? null,
-                    'Enviromental' => $row['Enviromental'] ?? null,
-                    'Creative' => $row['Creative'] ?? null,
-                    'Religious' => $row['Religious'] ?? null,
                 ];
 
+                // Add all subject marks
+                foreach ($subjectInformation as $displayName => $columnName) {
+                    $aliasName = $subjectAliasMap[$displayName];
+                    $record[$displayName] = $row[$aliasName] ?? null;
+                }
+
+                $data[] = $record;
                 $rank++;
             }
 

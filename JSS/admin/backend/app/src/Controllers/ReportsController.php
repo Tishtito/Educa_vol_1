@@ -65,20 +65,23 @@ class ReportsController
 		}
 
 		try {
-			$rows = $this->db->select('exams', ['exam_id', 'exam_name', 'exam_type'], [
-				'exam_type' => $type,
-				'ORDER' => ['date_created' => 'DESC'],
-			]);
+			$sessionKey = session_id();
+			$data = (function () use ($type) {
+				$rows = $this->db->select('exams', ['exam_id', 'exam_name', 'exam_type'], [
+					'exam_type' => $type,
+					'ORDER' => ['date_created' => 'DESC'],
+				]);
 
-			$data = array_map(function ($row) {
-				$examId = (int)$row['exam_id'];
-				return [
-					'exam_id' => $examId,
-					'exam_name' => $row['exam_name'],
-					'exam_type' => $row['exam_type'],
-					'token' => $this->makeToken('exam:' . $examId),
-				];
-			}, $rows ?: []);
+				return array_map(function ($row) {
+					$examId = (int)$row['exam_id'];
+					return [
+						'exam_id' => $examId,
+						'exam_name' => $row['exam_name'],
+						'exam_type' => $row['exam_type'],
+						'token' => $this->makeToken('exam:' . $examId),
+					];
+				}, $rows ?: []);
+			})();
 
 			header('Content-Type: application/json');
 			echo json_encode([
@@ -109,15 +112,18 @@ class ReportsController
 		}
 
 		try {
-			$stmt = $this->db->query("SELECT DISTINCT class FROM students ORDER BY class ASC");
-			$rows = $stmt ? $stmt->fetchAll() : [];
-			$grades = array_map(fn($row) => $row['class'], $rows);
-			$data = array_map(function ($grade) use ($examId) {
-				return [
-					'grade' => $grade,
-					'token' => $this->makeToken('exam:' . $examId . '|grade:' . $grade),
-				];
-			}, $grades);
+			$sessionKey = session_id();
+			$data = (function () use ($examId) {
+				$stmt = $this->db->query("SELECT DISTINCT class FROM students ORDER BY class ASC");
+				$rows = $stmt ? $stmt->fetchAll() : [];
+				$grades = array_map(fn($row) => $row['class'], $rows);
+				return array_map(function ($grade) use ($examId) {
+					return [
+						'grade' => $grade,
+						'token' => $this->makeToken('exam:' . $examId . '|grade:' . $grade),
+					];
+				}, $grades);
+			})();
 
 			header('Content-Type: application/json');
 			echo json_encode([
@@ -156,9 +162,11 @@ class ReportsController
 		}
 
 		try {
-			$sql = "SELECT students.student_id, students.name, students.class FROM students INNER JOIN exam_results ON students.student_id = exam_results.student_id WHERE students.class = :grade AND exam_results.exam_id = :exam_id ORDER BY students.name ASC";
-			$stmt = $this->db->query($sql, [':grade' => $grade, ':exam_id' => $examId]);
-			$rows = $stmt ? $stmt->fetchAll() : [];
+			$rows = (function () use ($examId, $grade) {
+				$sql = "SELECT students.student_id, students.name, students.class FROM students INNER JOIN exam_results ON students.student_id = exam_results.student_id WHERE students.class = :grade AND exam_results.exam_id = :exam_id ORDER BY students.name ASC";
+				$stmt = $this->db->query($sql, [':grade' => $grade, ':exam_id' => $examId]);
+				return $stmt ? $stmt->fetchAll() : [];
+			})();
 
 			header('Content-Type: application/json');
 			echo json_encode([
@@ -408,6 +416,13 @@ class ReportsController
 				[':grade' => $grade, ':exam_id' => $examId]
 			)->fetchAll();
 
+			if (empty($students)) {
+				http_response_code(400);
+				header('Content-Type: application/json');
+				echo json_encode(['success' => false, 'message' => 'No students found for selected grade and exam']);
+				return;
+			}
+
 			$exam = $this->db->get('exams', ['term', 'date_created'], ['exam_id' => $examId]);
 			$term = $exam['term'] ?? '';
 			$examYear = isset($exam['date_created']) ? (int)date('Y', strtotime((string)$exam['date_created'])) : null;
@@ -417,12 +432,22 @@ class ReportsController
 
 			$rootPath = realpath(__DIR__ . '/../../../../');
 			$cssPath = $rootPath ? $rootPath . '/css/report.css' : null;
-			$css = ($cssPath && file_exists($cssPath)) ? file_get_contents($cssPath) : '';
+			$css = '';
+			if (!$cssPath || !file_exists($cssPath)) {
+				throw new \Exception("CSS file not found at: " . ($cssPath ?? 'unknown path'));
+			}
+			$css = file_get_contents($cssPath);
+			if ($css === false) {
+				throw new \Exception("Failed to read CSS file");
+			}
 
 			$logoPath = $rootPath ? $rootPath . '/images/logo.png' : null;
 			$logoData = '';
 			if ($logoPath && file_exists($logoPath)) {
-				$logoData = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
+				$logoContent = file_get_contents($logoPath);
+				if ($logoContent !== false) {
+					$logoData = 'data:image/png;base64,' . base64_encode($logoContent);
+				}
 			}
 
 			$combinedHtml = '<!DOCTYPE html><html><head><style>' . $css . '</style><style>' .
@@ -466,8 +491,7 @@ class ReportsController
 			$options->set('defaultFont', 'Helvetica');
 			$options->set('tempDir', sys_get_temp_dir());
 			$options->set('fontCache', sys_get_temp_dir());
-			$options->set('logOutputFile', sys_get_temp_dir() . '/dompdf.log');
-
+			
 			$dompdf = new Dompdf($options);
 			$dompdf->loadHtml($combinedHtml);
 			$dompdf->setPaper('A4', 'portrait');
@@ -475,15 +499,23 @@ class ReportsController
 
 			$filename = 'Class_Reports_Grade_' . str_replace(' ', '_', $grade) . '_Exam_' . $examId . '.pdf';
 			$pdfOutput = $dompdf->output();
+			
+			if (empty($pdfOutput)) {
+				throw new \Exception("PDF output is empty");
+			}
+
 			header('Content-Type: application/pdf');
 			header('Content-Disposition: attachment; filename="' . $filename . '"');
 			header('Content-Length: ' . strlen($pdfOutput));
+			header('Cache-Control: no-cache, no-store, must-revalidate');
+			header('Pragma: no-cache');
+			header('Expires: 0');
 			echo $pdfOutput;
 		} catch (\Throwable $e) {
-			error_log('[ReportsController] download error: ' . $e->getMessage());
+			error_log('[ReportsController] download error: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
 			http_response_code(500);
 			header('Content-Type: application/json');
-			echo json_encode(['success' => false, 'message' => 'Failed to generate PDF']);
+			echo json_encode(['success' => false, 'message' => 'Failed to generate PDF: ' . $e->getMessage()]);
 		}
 	}
 

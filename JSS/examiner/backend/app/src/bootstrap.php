@@ -7,16 +7,50 @@ ini_set('log_errors', '1');
 
 $logDir = __DIR__ . '/../../logs';
 $logFile = $logDir . '/php_errors.log';
+
+// Ensure logs directory exists with proper permissions
 if (!is_dir($logDir)) {
-    @mkdir($logDir, 0775, true);
+    mkdir($logDir, 0777, true);
 }
+
+// Ensure log file exists and is writable
 if (!file_exists($logFile)) {
-    @file_put_contents($logFile, "");
+    file_put_contents($logFile, "");
+    chmod($logFile, 0666);
+} else {
+    // Make sure existing file is writable
+    chmod($logFile, 0666);
+}
+
+// Verify directory is writable
+if (!is_writable($logDir)) {
+    chmod($logDir, 0777);
 }
 
 ini_set('error_log', $logFile);
 error_reporting(E_ALL);
 date_default_timezone_set('Africa/Nairobi');
+
+// Helper function for direct file logging since error_log() isn't reliable with ini_set()
+function customLog($message) {
+    global $logFile;
+    $entry = sprintf("[%s] %s\n", date('c'), $message);
+    file_put_contents($logFile, $entry, FILE_APPEND | LOCK_EX);
+}
+
+// Wrap the built-in error_log function to use our custom log file
+if (function_exists('error_log')) {
+    $originalErrorLog = 'error_log';
+    // Since we can't wrap built-in functions, we'll override it in the DashboardController
+} else {
+    // Fallback if error_log doesn't exist (shouldn't happen)
+    function error_log($message, $message_type = 0, $destination = null) {
+        customLog($message);
+    }
+}
+
+// TEST: Verify logging is working
+// customLog('[BOOTSTRAP] Bootstrap initialized. Log system active.');
 
 set_error_handler(function ($severity, $message, $file, $line) use ($logFile) {
     $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
@@ -32,7 +66,7 @@ set_error_handler(function ($severity, $message, $file, $line) use ($logFile) {
         );
     }
     $entry = sprintf("[%s] PHP Error (%s) %s in %s:%d%s\n", date('c'), $severity, $message, $file, $line, $originText);
-    @file_put_contents($logFile, $entry, FILE_APPEND);
+    file_put_contents($logFile, $entry, FILE_APPEND | LOCK_EX);
     return false;
 });
 
@@ -46,10 +80,9 @@ set_exception_handler(function ($exception) use ($logFile) {
         $exception->getLine(),
         $exception->getTraceAsString()
     );
-    @file_put_contents($logFile, $entry, FILE_APPEND);
+    file_put_contents($logFile, $entry, FILE_APPEND | LOCK_EX);
     http_response_code(500);
     header('Content-Type: application/json');
-    // echo json_encode(['success' => false, 'message' => 'Server error']);
     echo json_encode([
         'success' => false, 
         'message' => $exception->getMessage(),
@@ -57,6 +90,7 @@ set_exception_handler(function ($exception) use ($logFile) {
         'file' => $exception->getFile(),
         'line' => $exception->getLine()
     ]);
+    exit(1);
 });
 
 

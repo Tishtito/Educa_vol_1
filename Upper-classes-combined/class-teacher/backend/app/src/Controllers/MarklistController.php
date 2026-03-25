@@ -56,22 +56,26 @@ class MarklistController
                 SELECT 
                     s.student_id, 
                     s.name AS Name, 
-                    er.Math, 
-                    (SELECT ab FROM point_boundaries WHERE er.Math BETWEEN min_marks AND max_marks LIMIT 1) AS PL_Math,
+                    er.Gramma,
+                    er.Compo,
                     er.English, 
-                    (SELECT ab FROM point_boundaries WHERE er.English BETWEEN min_marks AND max_marks LIMIT 1) AS PL_English,
+                    (SELECT ab FROM point_boundaries WHERE er.English BETWEEN min_marks AND max_marks ORDER BY min_marks DESC LIMIT 1) AS PL_English,
+                    er.Lugha,
+                    er.Insha,
                     er.Kiswahili, 
-                    (SELECT ab FROM point_boundaries WHERE er.Kiswahili BETWEEN min_marks AND max_marks LIMIT 1) AS PL_Kiswahili,
+                    (SELECT ab FROM point_boundaries WHERE er.Kiswahili BETWEEN min_marks AND max_marks ORDER BY min_marks DESC LIMIT 1) AS PL_Kiswahili,
+                    er.Math, 
+                    (SELECT ab FROM point_boundaries WHERE er.Math BETWEEN min_marks AND max_marks ORDER BY min_marks DESC LIMIT 1) AS PL_Math,
                     er.SciTech, 
-                    (SELECT ab FROM point_boundaries WHERE er.SciTech BETWEEN min_marks AND max_marks LIMIT 1) AS PL_SciTech,
+                    (SELECT ab FROM point_boundaries WHERE er.SciTech BETWEEN min_marks AND max_marks ORDER BY min_marks DESC LIMIT 1) AS PL_SciTech,
                     er.AgricNutri, 
-                    (SELECT ab FROM point_boundaries WHERE er.AgricNutri BETWEEN min_marks AND max_marks LIMIT 1) AS PL_AgricNutri,
+                    (SELECT ab FROM point_boundaries WHERE er.AgricNutri BETWEEN min_marks AND max_marks ORDER BY min_marks DESC LIMIT 1) AS PL_AgricNutri,
                     er.Creative, 
-                    (SELECT ab FROM point_boundaries WHERE er.Creative BETWEEN min_marks AND max_marks LIMIT 1) AS PL_Creative,
+                    (SELECT ab FROM point_boundaries WHERE er.Creative BETWEEN min_marks AND max_marks ORDER BY min_marks DESC LIMIT 1) AS PL_Creative,
                     er.CRE, 
-                    (SELECT ab FROM point_boundaries WHERE er.CRE BETWEEN min_marks AND max_marks LIMIT 1) AS PL_CRE,
+                    (SELECT ab FROM point_boundaries WHERE er.CRE BETWEEN min_marks AND max_marks ORDER BY min_marks DESC LIMIT 1) AS PL_CRE,
                     er.SST, 
-                    (SELECT ab FROM point_boundaries WHERE er.SST BETWEEN min_marks AND max_marks LIMIT 1) AS PL_SST,
+                    (SELECT ab FROM point_boundaries WHERE er.SST BETWEEN min_marks AND max_marks ORDER BY min_marks DESC LIMIT 1) AS PL_SST,
                     er.total_marks,
                     er.position
                 FROM 
@@ -88,7 +92,7 @@ class MarklistController
             $students = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
             // Calculate mean scores
-            $subjects = ['Math', 'English', 'Kiswahili', 'SciTech', 'AgricNutri', 'Creative', 'CRE', 'SST'];
+            $subjects = ['English', 'Kiswahili', 'Math', 'SciTech', 'AgricNutri', 'Creative', 'CRE', 'SST'];
             $subjectTotals = [];
             $subjectCounts = [];
             $totalScore = 0;
@@ -127,6 +131,7 @@ class MarklistController
                 'success' => true,
                 'students' => $students,
                 'subjects' => $subjects,
+                'component_subjects' => ['English', 'Kiswahili'],
                 'subjectMeans' => $subjectMeans,
                 'totalMean' => $totalMean,
                 'previousMeans' => $prevMeans,

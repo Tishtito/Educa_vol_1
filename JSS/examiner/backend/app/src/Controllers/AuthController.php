@@ -15,6 +15,19 @@ class AuthController
 		$this->db = $db;
 	}
 
+	private function log(string $message): void
+	{
+		$logDir = __DIR__ . '/../../../logs';
+		$logFile = $logDir . '/php_errors.log';
+		
+		if (!is_dir($logDir)) {
+			mkdir($logDir, 0777, true);
+		}
+		
+		$entry = sprintf("[%s] %s\n", date('c'), $message);
+		file_put_contents($logFile, $entry, FILE_APPEND | LOCK_EX);
+	}
+
 	public function login(): void
 	{
 		if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -36,7 +49,7 @@ class AuthController
 
 		if ($username === '' || $password === '') {
 			$this->clearSession();
-			error_log('[AUTH] Empty username or password');
+			$this->log('[AUTH] Empty username or password');
 			http_response_code(400);
 			echo json_encode(['success' => false, 'message' => 'Username and password are required']);
 			return;
@@ -50,7 +63,7 @@ class AuthController
 		
 		if (!$validPassword) {
 			$this->clearSession();
-			error_log('[AUTH] Invalid credentials for username=' . $username . ' examinerFound=' . ($hasExaminer ? '1' : '0'));
+			$this->log('[AUTH] Invalid credentials for username=' . $username . ' examinerFound=' . ($hasExaminer ? '1' : '0'));
 			http_response_code(401);
 			echo json_encode(['success' => false, 'message' => 'Invalid username or password']);
 			return;
@@ -61,9 +74,29 @@ class AuthController
 		$_SESSION['id'] = $examiner['examiner_id'];
 		$_SESSION['username'] = $examiner['username'];
 		$_SESSION['name'] = $examiner['name'];
-		error_log('[AUTH] Login success username=' . $examiner['username']);
+		$this->log('[AUTH] Login success username=' . $examiner['username']);
 
 		echo json_encode(['success' => true, 'message' => 'Login successful']);
+	}
+
+	public function getClasses(): void
+	{
+		header('Content-Type: application/json');
+		
+		try {
+			$classes = $this->db->select('classes', ['class_id', 'class_name']);
+			echo json_encode([
+				'success' => true,
+				'classes' => $classes ?? []
+			]);
+		} catch (\Exception $e) {
+			$this->log('[AUTH] Error fetching classes: ' . $e->getMessage());
+			http_response_code(500);
+			echo json_encode([
+				'success' => false,
+				'message' => 'Failed to load classes'
+			]);
+		}
 	}
 
 	public function check(): void

@@ -622,6 +622,21 @@ section{
    margin-top: 2rem;
 }
 
+/* Clickable Card Styles */
+.box-link {
+   text-decoration: none;
+   color: inherit;
+   display: flex;
+   flex-direction: column;
+   cursor: pointer;
+   transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.box-link:hover {
+   transform: translateY(-5px);
+   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
 .courses .details .flex p{
    flex: 1 1 20rem;
    border-radius: .5rem;

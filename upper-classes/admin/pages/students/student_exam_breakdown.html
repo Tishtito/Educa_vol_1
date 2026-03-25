@@ -5,7 +5,7 @@
     <title>Exam Breakdown</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/Educa_vol_1/upper-classes/admin/css/style.css">
+    <link rel="stylesheet" href="../../css/style.css">
 </head>
 
 <body>
@@ -27,7 +27,7 @@
             </div>
         </form>
         <a href="#" class="profile">
-                <img src="/Educa_vol_1/upper-classes/admin/images/logo.png">
+                <img src="../../images/logo.png">
         </a>
     </nav>
 
@@ -94,82 +94,9 @@
     </main>
 </div>
 
-    <script src="/Educa_vol_1/upper-classes/admin/js/index.js"></script>
-    <script src="/Educa_vol_1/upper-classes/admin/js/load-sidebar.js"></script>
-<script>
-    (async function () {
-        const baseUrl = "/Educa_vol_1/upper-classes/admin/backend/public/index.php";
-        const params = new URLSearchParams(window.location.search);
-        const resultId = params.get('result_id') || '';
-
-        if (!resultId || !resultId.match(/^\d+$/)) {
-            document.getElementById('subjects-body').innerHTML = '<tr><td colspan="2" style="text-align:center;">Invalid result ID.</td></tr>';
-            return;
-        }
-
-        try {
-            const authRes = await fetch(`${baseUrl}/auth/check`, { credentials: "include" });
-            const auth = await authRes.json();
-            if (!auth.authenticated) {
-                window.location.replace("/Educa_vol_1/upper-classes/admin/Pages/login.html");
-                return;
-            }
-
-            const detailRes = await fetch(`${baseUrl}/students/result-detail?result_id=${encodeURIComponent(resultId)}`, { credentials: "include" });
-            const detail = await detailRes.json();
-            if (!detail.success) {
-                document.getElementById('subjects-body').innerHTML = '<tr><td colspan="2" style="text-align:center;">Exam result not found.</td></tr>';
-                return;
-            }
-
-            const data = detail.data;
-            document.getElementById('student-name').textContent = data.student_name ?? '-';
-            document.getElementById('student-class').textContent = data.student_class ?? '-';
-            document.getElementById('exam-name').textContent = data.exam_name ?? 'N/A';
-            document.getElementById('breadcrumb-exam').textContent = data.exam_name ?? 'Exam';
-
-            const createdAt = data.created_at ? new Date(data.created_at) : null;
-            const dateText = createdAt ? createdAt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
-            document.getElementById('exam-date').textContent = dateText;
-
-            const subjects = [
-                { key: 'Math', label: 'Math' },
-                { key: 'English', label: 'English' },
-                { key: 'Kiswahili', label: 'Kiswahili' },
-                { key: 'Technical', label: 'Technical' },
-                { key: 'Agriculture', label: 'Agriculture' },
-                { key: 'Creative', label: 'Creative' },
-                { key: 'Religious', label: 'Religious' },
-                { key: 'SST', label: 'SST' },
-                { key: 'Science', label: 'Science' }
-            ];
-
-            const body = document.getElementById('subjects-body');
-            body.innerHTML = '';
-            subjects.forEach((subject) => {
-                const value = data[subject.key];
-                if (value !== null && value !== undefined) {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${subject.label}</td>
-                        <td>${value}</td>
-                    `;
-                    body.appendChild(row);
-                }
-            });
-
-            if (body.children.length === 0) {
-                body.innerHTML = '<tr><td colspan="2" style="text-align:center;">No subject marks found.</td></tr>';
-            }
-
-            document.getElementById('total-marks').textContent = data.total_marks ?? '-';
-            document.getElementById('position').textContent = data.position ?? '-';
-            document.getElementById('stream-position').textContent = data.stream_position ?? '-';
-        } catch (error) {
-            console.error('Failed to load exam breakdown', error);
-        }
-    })();
-</script>
+    <script src="../../js/index.js"></script>
+    <script src="../../js/load-sidebar.js"></script>
+    <script src="../../js/students/student_exam_breakdown.js"></script>
 </body>
 </html>
 

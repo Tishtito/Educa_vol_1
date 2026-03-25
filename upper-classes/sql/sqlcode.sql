@@ -28,7 +28,7 @@ CREATE TABLE exams (
     term ENUM('Term 1', 'Term 2', 'Term 3'),
     academic_year YEAR NOT NULL,
     status ENUM('Scheduled', 'Completed', 'Cancelled') DEFAULT 'Scheduled',
-    date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at datetime,
     deleted_at datetime
 );
@@ -69,7 +69,6 @@ CREATE TABLE exam_results (
     Creative INT,
     CRE INT,
     SST INT,
-    Integrated_science INT,
     CA_SST_CRE INT,
     total_marks INT,
     position INT,
@@ -92,6 +91,21 @@ CREATE TABLE examiners (
     deleted_at datetime
 );
 
+CREATE TABLE examiner_subject_classes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    examiner_id INT NOT NULL,
+    subject_id INT NOT NULL,
+    class_id INT NOT NULL,
+    assigned_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_at datetime,
+    updated_at datetime,
+    deleted_at datetime,
+    FOREIGN KEY (examiner_id) REFERENCES examiners(examiner_id) ON DELETE CASCADE,
+    FOREIGN KEY (subject_id) REFERENCES subjects(subject_id) ON DELETE CASCADE,
+    FOREIGN KEY (class_id) REFERENCES classes(class_id) ON DELETE CASCADE,
+    UNIQUE (examiner_id, subject_id, class_id)
+);
+
 CREATE TABLE subjects (
     subject_id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL
@@ -107,20 +121,9 @@ VALUES
 ('agriculture and nutrition'),
 ('social studies'),
 ('CRE'),
-('Integrated Science'),
 ('CA, SST, CRE');
 
-CREATE TABLE examiner_subjects (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    examiner_id INT NOT NULL,
-    subject_id INT NOT NULL,
-    created_at datetime,
-    updated_at datetime,
-    deleted_at datetime,
-    FOREIGN KEY (examiner_id) REFERENCES examiners(examiner_id) ON DELETE CASCADE,
-    FOREIGN KEY (subject_id) REFERENCES subjects(subject_id) ON DELETE CASCADE,
-    UNIQUE (examiner_id, subject_id)         -- Ensure no duplicate assignments
-);
+
 
 CREATE TABLE classes (
     class_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -129,14 +132,6 @@ CREATE TABLE classes (
     year YEAR
 );
 
-CREATE TABLE examiner_classes (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    examiner_id INT NOT NULL,
-    class_id INT NOT NULL,
-    assigned_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (examiner_id) REFERENCES examiners(examiner_id) ON DELETE CASCADE,
-    FOREIGN KEY (class_id) REFERENCES classes(class_id) ON DELETE CASCADE
-);
 
 CREATE TABLE class_teachers (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -161,7 +156,6 @@ CREATE TABLE exam_mean_scores (
     AgricNutri FLOAT DEFAULT NULL,
     SST FLOAT DEFAULT NULL,
     CRE FLOAT DEFAULT NULL,
-    Integrated_science FLOAT DEFAULT NULL,
     CA_SST_CRE FLOAT DEFAULT NULL,
     total_mean FLOAT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

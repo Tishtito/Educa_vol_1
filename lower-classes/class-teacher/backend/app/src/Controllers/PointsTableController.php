@@ -49,8 +49,14 @@ class PointsTableController
                     students.student_id AS student_id,
                     students.name AS Name,
                     COALESCE(exam_results.Math, 0) AS Math,
-                    COALESCE(exam_results.English, 0) AS English,
-                    COALESCE(exam_results.Kiswahili, 0) AS Kiswahili,
+                    COALESCE(exam_results.`LS/SP`, 0) AS `LS/SP`,
+                    COALESCE(exam_results.RDG, 0) AS RDG,
+                    COALESCE(exam_results.GRM, 0) AS GRM,
+                    COALESCE(exam_results.WRI, 0) AS WRI,
+                    COALESCE(exam_results.`KUS/KUZ`, 0) AS `KUS/KUZ`,
+                    COALESCE(exam_results.KUS, 0) AS KUS,
+                    COALESCE(exam_results.LUG, 0) AS LUG,
+                    COALESCE(exam_results.KUA, 0) AS KUA,
                     COALESCE(exam_results.Enviromental, 0) AS Enviromental,
                     COALESCE(exam_results.Creative, 0) AS Creative,
                     COALESCE(exam_results.Religious, 0) AS Religious
@@ -70,7 +76,7 @@ class PointsTableController
             $students = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
             // Calculate grades for each student's marks
-            $subjects = ['Math', 'English', 'Kiswahili', 'Enviromental', 'Creative', 'Religious'];
+            $subjects = ['Math', 'LS/SP', 'RDG', 'GRM', 'WRI', 'KUS/KUZ', 'KUS', 'LUG', 'KUA', 'Enviromental', 'Creative', 'Religious'];
             $gradeCounts = []; // Track count of each grade abbreviation
 
             foreach ($students as &$student) {

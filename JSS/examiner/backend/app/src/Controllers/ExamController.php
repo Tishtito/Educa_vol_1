@@ -15,6 +15,19 @@ class ExamController
         $this->db = $db;
     }
 
+    private function log(string $message): void
+    {
+        $logDir = __DIR__ . '/../../../logs';
+        $logFile = $logDir . '/php_errors.log';
+        
+        if (!is_dir($logDir)) {
+            mkdir($logDir, 0777, true);
+        }
+        
+        $entry = sprintf("[%s] %s\n", date('c'), $message);
+        file_put_contents($logFile, $entry, FILE_APPEND | LOCK_EX);
+    }
+
     // GET /exams - list all scheduled exams
     public function getExams(): void
     {

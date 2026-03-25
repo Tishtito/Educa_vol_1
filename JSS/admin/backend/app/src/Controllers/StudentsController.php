@@ -38,29 +38,33 @@ class StudentsController
 		}
 
 		try {
-			$sql = "SELECT status, COUNT(*) AS total FROM students GROUP BY status";
-			$stmt = $this->db->query($sql);
-			$rows = $stmt ? $stmt->fetchAll() : [];
+			$data = (function () {
+				$sql = "SELECT status, COUNT(*) AS total FROM students GROUP BY status";
+				$stmt = $this->db->query($sql);
+				$rows = $stmt ? $stmt->fetchAll() : [];
 
-			$active = 0;
-			$finished = 0;
-			foreach ($rows as $row) {
-				$status = strtolower((string)($row['status'] ?? ''));
-				$total = (int)($row['total'] ?? 0);
-				if ($status === 'active') {
-					$active = $total;
-				} elseif ($status === 'finished') {
-					$finished = $total;
+				$active = 0;
+				$finished = 0;
+				foreach ($rows as $row) {
+					$status = strtolower((string)($row['status'] ?? ''));
+					$total = (int)($row['total'] ?? 0);
+					if ($status === 'active') {
+						$active = $total;
+					} elseif ($status === 'finished') {
+						$finished = $total;
+					}
 				}
-			}
+
+				return [
+					'active' => $active,
+					'finished' => $finished,
+				];
+			})();
 
 			header('Content-Type: application/json');
 			echo json_encode([
 				'success' => true,
-				'data' => [
-					'active' => $active,
-					'finished' => $finished,
-				],
+				'data' => $data,
 			]);
 		} catch (\Throwable $e) {
 			error_log('[StudentsController] summary error: ' . $e->getMessage());
@@ -77,10 +81,12 @@ class StudentsController
 		}
 
 		try {
-			$sql = "SELECT DISTINCT class FROM students WHERE status = 'Active' AND deleted_at IS NULL ORDER BY class ASC";
-			$stmt = $this->db->query($sql);
-			$rows = $stmt ? $stmt->fetchAll() : [];
-			$classes = array_map(fn($row) => $row['class'], $rows);
+			$classes = (function () {
+				$sql = "SELECT DISTINCT class FROM students WHERE status = 'Active' AND deleted_at IS NULL ORDER BY class ASC";
+				$stmt = $this->db->query($sql);
+				$rows = $stmt ? $stmt->fetchAll() : [];
+				return array_map(fn($row) => $row['class'], $rows);
+			})();
 
 			header('Content-Type: application/json');
 			echo json_encode([
@@ -110,9 +116,11 @@ class StudentsController
 		}
 
 		try {
-			$sql = "SELECT student_id, name, class, created_at FROM students WHERE status = 'Active' AND class = :class AND deleted_at IS NULL ORDER BY name ASC";
-			$stmt = $this->db->query($sql, [':class' => $class]);
-			$rows = $stmt ? $stmt->fetchAll() : [];
+			$rows = (function () use ($class) {
+				$sql = "SELECT student_id, name, class, created_at FROM students WHERE status = 'Active' AND class = :class AND deleted_at IS NULL ORDER BY name ASC";
+				$stmt = $this->db->query($sql, [':class' => $class]);
+				return $stmt ? $stmt->fetchAll() : [];
+			})();
 
 			header('Content-Type: application/json');
 			echo json_encode([
@@ -134,10 +142,12 @@ class StudentsController
 		}
 
 		try {
-			$sql = "SELECT DISTINCT YEAR(finished_at) AS finished_year FROM students WHERE status = 'Finished' AND updated_at IS NOT NULL ORDER BY finished_year DESC";
-			$stmt = $this->db->query($sql);
-			$rows = $stmt ? $stmt->fetchAll() : [];
-			$years = array_map(fn($row) => (int)$row['finished_year'], $rows);
+			$years = (function () {
+				$sql = "SELECT DISTINCT YEAR(finished_at) AS finished_year FROM students WHERE status = 'Finished' AND updated_at IS NOT NULL ORDER BY finished_year DESC";
+				$stmt = $this->db->query($sql);
+				$rows = $stmt ? $stmt->fetchAll() : [];
+				return array_map(fn($row) => (int)$row['finished_year'], $rows);
+			})();
 
 			header('Content-Type: application/json');
 			echo json_encode([
@@ -167,9 +177,13 @@ class StudentsController
 		}
 
 		try {
-			$sql = "SELECT student_id, name, class, finished_at FROM students WHERE status = 'Finished' AND YEAR(updated_at) = :year ORDER BY updated_at DESC";
-			$stmt = $this->db->query($sql, [':year' => (int)$year]);
-			$rows = $stmt ? $stmt->fetchAll() : [];
+			$rows = (function () use ($year) {
+				$start = $year . '-01-01 00:00:00';
+				$end = ((int)$year + 1) . '-01-01 00:00:00';
+				$sql = "SELECT student_id, name, class, finished_at FROM students WHERE status = 'Finished' AND updated_at >= :start AND updated_at < :end ORDER BY updated_at DESC";
+				$stmt = $this->db->query($sql, [':start' => $start, ':end' => $end]);
+				return $stmt ? $stmt->fetchAll() : [];
+			})();
 
 			header('Content-Type: application/json');
 			echo json_encode([
@@ -346,6 +360,61 @@ class StudentsController
 			http_response_code(500);
 			header('Content-Type: application/json');
 			echo json_encode(['success' => false, 'message' => 'Failed to load exam result']);
+		}
+	}
+
+	public function updateName(): void
+	{
+		if (!$this->requireAuth()) {
+			return;
+		}
+
+		$input = file_get_contents('php://input');
+		$data = json_decode($input, true);
+
+		$studentId = isset($data['student_id']) ? (int)$data['student_id'] : 0;
+		$name = isset($data['name']) ? trim((string)$data['name']) : '';
+
+		if ($studentId <= 0) {
+			http_response_code(400);
+			header('Content-Type: application/json');
+			echo json_encode(['success' => false, 'message' => 'Invalid student id']);
+			return;
+		}
+
+		if (empty($name)) {
+			http_response_code(400);
+			header('Content-Type: application/json');
+			echo json_encode(['success' => false, 'message' => 'Student name is required']);
+			return;
+		}
+
+		if (strlen($name) > 255) {
+			http_response_code(400);
+			header('Content-Type: application/json');
+			echo json_encode(['success' => false, 'message' => 'Student name is too long']);
+			return;
+		}
+
+		try {
+			$student = $this->db->get('students', 'student_id', ['student_id' => $studentId]);
+
+			if (!$student) {
+				http_response_code(404);
+				header('Content-Type: application/json');
+				echo json_encode(['success' => false, 'message' => 'Student not found']);
+				return;
+			}
+
+			$this->db->update('students', ['name' => $name], ['student_id' => $studentId]);
+
+			header('Content-Type: application/json');
+			echo json_encode(['success' => true, 'message' => 'Student name updated successfully']);
+		} catch (\Throwable $e) {
+			error_log('[StudentsController] updateName error: ' . $e->getMessage());
+			http_response_code(500);
+			header('Content-Type: application/json');
+			echo json_encode(['success' => false, 'message' => 'Failed to update student name']);
 		}
 	}
 }

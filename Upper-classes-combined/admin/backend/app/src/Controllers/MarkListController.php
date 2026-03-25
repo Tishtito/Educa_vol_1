@@ -84,11 +84,18 @@ class MarkListController
 			$tutor = 'Class teacher not found';
 		}
 
-		$subjects = ['English', 'Math', 'Kiswahili', 'Creative', 'SciTech', 'AgricNutri', 'SST', 'CRE'];
+		$subjects = ['Gramma', 'Compo', 'English', 'Lugha', 'Insha', 'Kiswahili', 'Math', 'Creative', 'SciTech', 'AgricNutri', 'SST', 'CRE'];
+		$componentSubjects = ['Gramma', 'Compo', 'Lugha', 'Insha'];
 
 		$sql = "SELECT s.student_id, s.name AS Name";
 		foreach ($subjects as $subject) {
-			$sql .= ", er.$subject, (SELECT ab FROM point_boundaries WHERE er.$subject BETWEEN min_marks AND max_marks LIMIT 1) AS PL_$subject";
+			$sql .= ", COALESCE(er.$subject, 0) AS `$subject`";
+			// Only add PL lookup for non-component subjects
+			if (!in_array($subject, $componentSubjects)) {
+				$sql .= ", (SELECT ab FROM point_boundaries WHERE COALESCE(er.$subject, 0) BETWEEN min_marks AND max_marks LIMIT 1) AS `PL_$subject`";
+			} else {
+				$sql .= ", NULL AS `PL_$subject`";
+			}
 		}
 		$sql .= ", (" . implode(" + ", array_map(fn($s) => "COALESCE(er.$s, 0)", $subjects)) . ") AS total_marks 
 			FROM students s
@@ -96,11 +103,45 @@ class MarkListController
 			WHERE s.class = :grade
 			ORDER BY total_marks DESC";
 
-		$stmt = $this->db->query($sql, [
-			':exam_id' => $examId,
-			':grade' => $grade,
-		]);
-		$students = $stmt ? $stmt->fetchAll() : [];
+		$students = [];
+		try {
+			$stmt = $this->db->query($sql, [
+				':exam_id' => $examId,
+				':grade' => $grade,
+			]);
+			$students = $stmt ? $stmt->fetchAll() : [];
+		} catch (\Exception $e) {
+			// If query fails due to missing columns, fall back to original subjects
+			$subjects = ['English', 'Math', 'Kiswahili', 'Creative', 'SciTech', 'AgricNutri', 'SST', 'CRE'];
+			$sql = "SELECT s.student_id, s.name AS Name";
+			foreach ($subjects as $subject) {
+				$sql .= ", COALESCE(er.$subject, 0) AS `$subject`, (SELECT ab FROM point_boundaries WHERE COALESCE(er.$subject, 0) BETWEEN min_marks AND max_marks LIMIT 1) AS `PL_$subject`";
+			}
+			$sql .= ", (" . implode(" + ", array_map(fn($s) => "COALESCE(er.$s, 0)", $subjects)) . ") AS total_marks 
+				FROM students s
+				LEFT JOIN exam_results er ON s.student_id = er.student_id AND er.exam_id = :exam_id
+				WHERE s.class = :grade
+				ORDER BY total_marks DESC";
+
+			try {
+				error_log("DEBUG: Attempting fallback query without component subjects");
+				$stmt = $this->db->query($sql, [
+					':exam_id' => $examId,
+					':grade' => $grade,
+				]);
+				$students = $stmt ? $stmt->fetchAll() : [];
+				error_log("DEBUG: Fallback query succeeded, students count: " . count($students));
+			} catch (\Exception $fallbackError) {
+				error_log("DEBUG: Fallback query also failed: " . $fallbackError->getMessage());
+				// If fallback also fails, return error response
+				http_response_code(500);
+				header('Content-Type: application/json');
+				echo json_encode(['success' => false, 'message' => 'Failed to load mark list: ' . $fallbackError->getMessage()]);
+				return;
+			}
+		}
+
+
 
 		$subjectTotals = array_fill_keys($subjects, 0);
 		$subjectCounts = array_fill_keys($subjects, 0);
@@ -125,7 +166,7 @@ class MarkListController
 			$student['rank'] = $rank;
 			$student['total_marks'] = $studentTotal;
 
-			$this->db->update('exam_results', [
+				$this->db->update('exam_results', [
 				'total_marks' => $studentTotal,
 				'position' => $rank,
 			], [
@@ -138,7 +179,12 @@ class MarkListController
 		unset($student);
 
 		$meanScores = [];
+		$componentSubjectsFilter = ['Gramma', 'Compo', 'Lugha', 'Insha'];
 		foreach ($subjects as $subject) {
+			// Skip component subjects when calculating mean scores for the database table
+			if (in_array($subject, $componentSubjectsFilter)) {
+				continue;
+			}
 			$count = $subjectCounts[$subject] ?? 0;
 			$total = $subjectTotals[$subject] ?? 0;
 			$meanScores[$subject] = $count > 0 ? round($total / $count, 2) : 0;

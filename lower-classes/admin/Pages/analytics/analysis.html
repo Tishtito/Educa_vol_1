@@ -84,59 +84,7 @@
     </div>
     <script src="../../js/index.js"></script>
     <script src="../../js/load-sidebar.js"></script>
-    <script>
-        (async function () {
-            const baseUrl = "../../backend/public/index.php";
-
-            try {
-                const authRes = await fetch(`${baseUrl}/auth/check`, { credentials: "include" });
-                const auth = await authRes.json();
-                if (!auth.authenticated) {
-                    window.location.replace("../login.html");
-                    return;
-                }
-
-                const examsRes = await fetch(`${baseUrl}/analysis/exams`, { credentials: "include" });
-                const exams = await examsRes.json();
-                if (exams.success) {
-                    const examList = document.getElementById("exam-marklists");
-                    const streamList = document.getElementById("stream-marklists");
-                    examList.innerHTML = "";
-                    streamList.innerHTML = "";
-
-                    exams.data.forEach((exam) => {
-                        const examLink = document.createElement("a");
-                        examLink.href = `exam_details.html?exam_id=${encodeURIComponent(exam.exam_id)}&token=${encodeURIComponent(exam.token)}`;
-                        examLink.innerHTML = `
-                            <li class="completed">
-                                <div class="task-title">
-                                    <i class='bx bx-book'></i>
-                                    <p>${exam.exam_name}<span></span></p>
-                                </div>
-                                <i class='bx bx-dots-vertical-rounded'></i>
-                            </li>
-                        `;
-                        examList.appendChild(examLink);
-
-                        const streamLink = document.createElement("a");
-                        streamLink.href = `stream_details.html?exam_id=${encodeURIComponent(exam.exam_id)}&token=${encodeURIComponent(exam.token)}`;
-                        streamLink.innerHTML = `
-                            <li class="completed">
-                                <div class="task-title">
-                                    <i class='bx bx-book'></i>
-                                    <p>${exam.exam_name}<span></span></p>
-                                </div>
-                                <i class='bx bx-dots-vertical-rounded'></i>
-                            </li>
-                        `;
-                        streamList.appendChild(streamLink);
-                    });
-                }
-            } catch (error) {
-                console.error("Analysis load failed", error);
-            }
-        })();
-    </script>
+    <script src="../../js/analytics/analysis.js"></script>
 </body>
 
 </html>

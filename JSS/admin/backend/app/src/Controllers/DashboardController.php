@@ -48,16 +48,17 @@ class DashboardController
 			return;
 		}
 
-		$totalStudents = (int)($this->db->count('students'));
-		$totalExaminers = (int)($this->db->count('examiners'));
+		$summary = (function () {
+			return [
+				'total_students' => (int)($this->db->count('students')),
+				'total_examiners' => (int)($this->db->count('examiners')),
+			];
+		})();
 
 		header('Content-Type: application/json');
 		echo json_encode([
 			'success' => true,
-			'data' => [
-				'total_students' => $totalStudents,
-				'total_examiners' => $totalExaminers,
-			],
+			'data' => $summary,
 		]);
 	}
 
@@ -82,10 +83,13 @@ class DashboardController
 				exams.exam_id
 			ORDER BY 
 				exams.date_created DESC
+			LIMIT 10
 		";
 
-		$stmt = $this->db->query($sql);
-		$rows = $stmt ? $stmt->fetchAll() : [];
+		$rows = (function () use ($sql) {
+			$stmt = $this->db->query($sql);
+			return $stmt ? $stmt->fetchAll() : [];
+		})();
 
 		header('Content-Type: application/json');
 		echo json_encode([
@@ -100,18 +104,21 @@ class DashboardController
 			return;
 		}
 
-		$rows = $this->db->select('exams', ['exam_id', 'exam_name'], [
-			'ORDER' => ['date_created' => 'DESC'],
-		]);
+		$sessionKey = session_id();
+		$data = (function () {
+			$rows = $this->db->select('exams', ['exam_id', 'exam_name'], [
+				'ORDER' => ['date_created' => 'DESC'],
+			]);
 
-		$data = array_map(function ($row) {
-			$examId = (int)$row['exam_id'];
-			return [
-				'exam_id' => $examId,
-				'exam_name' => $row['exam_name'],
-				'token' => $this->makeToken('exam:' . $examId),
-			];
-		}, $rows ?: []);
+			return array_map(function ($row) {
+				$examId = (int)$row['exam_id'];
+				return [
+					'exam_id' => $examId,
+					'exam_name' => $row['exam_name'],
+					'token' => $this->makeToken('exam:' . $examId),
+				];
+			}, $rows ?: []);
+		})();
 
 		header('Content-Type: application/json');
 		echo json_encode([
@@ -126,14 +133,16 @@ class DashboardController
 			return;
 		}
 
-		$rows = $this->db->select('students', ['class'], [
-			'GROUP' => 'class',
-			'ORDER' => ['class' => 'ASC'],
-		]);
+		$grades = (function () {
+			$rows = $this->db->select('students', ['class'], [
+				'GROUP' => 'class',
+				'ORDER' => ['class' => 'ASC'],
+			]);
 
-		$grades = array_map(function ($row) {
-			return $row['class'];
-		}, $rows ?: []);
+			return array_map(function ($row) {
+				return $row['class'];
+			}, $rows ?: []);
+		})();
 
 		header('Content-Type: application/json');
 		echo json_encode([

@@ -6,156 +6,42 @@
     <title>Subject Marks</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css">
     <link rel="stylesheet" href="../css/Tpanel.css">
-    <style>
-        .subject-selector {
-            margin: 20px 20px 0 20px;
-            padding: 20px 30px;
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .subject-selector label {
-            font-weight: 600;
-            color: white;
-            font-size: 16px;
-            letter-spacing: 0.5px;
-        }
-
-        .subject-selector select {
-            padding: 10px 15px;
-            border: 2px solid transparent;
-            border-radius: 6px;
-            font-size: 14px;
-            background-color: white;
-            color: #333;
-            cursor: pointer;
-            min-width: 250px;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            font-weight: 500;
-        }
-
-        .subject-selector select:hover {
-            border-color: #667eea;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-            transform: translateY(-2px);
-        }
-
-        .subject-selector select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
-        }
-
-        .subject-selector select option {
-            padding: 8px;
-            background-color: white;
-            color: #333;
-        }
-
-        @media (max-width: 768px) {
-            .subject-selector {
-                flex-direction: column;
-                padding: 15px 20px;
-            }
-
-            .subject-selector select {
-                min-width: 100%;
-            }
-        }
-
-        .marks-table {
-            margin: 20px;
-        }
-
-        .heading {
-            text-align: center;
-            margin: 30px 0 20px 0;
-            font-size: 28px;
-            color: var(--text-color);
-        }
-
-        .content-table {
-            width: 100%;
-            border-collapse: collapse;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-        }
-
-        .content-table thead tr {
-            background-color: #f2f2f2;
-        }
-
-        .content-table thead th {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: left;
-            font-weight: bold;
-        }
-
-        .content-table tbody td {
-            border: 1px solid #ddd;
-            padding: 12px;
-        }
-
-        .content-table tbody tr {
-            transition: background-color 0.3s ease;
-        }
-
-        .content-table tbody tr:hover {
-            background-color: #f9f9f9;
-        }
-
-        .content-table tbody tr:nth-of-type(even) {
-            background-color: #f9f9f9;
-        }
-
-        .box-container {
-            overflow-x: auto;
-        }
-
-        @media print {
-            .navbar, .header, .subject-selector {
-                display: none !important;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="../css/subjects.css">
+    <link rel="stylesheet" href="../css/sticky-footer.css">
+    <link rel="stylesheet" href="../css/responsive-navigation.css">
+    <link rel="stylesheet" href="../css/bottom-navigator.css">
 </head>
 <body>
 
 <div id="headerContainer"></div>
 <div id="sidebarContainer"></div>
 
-<div class="subject-selector">
-    <label for="subjectSelect">Select Subject:</label>
-    <select id="subjectSelect" onchange="loadSubjectMarks()">
-        <option value="">-- Select a Subject --</option>
-        <option value="English">English</option>
-        <option value="Math">Math</option>
-        <option value="Kiswahili">Kiswahili</option>
-        <option value="Creative">Creative Arts</option>
-        <option value="Religious">Religious Activities</option>
-        <option value="Agriculture">Agriculture</option>
-        <option value="SST">Social Studies</option>
-        <option value="Technical">Pre-Technical</option>
-        <option value="Science">Integrated Science</option>
-    </select>
-</div>
+<section class="marks-section">
+    <h1 class="page-heading">Subject Marks</h1>
+    
+    <div class="subject-selector">
+        <label for="subjectSelect">Filter by Subject:</label>
+        <select id="subjectSelect" onchange="loadSubjectMarks()">
+            <option value="">-- All Subjects --</option>
+            <option value="English">English</option>
+            <option value="Math">Math</option>
+            <option value="Kiswahili">Kiswahili</option>
+            <option value="Creative">Creative Arts</option>
+            <option value="Religious">Religious Activities</option>
+            <option value="Agriculture">Agriculture</option>
+            <option value="SST">Social Studies</option>
+            <option value="Technical">Pre-Technical</option>
+            <option value="Science">Integrated Science</option>
+        </select>
+    </div>
 
-<section class="marks-table">
-    <h1 class="heading" id="subjectTitle">Subject Marks</h1>
-    <div class="box-container">
-        <div id="tableContainer">
-            <p style="text-align: center;">Select a subject to view marks</p>
-        </div>
+    <div id="tableContainer" class="table-responsive">
+        <p style="text-align: center; padding: 40px 20px;">Loading marks...</p>
     </div>
 </section>
+
+<!-- Bottom Navigator Container -->
+<div id="bottomNavContainer"></div>
 
 <div id="footerContainer"></div>
 
@@ -163,276 +49,8 @@
 <script src="../js/teacher-data.js"></script>
 <script src="../js/script.js"></script>
 <script src="../js/header-init.js"></script>
-
-<script>
-    // Load components
-    async function loadComponentPromise(componentPath, containerId) {
-        try {
-            const response = await fetch(componentPath);
-            const html = await response.text();
-            document.getElementById(containerId).innerHTML = html;
-            
-            // Trigger header re-initialization if this is the header
-            if (containerId === 'headerContainer') {
-                document.dispatchEvent(new Event('headerLoaded'));
-            }
-        } catch (error) {
-            console.error(`Error loading ${componentPath}:`, error);
-        }
-    }
-
-    // Initialize page
-    window.addEventListener('DOMContentLoaded', async () => {
-        await Promise.all([
-            loadComponentPromise('components/header.html', 'headerContainer'),
-            loadComponentPromise('components/sidebar.html', 'sidebarContainer'),
-            loadComponentPromise('components/footer.html', 'footerContainer'),
-            loadTeacherData()
-        ]);
-
-        // Check if subject is passed as query parameter
-        const params = new URLSearchParams(window.location.search);
-        const subject = params.get('subject');
-        
-        if (subject) {
-            const select = document.getElementById('subjectSelect');
-            select.value = subject;
-            await loadSubjectMarks();
-        }
-
-        // Initialize search form listener
-        initializeSearchForm();
-    });
-
-    /**
-     * Initialize search form listener
-     */
-    function initializeSearchForm() {
-        const searchForm = document.querySelector('.search-form');
-        const searchInput = searchForm ? searchForm.querySelector('input[type="text"]') : null;
-        
-        if (searchForm && searchInput) {
-            searchForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const searchTerm = searchInput.value;
-                searchStudents(searchTerm);
-            });
-        }
-    }
-
-    /**
-     * Load subject marks
-     */
-    async function loadSubjectMarks() {
-        const subject = document.getElementById('subjectSelect').value;
-        
-        if (!subject) {
-            document.getElementById('tableContainer').innerHTML = 
-                '<p style="text-align: center;">Select a subject to view marks</p>';
-            document.getElementById('subjectTitle').textContent = 'Subject Marks';
-            return;
-        }
-
-        try {
-            const response = await fetch(`../backend/public/index.php?route=/subjects/marks&subject=${encodeURIComponent(subject)}`, {
-                method: 'GET',
-                credentials: 'include'
-            });
-
-            if (!response.ok) {
-                if (response.status === 401) {
-                    window.location.href = 'index.html';
-                    return;
-                }
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-
-            if (data.success) {
-                displaySubjectMarks(data);
-            } else {
-                document.getElementById('tableContainer').innerHTML = 
-                    `<p style="text-align: center; color: red;">${escapeHtml(data.message)}</p>`;
-            }
-        } catch (error) {
-            console.error('Error loading subject marks:', error);
-            document.getElementById('tableContainer').innerHTML = 
-                `<p style="text-align: center; color: red;">Error loading marks. Please refresh the page.</p>`;
-        }
-    }
-
-    /**
-     * Display subject marks table
-     */
-    function displaySubjectMarks(data) {
-        const subject = data.subject || '';
-        const students = data.students || [];
-
-        // Update heading
-        document.getElementById('subjectTitle').textContent = subject;
-
-        // Build table
-        let html = '<table class="content-table"><thead><tr>';
-        html += '<th>Name</th>';
-        html += '<th>Marks</th>';
-        html += '</tr></thead><tbody>';
-
-        if (students.length > 0) {
-            students.forEach(student => {
-                html += '<tr>';
-                html += `<td>${escapeHtml(student.student_name || '')}</td>`;
-                html += `<td>${escapeHtml(String(student.marks ?? '-'))}</td>`;
-                html += '</tr>';
-            });
-        } else {
-            html += '<tr><td colspan="2" style="text-align: center;">No students found</td></tr>';
-        }
-
-        html += '</tbody></table>';
-
-        document.getElementById('tableContainer').innerHTML = html;
-    }
-
-    /**
-     * Escape HTML to prevent XSS
-     */
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    /**
-     * Search students by name
-     */
-    async function searchStudents(searchTerm) {
-        const selectedSubject = document.getElementById('subjectSelect').value;
-
-        if (!searchTerm.trim()) {
-            // If search is empty, reload the subject marks
-            await loadSubjectMarks();
-            return;
-        }
-
-        // If no subject is selected, fetch all students
-        if (!selectedSubject) {
-            try {
-                const response = await fetch(`../backend/public/index.php?route=/students&search=${encodeURIComponent(searchTerm)}`, {
-                    method: 'GET',
-                    credentials: 'include'
-                });
-
-                if (!response.ok) {
-                    if (response.status === 401) {
-                        window.location.href = 'index.html';
-                        return;
-                    }
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const data = await response.json();
-
-                if (data.success && data.students) {
-                    displaySearchResults(data.students, null);
-                } else {
-                    document.getElementById('tableContainer').innerHTML = 
-                        `<p style="text-align: center;">No students found matching "${escapeHtml(searchTerm)}"</p>`;
-                }
-            } catch (error) {
-                console.error('Error searching students:', error);
-                document.getElementById('tableContainer').innerHTML = 
-                    `<p style="text-align: center; color: red;">Error searching students. Please try again.</p>`;
-            }
-            return;
-        }
-
-        // If a subject is selected, get subject marks and filter by search term
-        try {
-            const response = await fetch(`../backend/public/index.php?route=/subjects/marks&subject=${encodeURIComponent(selectedSubject)}`, {
-                method: 'GET',
-                credentials: 'include'
-            });
-
-            if (!response.ok) {
-                if (response.status === 401) {
-                    window.location.href = 'index.html';
-                    return;
-                }
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-
-            if (data.success && data.students) {
-                // Filter students by search term
-                const filteredStudents = data.students.filter(student => 
-                    (student.student_name || '').toLowerCase().includes(searchTerm.toLowerCase())
-                );
-                displaySearchResults(filteredStudents, selectedSubject);
-            } else {
-                document.getElementById('tableContainer').innerHTML = 
-                    `<p style="text-align: center;">No students found matching "${escapeHtml(searchTerm)}"</p>`;
-            }
-        } catch (error) {
-            console.error('Error searching students:', error);
-            document.getElementById('tableContainer').innerHTML = 
-                `<p style="text-align: center; color: red;">Error searching students. Please try again.</p>`;
-        }
-    }
-
-    /**
-     * Display search results in table format
-     */
-    function displaySearchResults(students, subject) {
-        let heading = 'Search Results';
-        if (subject) {
-            heading = `${escapeHtml(subject)} - Search Results`;
-        }
-        document.getElementById('subjectTitle').textContent = heading;
-
-        // Build table
-        let html = '<table class="content-table"><thead><tr>';
-        html += '<th>Name</th>';
-        
-        // Only show Marks column if a subject was selected
-        if (subject) {
-            html += '<th>Marks</th>';
-        } else {
-            html += '<th>Class</th>';
-            html += '<th>Status</th>';
-        }
-        
-        html += '</tr></thead><tbody>';
-
-        if (students.length > 0) {
-            students.forEach(student => {
-                html += '<tr>';
-                
-                if (subject) {
-                    // Subject-based search results
-                    html += `<td>${escapeHtml(student.student_name || '')}</td>`;
-                    html += `<td>${escapeHtml(String(student.marks ?? '-'))}</td>`;
-                } else {
-                    // General student search results
-                    html += `<td>${escapeHtml(student.name || '')}</td>`;
-                    html += `<td>${escapeHtml(student.class || 'N/A')}</td>`;
-                    html += `<td>${escapeHtml(student.status || 'N/A')}</td>`;
-                }
-                
-                html += '</tr>';
-            });
-        } else {
-            const colSpan = subject ? 2 : 3;
-            html += `<tr><td colspan="${colSpan}" style="text-align: center;">No students found</td></tr>`;
-        }
-
-        html += '</tbody></table>';
-
-        document.getElementById('tableContainer').innerHTML = html;
-    }
-
-</script>
+<script src="../js/subjects.js"></script>
+<script src="../js/bottom-nav-active.js"></script>
 
 </body>
 </html>

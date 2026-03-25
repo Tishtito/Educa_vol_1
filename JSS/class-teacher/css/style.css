@@ -321,6 +321,30 @@ input[type="checkbox"]:checked + label span::after {
   background: hsl(var(--fgColorH), var(--fgColorS), var(--fgColorL));
 }
 
+.signup-link {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .signup-link p {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .signup-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .signup-link a:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
 
 
 

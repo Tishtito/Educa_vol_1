@@ -7,12 +7,16 @@
    <title>Examiner Dashboard</title>
    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css">
    <link rel="stylesheet" href="../css/Tpanel.css">
+   <link rel="stylesheet" href="../css/sticky-footer.css">
+   <link rel="stylesheet" href="../css/bottom-navigator.css">
+   <link rel="stylesheet" href="../css/responsive-navigation.css">
    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 </head>
 <body>
 
 <div id="headerContainer"></div>
 <div id="sidebarContainer"></div>
+<div id="bottomNavContainer"></div>
 
 <section class="courses">
    <div class="box-container" id="coursesContainer">
@@ -26,143 +30,7 @@
 <script src="../js/examiner-data.js"></script>
 <script src="../js/header-init.js"></script>
 <script src="../js/script.js"></script>
-
-<script>
-// Subject image mapping
-const subjectImages = {
-   "Kiswahili": "../photos/kiswahili.jpg",
-   "Math": "../photos/math.png",
-   "English": "../photos/english.jpg",
-   "Creative": "../photos/creative.jpg",
-   "Religious": "../photos/religious.jpg",
-   "Science": "../photos/science.png",
-   "SST": "../photos/sst.png",
-   "Technical": "../photos/technical.jpg",
-   "Agriculture": "../photos/agriculture.jpg"
-};
-
-async function loadComponentPromise(componentName, containerId) {
-   try {
-      const res = await fetch(`components/${componentName}.html`);
-      if (!res.ok) throw new Error(`Failed to load ${componentName}`);
-      const html = await res.text();
-      document.getElementById(containerId).innerHTML = html;
-      if (containerId === 'headerContainer') {
-         document.dispatchEvent(new Event('headerLoaded'));
-      }
-   } catch (err) {
-      console.error(`Error loading ${componentName} component:`, err);
-   }
-}
-
-async function checkAuth() {
-   const res = await fetch('../backend/public/index.php/auth/check', { credentials: 'include' });
-   if (!res.ok) {
-      window.location.href = 'index.html';
-      return null;
-   }
-   return await res.json();
-}
-
-async function loadDashboard() {
-   const coursesContainer = document.getElementById('coursesContainer');
-   coursesContainer.innerHTML = '<p>Loading subjects...</p>';
-   
-   try {
-      const res = await fetch('../backend/public/index.php/dashboard', { credentials: 'include' });
-      
-      if (res.status === 401) {
-         window.location.href = 'index.html';
-         return;
-      }
-      
-      if (res.status === 403) {
-         const data = await res.json();
-         Swal.fire('Warning', data.message || 'No classes assigned. Visit Admin for assistance.', 'warning')
-            .then(() => {
-               window.location.href = 'exam.html';
-            });
-         return;
-      }
-      
-      const data = await res.json();
-      
-      if (!data.success) {
-         throw new Error(data.message || 'Failed to load dashboard');
-      }
-      
-      const { subjects, classes } = data;
-      
-      if (!subjects || subjects.length === 0 || !classes || classes.length === 0) {
-         coursesContainer.innerHTML = '<p>No subjects or classes assigned.</p>';
-         return;
-      }
-      
-      coursesContainer.innerHTML = '';
-      
-      // Create boxes for each subject-class combination
-      subjects.forEach(subject => {
-         classes.forEach(classItem => {
-            const box = document.createElement('div');
-            box.className = 'box';
-            const subjectName = escapeHtml(subject.name);
-            const className = escapeHtml(classItem.class_name);
-            const subjectImage = subjectImages[subject.name] || '../photos/default.jpg';
-            
-            box.innerHTML = `
-               <div class="thumb">
-                  <img src="${subjectImage}" alt="${subjectName} Image">
-               </div>
-               <h3 class="title">${subjectName} - ${className}</h3>
-               <button class="inline-btn" onclick="goToSubject('${subjectName}', ${subject.subject_id}, ${classItem.class_id}, '${className}')">View Students</button>
-            `;
-            coursesContainer.appendChild(box);
-         });
-      });
-   } catch (err) {
-      coursesContainer.innerHTML = `<p style="color:red;">${err.message}</p>`;
-      console.error('Dashboard error:', err);
-   }
-}
-
-function escapeHtml(text) {
-   const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-   return text.replace(/[&<>"']/g, m => map[m]);
-}
-
-// Generate secure token for subject/class combination
-function generateSubjectToken(subjectId, classId) {
-   const token = 'token_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
-   
-   // Store token-to-data mapping in sessionStorage
-   let tokenMap = JSON.parse(sessionStorage.getItem('subjectTokenMap') || '{}');
-   tokenMap[token] = {
-      subject_id: subjectId,
-      class_id: classId
-   };
-   sessionStorage.setItem('subjectTokenMap', JSON.stringify(tokenMap));
-   
-   return token;
-}
-
-function goToSubject(subjectName, subjectId, classId, className) {
-   // Generate token for secure link
-   const token = generateSubjectToken(subjectId, classId);
-   // Navigate to generic subjects.html page with token
-   window.location.href = `subjects.html?token=${token}`;
-}
-
-document.addEventListener('DOMContentLoaded', async () => {
-   await checkAuth();
-   await Promise.all([
-      loadComponentPromise('header', 'headerContainer'),
-      loadComponentPromise('sidebar', 'sidebarContainer'),
-      loadComponentPromise('footer', 'footerContainer')
-   ]);
-   await loadExaminerData();
-   await loadDashboard();
-});
-</script>
+<script src="../js/home.js"></script>
 
 </body>
 </html>
