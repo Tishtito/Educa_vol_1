@@ -10,8 +10,8 @@ CREATE TABLE admins (
     deleted_at datetime
 );
 
-CREATE TABLE  examiner(
-    id INT AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE  examiners(
+    examiner_id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     username VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,          -- Store hashed passwords

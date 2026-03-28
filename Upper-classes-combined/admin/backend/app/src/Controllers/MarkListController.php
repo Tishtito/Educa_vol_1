@@ -97,7 +97,8 @@ class MarkListController
 				$sql .= ", NULL AS `PL_$subject`";
 			}
 		}
-		$sql .= ", (" . implode(" + ", array_map(fn($s) => "COALESCE(er.$s, 0)", $subjects)) . ") AS total_marks 
+		$mainSubjects = array_diff($subjects, $componentSubjects);
+		$sql .= ", (" . implode(" + ", array_map(fn($s) => "COALESCE(er.$s, 0)", $mainSubjects)) . ") AS total_marks 
 			FROM students s
 			LEFT JOIN exam_results er ON s.student_id = er.student_id AND er.exam_id = :exam_id
 			WHERE s.class = :grade
@@ -181,10 +182,6 @@ class MarkListController
 		$meanScores = [];
 		$componentSubjectsFilter = ['Gramma', 'Compo', 'Lugha', 'Insha'];
 		foreach ($subjects as $subject) {
-			// Skip component subjects when calculating mean scores for the database table
-			if (in_array($subject, $componentSubjectsFilter)) {
-				continue;
-			}
 			$count = $subjectCounts[$subject] ?? 0;
 			$total = $subjectTotals[$subject] ?? 0;
 			$meanScores[$subject] = $count > 0 ? round($total / $count, 2) : 0;

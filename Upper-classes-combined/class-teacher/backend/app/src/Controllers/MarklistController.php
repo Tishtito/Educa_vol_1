@@ -45,10 +45,10 @@ class MarklistController
 
         try {
             // Calculate and store total marks
-            $this->calculateTotalMarks($examId);
+            $this->calculateTotalMarks($examId, $classAssigned);
 
             // Calculate and store ranks
-            $this->calculateRanks($examId);
+            $this->calculateRanks($examId, $classAssigned);
 
             // Fetch student marks with performance levels
             $pdo = $this->db->pdo;
@@ -200,49 +200,60 @@ class MarklistController
     /**
      * Calculate total marks for students
      */
-    private function calculateTotalMarks(int $examId): void
+    private function calculateTotalMarks(int $examId, string $classAssigned): void
     {
         $pdo = $this->db->pdo;
         
         $sql = "
-            UPDATE exam_results
-            SET total_marks = (
-                COALESCE(Math, 0) + COALESCE(English, 0) + COALESCE(Kiswahili, 0) +
-                COALESCE(SciTech, 0) + COALESCE(AgricNutri, 0) + COALESCE(Creative, 0) + 
-                COALESCE(CRE, 0) + COALESCE(SST, 0)
+            UPDATE exam_results er
+            INNER JOIN students s ON s.student_id = er.student_id
+            SET er.total_marks = (
+                COALESCE(er.Math, 0) + COALESCE(er.English, 0) + COALESCE(er.Kiswahili, 0) +
+                COALESCE(er.SciTech, 0) + COALESCE(er.AgricNutri, 0) + COALESCE(er.Creative, 0) + 
+                COALESCE(er.CRE, 0) + COALESCE(er.SST, 0)
             )
-            WHERE exam_id = ?";
+            WHERE er.exam_id = ? AND s.class = ?";
 
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([$examId]);
+        $stmt->execute([$examId, $classAssigned]);
     }
 
     /**
      * Calculate ranks for students
      */
-    private function calculateRanks(int $examId): void
+    private function calculateRanks(int $examId, string $classAssigned): void
     {
         $pdo = $this->db->pdo;
 
-        // Reset rank counter
-        $pdo->exec("SET @rank = 0");
+        // Fetch student IDs ordered by total_marks DESC for this class
+        $stmt = $pdo->prepare("
+            SELECT er.student_id
+            FROM exam_results er
+            INNER JOIN students s ON s.student_id = er.student_id
+            WHERE er.exam_id = ? AND s.class = ?
+            ORDER BY er.total_marks DESC
+        ");
+        $stmt->execute([$examId, $classAssigned]);
+        $studentIds = $stmt->fetchAll(\PDO::FETCH_COLUMN);
 
-        // Update ranks
-        $sql = "
-            UPDATE exam_results
-            SET position = (
-                SELECT @rank := @rank + 1
-                FROM (
-                    SELECT student_id FROM exam_results 
-                    WHERE exam_id = ? 
-                    ORDER BY total_marks DESC
-                ) AS ranked
-                WHERE ranked.student_id = exam_results.student_id
-            )
-            WHERE exam_id = ?";
+        // Build a single CASE UPDATE for all ranks
+        if (!empty($studentIds)) {
+            $cases = [];
+            $params = [];
+            foreach ($studentIds as $rank => $studentId) {
+                $cases[] = "WHEN ? THEN ?";
+                $params[] = $studentId;
+                $params[] = $rank + 1;
+            }
+            $params[] = $examId;
 
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([$examId, $examId]);
+            $sql = "UPDATE exam_results SET position = CASE student_id "
+                . implode(' ', $cases)
+                . " END WHERE exam_id = ?";
+
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+        }
     }
 
     /**
