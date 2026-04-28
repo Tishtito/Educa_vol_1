@@ -1,4 +1,4 @@
-<!-- <!-- <?php
+<?php
     $servername = "localhost";
     $username = "root";
     $password = "";
@@ -9,7 +9,7 @@
     if($connection->connect_error){
     die("connection failed:".$connection->connect_error);
     }
-?> -->
+?>
 
 <!DOCTYPE html>
 <html lang="en">
