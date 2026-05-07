@@ -33,6 +33,8 @@ return function (RouteCollector $r): void {
 	$r->addRoute('GET', '/students/result-detail', 'StudentsController@resultDetail');
 	$r->addRoute('POST', '/students/update-name', 'StudentsController@updateName');
 
+	$r->addRoute('GET', '/students/transcript', 'StudentTranscriptController@download');
+
 	$r->addRoute('GET', '/streams/list', 'StreamListController@list');
 
 	$r->addRoute('GET', '/marks/list', 'MarkListController@list');

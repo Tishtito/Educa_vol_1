@@ -112,31 +112,36 @@ class MarkListController
 
 			$rank = 1;
 			foreach ($students as &$student) {
+				$hasMarks = false;
 				foreach ($subjects as $subject) {
 					if ($student[$subject] !== null) {
 						$subjectTotals[$subject] += (float)$student[$subject];
 						$subjectCounts[$subject]++;
+						$hasMarks = true;
 					}
 				}
 
-				$studentTotal = isset($student['total_marks']) ? (int)$student['total_marks'] : 0;
-				if ($studentTotal > 0) {
+				if ($hasMarks) {
+					$studentTotal = isset($student['total_marks']) ? (int)$student['total_marks'] : 0;
 					$totalScore += $studentTotal;
 					$totalStudents++;
+
+					$student['rank'] = $rank;
+					$student['total_marks'] = $studentTotal;
+
+					$this->db->update('exam_results', [
+						'total_marks' => $studentTotal,
+						'position' => $rank,
+					], [
+						'student_id' => $student['student_id'],
+						'exam_id' => $examId,
+					]);
+
+					$rank++;
+				} else {
+					$student['rank'] = null;
+					$student['total_marks'] = null;
 				}
-
-				$student['rank'] = $rank;
-				$student['total_marks'] = $studentTotal;
-
-				$this->db->update('exam_results', [
-					'total_marks' => $studentTotal,
-					'position' => $rank,
-				], [
-					'student_id' => $student['student_id'],
-					'exam_id' => $examId,
-				]);
-
-				$rank++;
 			}
 			unset($student);
 

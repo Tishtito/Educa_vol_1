@@ -89,10 +89,10 @@ class MarkListController
 
 		$sql = "SELECT s.student_id, s.name AS Name";
 		foreach ($subjects as $subject) {
-			$sql .= ", COALESCE(er.$subject, 0) AS `$subject`";
+			$sql .= ", er.$subject AS `$subject`";
 			// Only add PL lookup for non-component subjects
 			if (!in_array($subject, $componentSubjects)) {
-				$sql .= ", (SELECT ab FROM point_boundaries WHERE COALESCE(er.$subject, 0) BETWEEN min_marks AND max_marks LIMIT 1) AS `PL_$subject`";
+				$sql .= ", (SELECT ab FROM point_boundaries WHERE er.$subject BETWEEN min_marks AND max_marks LIMIT 1) AS `PL_$subject`";
 			} else {
 				$sql .= ", NULL AS `PL_$subject`";
 			}
@@ -116,7 +116,7 @@ class MarkListController
 			$subjects = ['English', 'Math', 'Kiswahili', 'Creative', 'SciTech', 'AgricNutri', 'SST', 'CRE'];
 			$sql = "SELECT s.student_id, s.name AS Name";
 			foreach ($subjects as $subject) {
-				$sql .= ", COALESCE(er.$subject, 0) AS `$subject`, (SELECT ab FROM point_boundaries WHERE COALESCE(er.$subject, 0) BETWEEN min_marks AND max_marks LIMIT 1) AS `PL_$subject`";
+				$sql .= ", er.$subject AS `$subject`, (SELECT ab FROM point_boundaries WHERE er.$subject BETWEEN min_marks AND max_marks LIMIT 1) AS `PL_$subject`";
 			}
 			$sql .= ", (" . implode(" + ", array_map(fn($s) => "COALESCE(er.$s, 0)", $subjects)) . ") AS total_marks 
 				FROM students s
@@ -151,31 +151,36 @@ class MarkListController
 
 		$rank = 1;
 		foreach ($students as &$student) {
+			$hasMarks = false;
 			foreach ($subjects as $subject) {
 				if ($student[$subject] !== null) {
 					$subjectTotals[$subject] += (float)$student[$subject];
 					$subjectCounts[$subject]++;
+					$hasMarks = true;
 				}
 			}
 
-			$studentTotal = isset($student['total_marks']) ? (int)$student['total_marks'] : 0;
-			if ($studentTotal > 0) {
+			if ($hasMarks) {
+				$studentTotal = isset($student['total_marks']) ? (int)$student['total_marks'] : 0;
 				$totalScore += $studentTotal;
 				$totalStudents++;
-			}
 
-			$student['rank'] = $rank;
-			$student['total_marks'] = $studentTotal;
+				$student['rank'] = $rank;
+				$student['total_marks'] = $studentTotal;
 
 				$this->db->update('exam_results', [
-				'total_marks' => $studentTotal,
-				'position' => $rank,
-			], [
-				'student_id' => $student['student_id'],
-				'exam_id' => $examId,
-			]);
+					'total_marks' => $studentTotal,
+					'position' => $rank,
+				], [
+					'student_id' => $student['student_id'],
+					'exam_id' => $examId,
+				]);
 
-			$rank++;
+				$rank++;
+			} else {
+				$student['rank'] = null;
+				$student['total_marks'] = null;
+			}
 		}
 		unset($student);
 

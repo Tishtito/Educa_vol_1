@@ -20,6 +20,17 @@ CREATE TABLE  examiners(
     deleted_at datetime
 );
 
+CREATE TABLE class_teachers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    username VARCHAR(255) NOT NULL,
+    class_assigned VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    created_at datetime,
+    updated_at datetime,
+    deleted_at datetime
+);
+
 CREATE TABLE exams (
     exam_id INT AUTO_INCREMENT PRIMARY KEY,
     exam_name VARCHAR(255) NOT NULL,
@@ -38,7 +49,7 @@ CREATE TABLE students (
     pno VARCHAR(20) UNIQUE,
     class VARCHAR(50) NOT NULL,
     status ENUM('Active', 'Finished', 'Graduated') DEFAULT 'Active',
-    finished_at YEAR,
+    finished_at datetime,
     created_at datetime,
     updated_at datetime,
     deleted_at datetime

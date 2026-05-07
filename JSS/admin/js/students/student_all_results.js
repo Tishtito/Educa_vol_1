@@ -38,6 +38,39 @@
             return;
         }
 
+        // Show transcript download button
+        const transcriptBtn = document.getElementById('downloadTranscript');
+        if (transcriptBtn) {
+            transcriptBtn.style.display = 'inline-flex';
+            transcriptBtn.addEventListener('click', async () => {
+                if (transcriptBtn.classList.contains('downloading')) return;
+
+                const label = transcriptBtn.querySelector('.download-label');
+                transcriptBtn.classList.add('downloading');
+                label.textContent = 'Downloading...';
+
+                try {
+                    const res = await fetch(`${baseUrl}/students/transcript?student_id=${encodeURIComponent(studentId)}`, { credentials: 'include' });
+                    if (!res.ok) throw new Error('Download failed');
+                    const blob = await res.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `Transcript_${studentId}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    URL.revokeObjectURL(url);
+                } catch (err) {
+                    console.error('Transcript download failed', err);
+                    alert('Failed to download transcript. Please try again.');
+                } finally {
+                    transcriptBtn.classList.remove('downloading');
+                    label.textContent = 'Download Full Transcript';
+                }
+            });
+        }
+
         if (tbody) {
             const rows = results.data.map((row, index) => {
                 const createdAt = row.created_at ? new Date(row.created_at) : null;

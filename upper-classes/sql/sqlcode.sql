@@ -39,7 +39,7 @@ CREATE TABLE students (
     pno VARCHAR(20) UNIQUE,
     class VARCHAR(50) NOT NULL,
     status ENUM('Active', 'Finished', 'Graduated') DEFAULT 'Active',
-    finished_at DATETIME NULL,
+    finished_at datetime,
     created_at datetime,
     updated_at datetime,
     deleted_at datetime

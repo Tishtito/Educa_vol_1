@@ -176,8 +176,8 @@ class SubjectController
 			}
 
 			// Convert marks to percentage (following the working logic)
-			// $percentage = ($marks / $maxMarks) * 100;
-			$percentage = $marks ;
+			$percentage = ($marks / $maxMarks) * 100;
+			//$percentage = $marks ;
 
 			//when you dont want to convert to percentage, just use the marks as is
 			//$percentage = $marks ;

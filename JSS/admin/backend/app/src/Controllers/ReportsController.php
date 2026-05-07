@@ -395,6 +395,7 @@ class ReportsController
 
 		$grade = isset($_GET['grade']) ? trim((string)$_GET['grade']) : '';
 		$examId = isset($_GET['exam_id']) ? (int)$_GET['exam_id'] : 0;
+		$examType = isset($_GET['exam_type']) ? trim((string)$_GET['exam_type']) : '';
 		$token = isset($_GET['token']) ? (string)$_GET['token'] : null;
 		if ($grade === '' || $examId <= 0) {
 			http_response_code(400);
@@ -423,9 +424,20 @@ class ReportsController
 				return;
 			}
 
-			$exam = $this->db->get('exams', ['term', 'date_created'], ['exam_id' => $examId]);
+			$exam = $this->db->get('exams', ['term', 'exam_type', 'date_created'], ['exam_id' => $examId]);
 			$term = $exam['term'] ?? '';
 			$examYear = isset($exam['date_created']) ? (int)date('Y', strtotime((string)$exam['date_created'])) : null;
+			$isCombined = ($examType === 'End-Term') || ($exam['exam_type'] ?? '') === 'End-Term';
+
+			// For combined End-Term reports, find the matching Mid-Term exam
+			$midTermId = null;
+			if ($isCombined) {
+				$midExam = $this->db->get('exams', ['exam_id'], [
+					'term' => $term,
+					'exam_type' => 'Mid-Term',
+				]);
+				$midTermId = $midExam ? (int)$midExam['exam_id'] : null;
+			}
 
 			$levels = $this->db->select('point_boundaries', ['min_marks', 'max_marks', 'pl']);
 			$subjects = $this->subjects();
@@ -450,11 +462,40 @@ class ReportsController
 				}
 			}
 
-			$combinedHtml = '<!DOCTYPE html><html><head><style>' . $css . '</style><style>' .
-				'.report-page { page-break-after: always; margin-bottom: 2cm; }' .
-				'.report-page:last-child { page-break-after: avoid; }' .
-				'@page { margin: 2cm; }' .
-				'</style></head><body>';
+			$pdfCss = '
+@page { margin: 1.4cm 1.7cm; }
+body { margin: 0; padding: 0; font-size: 13px; }
+.report-page { page-break-after: always; }
+.report-page:last-child { page-break-after: avoid; }
+.invoice { padding: 0; min-height: auto; font-size: 13px; }
+.invoice header { padding: 10px 0; margin-bottom: 10px; border-bottom: 1px solid #3989c6; }
+.invoice .contacts { margin-bottom: 10px; }
+.invoice main { padding-bottom: 0; }
+.invoice table { margin-bottom: 14px; }
+.invoice table td, .invoice table th { padding: 8px 10px; font-size: 14px; }
+.invoice table th { font-size: 14px; }
+.invoice table td h3 { font-size: 15px; margin: 0; }
+.invoice table .no { font-size: 15px; }
+.invoice table .unit { font-size: 14px; }
+.invoice table .total { font-size: 14px; }
+.invoice table tfoot td { padding: 8px 12px; font-size: 14px; }
+.invoice table tfoot tr:last-child td { font-size: 15px; }
+.invoice footer { padding: 7px 0; font-size: 10px; }
+.invoice .company-details .name { font-size: 20px; }
+.invoice .company-details div { font-size: 14px !important; }
+.invoice .invoice-details .invoice-id { font-size: 20px; }
+.invoice .invoice-details .date { font-size: 14px !important; }
+.invoice .invoice-to .to { font-size: 20px; }
+.invoice .invoice-to .address { font-size: 14px !important; }
+.invoice header img { max-height: 88px; }
+.invoice .row { display: table; width: 100%; }
+.invoice .col { display: table-cell; vertical-align: top; }
+.invoice .text-center { text-align: center; }
+.invoice .text-left { text-align: left; }
+.invoice .text-right { text-align: right; }
+';
+
+			$combinedHtml = '<!DOCTYPE html><html><head><style>' . $css . '</style><style>' . $pdfCss . '</style></head><body>';
 
 			foreach ($students as $student) {
 				$results = $this->db->get('exam_results', '*', [
@@ -471,16 +512,35 @@ class ReportsController
 				]);
 				$tutor = $teacher['name'] ?? 'Not Assigned';
 
-				$combinedHtml .= $this->renderSingleReport(
-					$student,
-					$tutor,
-					$term,
-					$examYear,
-					$results,
-					$levels,
-					$subjects,
-					$logoData
-				);
+				if ($isCombined) {
+					$midResults = $midTermId ? $this->db->get('exam_results', '*', [
+						'student_id' => (int)$student['student_id'],
+						'exam_id' => $midTermId,
+					]) : null;
+
+					$combinedHtml .= $this->renderCombinedReport(
+						$student,
+						$tutor,
+						$term,
+						$examYear,
+						$midResults,
+						$results,
+						$levels,
+						$subjects,
+						$logoData
+					);
+				} else {
+					$combinedHtml .= $this->renderSingleReport(
+						$student,
+						$tutor,
+						$term,
+						$examYear,
+						$results,
+						$levels,
+						$subjects,
+						$logoData
+					);
+				}
 			}
 
 			$combinedHtml .= '</body></html>';
@@ -549,15 +609,15 @@ class ReportsController
 		$logoHtml = $logoData !== '' ? '<img src="' . $logoData . '" data-holder-rendered="true" />' : '';
 
 		return '<div class="report-page">'
-			. '<div class="invoice overflow-auto">'
-			. '<div style="min-width: 600px">'
+			. '<div class="invoice">'
+			. '<div>'
 			. '<header>'
 			. '<div class="row">'
 			. '<div class="col">' . $logoHtml . '</div>'
 			. '<div class="col company-details">'
-			. '<h2 class="name">PCEA Junior Secondary School</h2>'
-			. '<div style="font-size:30px">143-00902, KIKUYU</div>'
-			. '<div style="font-size:30px">ngureprimary22@gmail.com</div>'
+			. '<h2 class="name">GATIMU PRIMARY AND JUNIOR SCHOOL</h2>'
+			. '<div>P.o Box 141-00217 LIMURU</div>'
+			. '<div>debgatimuprimary@gmail.com</div>'
 			. '</div>'
 			. '</div>'
 			. '</header>'
@@ -566,13 +626,13 @@ class ReportsController
 			. '<div class="col invoice-to">'
 			. '<div class="text-gray-light">REPORT FOR:</div>'
 			. '<h2 class="to">' . htmlspecialchars($student['name']) . '</h2>'
-			. '<div class="address" style="font-size:20px">Grade: ' . htmlspecialchars($student['class']) . '</div>'
-			. '<div class="address" style="font-size:20px">Tutor: ' . htmlspecialchars($tutor) . '</div>'
+			. '<div class="address">Grade: ' . htmlspecialchars($student['class']) . '</div>'
+			. '<div class="address">Tutor: ' . htmlspecialchars($tutor) . '</div>'
 			. '</div>'
 			. '<div class="col invoice-details">'
 			. '<h1 class="invoice-id">Performance Report</h1>'
-			. '<div class="date" style="font-size:20px">' . htmlspecialchars($term) . '</div>'
-			. '<div class="date" style="font-size:20px">Year: ' . htmlspecialchars((string)$examYear) . '</div>'
+			. '<div class="date">' . htmlspecialchars($term) . '</div>'
+			. '<div class="date">Year: ' . htmlspecialchars((string)$examYear) . '</div>'
 			. '</div>'
 			. '</div>'
 			. '<table border="0" cellspacing="0" cellpadding="0">'
@@ -593,23 +653,144 @@ class ReportsController
 			. '</tr>'
 			. '</tfoot>'
 			. '</table>'
-			. '<br><br><br><br><br>'
-			. '<div class="thanks">'
-			. '<h3>Class Teacher\'s Remarks:</h3>'
-			. '<p>-------------------------------------------------------------------------------------------</p>'
-			. '</div><br><br><br>'
-			. '<div class="comments">'
-			. '<div class="thanks"><h5>Fee balance:</h5><p>--------------------------------------------</p></div>'
-			. '<div class="thanks"><h5>Next Term Feeding Amount:</h5><p>--------------------------------------------</p></div>'
-			. '<div class="thanks"><h5>Closing Date:</h5><p>--------------------------------------------</p></div>'
-			. '<div class="thanks"><h5>Opening Date:</h5><p>--------------------------------------------</p></div>'
-			. '<div class="thanks"><h5>Head Teacher Signature:</h5><p>--------------------------------------------</p></div>'
-			. '<div class="thanks"><h5>Parents Signature:</h5><p>--------------------------------------------</p></div>'
+			. '<div style="margin-top:18px;margin-bottom:9px;">'
+			. '<h3 style="font-size:15px;margin:0 0 5px 0;">Class Teacher\'s Remarks:</h3>'
+			. '<p style="margin:0;font-size:13px;">-------------------------------------------------------------------------------------------</p>'
 			. '</div>'
+			. '<table border="0" cellspacing="0" cellpadding="0" style="width:100%;margin-bottom:9px;">'
+			. '<tr>'
+			. '<td style="width:50%;padding:9px 11px;font-size:13px;vertical-align:top;"><b>Fee balance:</b><br>--------------------------------------------</td>'
+			. '<td style="width:50%;padding:9px 11px;font-size:13px;vertical-align:top;"><b>Next Term Feeding Amount:</b><br>--------------------------------------------</td>'
+			. '</tr>'
+			. '<tr>'
+			. '<td style="width:50%;padding:9px 11px;font-size:13px;vertical-align:top;"><b>Closing Date:</b><br>--------------------------------------------</td>'
+			. '<td style="width:50%;padding:9px 11px;font-size:13px;vertical-align:top;"><b>Opening Date:</b><br>--------------------------------------------</td>'
+			. '</tr>'
+			. '<tr>'
+			. '<td style="width:50%;padding:9px 11px;font-size:13px;vertical-align:top;"><b>Head Teacher Signature:</b><br>--------------------------------------------</td>'
+			. '<td style="width:50%;padding:9px 11px;font-size:13px;vertical-align:top;"><b>Parents Signature:</b><br>--------------------------------------------</td>'
+			. '</tr>'
+			. '</table>'
 			. '<footer>Performance Report should be reach to all parents or else will be treated as an indispline action.</footer>'
 			. '</main>'
 			. '</div>'
-			. '<div></div>'
+			. '</div>'
+			. '</div>';
+	}
+
+	private function renderCombinedReport(
+		array $student,
+		string $tutor,
+		string $term,
+		?int $examYear,
+		?array $midResults,
+		array $endResults,
+		array $levels,
+		array $subjects,
+		string $logoData
+	): string {
+		$totalMid = 0;
+		$totalEnd = 0;
+		$rowsHtml = '';
+		$index = 1;
+
+		foreach ($subjects as $key => $label) {
+			$midVal = $midResults[$key] ?? null;
+			$endVal = $endResults[$key] ?? null;
+			if ($midVal !== null) {
+				$totalMid += (int)$midVal;
+			}
+			if ($endVal !== null) {
+				$totalEnd += (int)$endVal;
+			}
+			$rowsHtml .= '<tr>'
+				. '<td class="no">' . $index++ . '</td>'
+				. '<td class="text-left"><h3>' . htmlspecialchars($label) . '</h3></td>'
+				. '<td class="unit">' . ($midVal ?? '-') . '</td>'
+				. '<td class="total">' . $this->performanceLevel($midVal, $levels) . '</td>'
+				. '<td class="unit">' . ($endVal ?? '-') . '</td>'
+				. '<td class="total">' . $this->performanceLevel($endVal, $levels) . '</td>'
+				. '</tr>';
+		}
+
+		$logoHtml = $logoData !== '' ? '<img src="' . $logoData . '" data-holder-rendered="true" />' : '';
+
+		return '<div class="report-page">'
+			. '<div class="invoice">'
+			. '<div>'
+			. '<header>'
+			. '<div class="row">'
+			. '<div class="col">' . $logoHtml . '</div>'
+			. '<div class="col company-details">'
+			. '<h2 class="name">GATIMU PRIMARY AND JUNIOR SCHOOL</h2>'
+			. '<div>P.o Box 141-00217 LIMURU</div>'
+			. '<div>debgatimuprimary@gmail.com</div>'
+			. '</div>'
+			. '</div>'
+			. '</header>'
+			. '<main>'
+			. '<div class="row contacts">'
+			. '<div class="col invoice-to">'
+			. '<div class="text-gray-light">REPORT FOR:</div>'
+			. '<h2 class="to">' . htmlspecialchars($student['name']) . '</h2>'
+			. '<div class="address">Grade: ' . htmlspecialchars($student['class']) . '</div>'
+			. '<div class="address">Tutor: ' . htmlspecialchars($tutor) . '</div>'
+			. '</div>'
+			. '<div class="col invoice-details">'
+			. '<h1 class="invoice-id">Performance Report</h1>'
+			. '<div class="date">' . htmlspecialchars($term) . '</div>'
+			. '<div class="date">Year: ' . htmlspecialchars((string)$examYear) . '</div>'
+			. '</div>'
+			. '</div>'
+			. '<table border="0" cellspacing="0" cellpadding="0">'
+			. '<thead>'
+			. '<tr>'
+			. '<th>#</th>'
+			. '<th class="text-left">SUBJECTS</th>'
+			. '<th colspan="2" class="text-center">Mid-Term</th>'
+			. '<th colspan="2" class="text-center">End of Term</th>'
+			. '</tr>'
+			. '<tr>'
+			. '<th></th>'
+			. '<th></th>'
+			. '<th class="text-center">MARKS</th>'
+			. '<th class="text-center">Performance</th>'
+			. '<th class="text-center">MARKS</th>'
+			. '<th class="text-center">Performance</th>'
+			. '</tr>'
+			. '</thead>'
+			. '<tbody>' . $rowsHtml . '</tbody>'
+			. '<tfoot>'
+			. '<tr>'
+			. '<td></td>'
+			. '<td>TOTAL MARK</td>'
+			. '<td>' . $totalMid . '</td>'
+			. '<td>TOTAL MARK</td>'
+			. '<td>' . $totalEnd . '</td>'
+			. '</tr>'
+			. '</tfoot>'
+			. '</table>'
+			. '<div style="margin-top:18px;margin-bottom:9px;">'
+			. '<h3 style="font-size:15px;margin:0 0 5px 0;">Class Teacher\'s Remarks:</h3>'
+			. '<p style="margin:0;font-size:13px;">-------------------------------------------------------------------------------------------</p>'
+			. '</div>'
+			. '<table border="0" cellspacing="0" cellpadding="0" style="width:100%;margin-bottom:9px;">'
+			. '<tr>'
+			. '<td style="width:50%;padding:9px 11px;font-size:13px;vertical-align:top;"><b>Fee balance:</b><br>--------------------------------------------</td>'
+			. '<td style="width:50%;padding:9px 11px;font-size:13px;vertical-align:top;"><b>Next Term Feeding Amount:</b><br>--------------------------------------------</td>'
+			. '</tr>'
+			. '<tr>'
+			. '<td style="width:50%;padding:9px 11px;font-size:13px;vertical-align:top;"><b>Closing Date:</b><br>--------------------------------------------</td>'
+			. '<td style="width:50%;padding:9px 11px;font-size:13px;vertical-align:top;"><b>Opening Date:</b><br>--------------------------------------------</td>'
+			. '</tr>'
+			. '<tr>'
+			. '<td style="width:50%;padding:9px 11px;font-size:13px;vertical-align:top;"><b>Head Teacher Signature:</b><br>--------------------------------------------</td>'
+			. '<td style="width:50%;padding:9px 11px;font-size:13px;vertical-align:top;"><b>Parents Signature:</b><br>--------------------------------------------</td>'
+			. '</tr>'
+			. '</table>'
+			. '<footer>Performance Report should be reach to all parents or else will be treated as an indispline action.</footer>'
+			. '</main>'
+			. '</div>'
 			. '</div>'
 			. '</div>';
 	}

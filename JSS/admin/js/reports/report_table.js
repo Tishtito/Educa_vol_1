@@ -23,7 +23,7 @@
 	const modeMap = {
 		'Mid-Term': {
 			viewPage: 'report_form1.html',
-			printMode: 'print',
+			printMode: 'download',
 			includeExamType: false,
 			reportFormPage: 'report_form1.html'
 		},
@@ -102,9 +102,37 @@
 		const printBtn = document.getElementById('printAll');
 
 		if (mode.printMode === 'download') {
-			if (downloadBtn) {
-				downloadBtn.style.display = 'inline-block';
-				downloadBtn.href = `${baseUrl}/reports/download?grade=${encodeURIComponent(grade)}&exam_id=${encodeURIComponent(examId)}&token=${encodeURIComponent(gradeToken)}`;
+				if (downloadBtn) {
+				downloadBtn.style.display = 'inline-flex';
+				const downloadUrl = `${baseUrl}/reports/download?grade=${encodeURIComponent(grade)}&exam_id=${encodeURIComponent(examId)}&exam_type=${encodeURIComponent(examType)}&token=${encodeURIComponent(gradeToken)}`;
+				downloadBtn.addEventListener('click', async (e) => {
+					e.preventDefault();
+					if (downloadBtn.classList.contains('downloading')) return;
+
+					const label = downloadBtn.querySelector('.download-label');
+					downloadBtn.classList.add('downloading');
+					label.textContent = 'Downloading...';
+
+					try {
+						const res = await fetch(downloadUrl, { credentials: 'include' });
+						if (!res.ok) throw new Error('Download failed');
+						const blob = await res.blob();
+						const url = URL.createObjectURL(blob);
+						const a = document.createElement('a');
+						a.href = url;
+						a.download = `${grade}_reports.pdf`;
+						document.body.appendChild(a);
+						a.click();
+						a.remove();
+						URL.revokeObjectURL(url);
+					} catch (err) {
+						console.error('Download failed', err);
+						alert('Failed to download PDF. Please try again.');
+					} finally {
+						downloadBtn.classList.remove('downloading');
+						label.textContent = 'Download All as PDF';
+					}
+				});
 			}
 			if (printBtn) {
 				printBtn.style.display = 'none';

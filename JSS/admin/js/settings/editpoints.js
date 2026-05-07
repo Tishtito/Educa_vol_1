@@ -83,7 +83,7 @@
 					icon: 'success',
 					button: 'OK',
 				}).then(() => {
-					window.location.href = 'settings/settings.html';
+					window.location.href = 'settings.html';
 				});
 			} catch (error) {
 				swal('Update failed', 'Unable to update grades.', 'error');
@@ -94,7 +94,7 @@
 	// Cancel button
 	if (cancelBtn) {
 		cancelBtn.addEventListener('click', () => {
-			window.location.href = 'settings/settings.html';
+			window.location.href = 'settings.html';
 		});
 	}
 })();
