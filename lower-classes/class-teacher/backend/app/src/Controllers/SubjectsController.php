@@ -42,7 +42,7 @@ class SubjectsController
         }
 
         // Validate subject to prevent SQL injection
-        $validSubjects = ['Math', 'LS/SP', 'RDG', 'GRM', 'WRI', 'KUS/KUZ', 'KUS', 'LUG', 'KUA', 'Enviromental', 'Creative', 'Religious'];
+        $validSubjects = ['Math', 'RDG', 'GRM', 'English','KUS', 'LUG', 'Kiswahili', 'Enviromental', 'Creative', 'Religious'];
         if (!in_array($subject, $validSubjects)) {
             echo json_encode(['success' => false, 'message' => 'Invalid subject']);
             return;
@@ -97,11 +97,13 @@ class SubjectsController
                 'LS/SP',
                 'RDG',
                 'GRM',
-                'WRI',
-                'KUS/KUZ',
+                'English',
+                // 'WRI',
+                // 'KUS/KUZ',
                 'KUS',
                 'LUG',
-                'KUA',
+                'Kiswahili',
+                // 'KUA',
                 'Enviromental',
                 'Creative',
                 'Religious'

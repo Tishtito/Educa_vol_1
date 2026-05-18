@@ -17,7 +17,8 @@ class SubjectController
 
 	/**
 	 * GET /subjects/marks
-	 * Fetch student list with their marks for a specific subject
+	 * Fetch student list with their marks for all subjects or a specific subject
+	 * If subject=all or subject is omitted, returns all subjects' marks
 	 */
 	public function getMarks(): void
 	{
@@ -31,25 +32,27 @@ class SubjectController
 			return;
 		}
 
-		$subject = $_GET['subject'] ?? null;
+		$subject = $_GET['subject'] ?? 'all';
 		$class = $_GET['class'] ?? null;
 		$examId = $_GET['exam_id'] ?? null;
 
-		if (!$subject || !$class || !$examId) {
+		if (!$class || !$examId) {
 			http_response_code(400);
 			header('Content-Type: application/json');
-			echo json_encode(['success' => false, 'message' => 'Missing required parameters']);
+			echo json_encode(['success' => false, 'message' => 'Missing required parameters: class and exam_id']);
 			return;
 		}
 
 		try {
-			// Get marks out of for this subject and exam
-			$marksOutOf = $this->db->get('marks_out_of', ['marks_out_of'], [
-				'exam_id' => intval($examId),
-				'subject' => $subject
+			// Get all marks out of for all subjects in this exam
+			$marksOutOfRecords = $this->db->select('marks_out_of', '*', [
+				'exam_id' => intval($examId)
 			]);
 
-			$marksOutOfValue = $marksOutOf ? intval($marksOutOf['marks_out_of']) : null;
+			$marksOutOfMap = [];
+			foreach ($marksOutOfRecords as $record) {
+				$marksOutOfMap[$record['subject']] = intval($record['marks_out_of']);
+			}
 
 			// Get all active students in this class from students table
 			$students = $this->db->select('students', ['student_id', 'name'], [
@@ -57,7 +60,7 @@ class SubjectController
 				'status' => 'Active'
 			]);
 
-			// Get marks for each student in this subject/exam
+			// Get marks for each student in all subjects/exam
 			if (!empty($students)) {
 				$students = array_map(function ($student) use ($subject, $examId) {
 					// Get the student_class_id from student_classes table
@@ -71,22 +74,40 @@ class SubjectController
 
 					$studentClassId = $studentClass['student_class_id'];
 
-					// Get marks from exam_results
+					// Get all marks from exam_results
 					$result = $this->db->get('exam_results', '*', [
 						'student_class_id' => intval($studentClassId),
 						'exam_id' => intval($examId)
 					]);
-					
-					$marks = null;
-					if ($result && isset($result[$subject])) {
-						$marks = $result[$subject];
+
+					if (!$result) {
+						$result = [];
 					}
-					
+
+					// Return all subject marks in raw form
 					return [
 						'student_id' => $student['student_id'],
 						'student_name' => $student['name'] ?? 'Unknown',
 						'student_class_id' => $studentClassId,
-						'marks' => $marks
+
+						// Individual component marks (raw)
+						'rdg_marks' => isset($result['RDG']) ? $result['RDG'] : null,
+						'grm_marks' => isset($result['GRM']) ? $result['GRM'] : null,
+						'lug_marks' => isset($result['LUG']) ? $result['LUG'] : null,
+						'kus_marks' => isset($result['KUS']) ? $result['KUS'] : null,
+
+						// Combined subject totals (percentage)
+						'english_marks' => isset($result['English']) ? $result['English'] : null,
+						'kiswahili_marks' => isset($result['Kiswahili']) ? $result['Kiswahili'] : null,
+
+						// Individual regular subject marks (percentage)
+						'math_marks' => isset($result['Math']) ? $result['Math'] : null,
+						'enviromental_marks' => isset($result['Enviromental']) ? $result['Enviromental'] : null,
+						'creative_marks' => isset($result['Creative']) ? $result['Creative'] : null,
+						'religious_marks' => isset($result['Religious']) ? $result['Religious'] : null,
+
+						// Total marks
+						'total_marks' => isset($result['total_marks']) ? $result['total_marks'] : null
 					];
 				}, $students);
 
@@ -107,7 +128,7 @@ class SubjectController
 				'subject' => $subject,
 				'class' => $class,
 				'exam_id' => $examId,
-				'marks_out_of' => $marksOutOfValue,
+				'marks_out_of' => $marksOutOfMap,
 				'students' => $students ?? []
 			]);
 
@@ -141,25 +162,39 @@ class SubjectController
 		$subject = $input['subject'] ?? null;
 		$examId = $input['exam_id'] ?? null;
 		$marks = isset($input['marks']) ? floatval($input['marks']) : null;
+		$rdgMarks = isset($input['rdg_marks']) ? floatval($input['rdg_marks']) : null;
+		$grmMarks = isset($input['grm_marks']) ? floatval($input['grm_marks']) : null;
+		$lugMarks = isset($input['lug_marks']) ? floatval($input['lug_marks']) : null;
+		$kusMarks = isset($input['kus_marks']) ? floatval($input['kus_marks']) : null;
 
-		if ($studentClassId === null || !$subject || !$examId || $marks === null) {
+		if ($studentClassId === null || !$subject || !$examId) {
 			http_response_code(400);
 			header('Content-Type: application/json');
 			echo json_encode(['success' => false, 'message' => 'Missing required parameters']);
 			return;
 		}
 
+		// Validate based on subject type
+		if ($subject === 'GRM') {
+			if ($rdgMarks === null || $grmMarks === null) {
+				http_response_code(400);
+				header('Content-Type: application/json');
+				echo json_encode(['success' => false, 'message' => 'RDG and GRM marks are required']);
+				return;
+			}
+		} elseif ($subject === 'LUG') {
+			if ($lugMarks === null || $kusMarks === null) {
+				http_response_code(400);
+				header('Content-Type: application/json');
+				echo json_encode(['success' => false, 'message' => 'LUG and KUS marks are required']);
+				return;
+			}
+		}
+
 		try {
-			// Get marks out of for this subject and exam
-			$marksOutOf = $this->db->get('marks_out_of', ['marks_out_of'], [
-				'exam_id' => intval($examId),
-				'subject' => $subject
-			]);
-
-			$maxMarks = $marksOutOf ? intval($marksOutOf['marks_out_of']) : 100;
-
 			// Validate subject is valid
-			$validSubjects = ['Math', 'LS/SP', 'RDG', 'GRM', 'WRI', 'KUS/KUZ', 'KUS', 'LUG', 'KUA', 'Enviromental', 'Creative', 'Religious'];
+			//$validSubjects = ['Math', 'LS/SP', 'RDG', 'GRM', 'WRI', 'KUS/KUZ', 'KUS', 'LUG', 'KUA', 'Enviromental', 'Creative', 'Religious'];
+			$validSubjects = ['Math', 'RDG', 'GRM', 'KUS', 'LUG','Enviromental', 'Creative', 'Religious'];
 			if (!in_array($subject, $validSubjects)) {
 				http_response_code(400);
 				header('Content-Type: application/json');
@@ -167,20 +202,89 @@ class SubjectController
 				return;
 			}
 
-			// Validate marks are within bounds
-			if ($marks < 0 || $marks > $maxMarks) {
-				http_response_code(400);
-				header('Content-Type: application/json');
-				echo json_encode(['success' => false, 'message' => "Marks must be between 0 and {$maxMarks}"]);
-				return;
+			// Get marks out of based on subject type
+			if ($subject === 'GRM') {
+				// Get individual marks out of for GRM and RDG
+				$grmOutOf = $this->db->get('marks_out_of', ['marks_out_of'], [
+					'exam_id' => intval($examId),
+					'subject' => 'GRM'
+				]);
+				$rdgOutOf = $this->db->get('marks_out_of', ['marks_out_of'], [
+					'exam_id' => intval($examId),
+					'subject' => 'RDG'
+				]);
+
+				$grmMaxMarks = $grmOutOf ? intval($grmOutOf['marks_out_of']) : 100;
+				$rdgMaxMarks = $rdgOutOf ? intval($rdgOutOf['marks_out_of']) : 100;
+
+				// Validate marks are within bounds for each component
+				if ($rdgMarks < 0 || $grmMarks < 0) {
+					http_response_code(400);
+					header('Content-Type: application/json');
+					echo json_encode(['success' => false, 'message' => "RDG and GRM marks cannot be negative"]);
+					return;
+				}
+				if ($rdgMarks > $rdgMaxMarks) {
+					http_response_code(400);
+					header('Content-Type: application/json');
+					echo json_encode(['success' => false, 'message' => "RDG marks must be between 0 and {$rdgMaxMarks}"]);
+					return;
+				}
+				if ($grmMarks > $grmMaxMarks) {
+					http_response_code(400);
+					header('Content-Type: application/json');
+					echo json_encode(['success' => false, 'message' => "GRM marks must be between 0 and {$grmMaxMarks}"]);
+					return;
+				}
+			} elseif ($subject === 'LUG') {
+				// Get individual marks out of for LUG and KUS
+				$lugOutOf = $this->db->get('marks_out_of', ['marks_out_of'], [
+					'exam_id' => intval($examId),
+					'subject' => 'LUG'
+				]);
+				$kusOutOf = $this->db->get('marks_out_of', ['marks_out_of'], [
+					'exam_id' => intval($examId),
+					'subject' => 'KUS'
+				]);
+
+				$lugMaxMarks = $lugOutOf ? intval($lugOutOf['marks_out_of']) : 100;
+				$kusMaxMarks = $kusOutOf ? intval($kusOutOf['marks_out_of']) : 100;
+
+				// Validate marks are within bounds for each component
+				if ($lugMarks < 0 || $kusMarks < 0) {
+					http_response_code(400);
+					header('Content-Type: application/json');
+					echo json_encode(['success' => false, 'message' => "LUG and KUS marks cannot be negative"]);
+					return;
+				}
+				if ($lugMarks > $lugMaxMarks) {
+					http_response_code(400);
+					header('Content-Type: application/json');
+					echo json_encode(['success' => false, 'message' => "LUG marks must be between 0 and {$lugMaxMarks}"]);
+					return;
+				}
+				if ($kusMarks > $kusMaxMarks) {
+					http_response_code(400);
+					header('Content-Type: application/json');
+					echo json_encode(['success' => false, 'message' => "KUS marks must be between 0 and {$kusMaxMarks}"]);
+					return;
+				}
+			} else {
+				// Get marks out of for regular subject
+				$marksOutOf = $this->db->get('marks_out_of', ['marks_out_of'], [
+					'exam_id' => intval($examId),
+					'subject' => $subject
+				]);
+				$maxMarks = $marksOutOf ? intval($marksOutOf['marks_out_of']) : 100;
+
+				// Validate marks are within bounds
+				if ($marks < 0 || $marks > $maxMarks) {
+					http_response_code(400);
+					header('Content-Type: application/json');
+					echo json_encode(['success' => false, 'message' => "Marks must be between 0 and {$maxMarks}"]);
+					return;
+				}
 			}
-
-			// Convert marks to percentage (following the working logic)
-			// $percentage = ($marks / $maxMarks) * 100;
-			$percentage = $marks ;
-
-			//when you dont want to convert to percentage, just use the marks as is
-			//$percentage = $marks ;
 
 			// Get student_id from student_classes table
 			$studentClass = $this->db->get('student_classes', ['student_id'], [
@@ -202,6 +306,101 @@ class SubjectController
 				'exam_id' => intval($examId)
 			]);
 
+			if ($subject === 'GRM') {
+
+				// Calculate English total using individual component max marks
+				$combinedMaxMarks = $grmMaxMarks + $rdgMaxMarks;
+				$englishTotal = ($combinedMaxMarks > 0) ? (($rdgMarks + $grmMarks) / $combinedMaxMarks) * 100 : 0;
+
+				// Handle GRM + RDG combined subject
+				if ($existingResult) {
+
+					// Update RDG, GRM and English total
+					$updateSql = "
+						UPDATE exam_results 
+						SET RDG = ?, GRM = ?, English = ?
+						WHERE student_class_id = ? AND exam_id = ?
+					";
+
+					$stmt = $this->db->pdo->prepare($updateSql);
+
+					$stmt->execute([
+						$rdgMarks,
+						$grmMarks,
+						$englishTotal,
+						intval($studentClassId),
+						intval($examId)
+					]);
+
+				} else {
+
+					// Insert new record with RDG, GRM and English total
+					$insertSql = "
+						INSERT INTO exam_results 
+						(exam_id, student_id, student_class_id, RDG, GRM, English)
+						VALUES (?, ?, ?, ?, ?, ?)
+					";
+
+					$stmt = $this->db->pdo->prepare($insertSql);
+
+					$stmt->execute([
+						intval($examId),
+						intval($studentId),
+						intval($studentClassId),
+						$rdgMarks,
+						$grmMarks,
+						$englishTotal
+					]);
+				}
+			} elseif ($subject === 'LUG') {
+
+				// Calculate Kiswahili total using individual component max marks
+				$combinedMaxMarks = $lugMaxMarks + $kusMaxMarks;
+				$kiswahiliTotal = ($combinedMaxMarks > 0) ? (($lugMarks + $kusMarks) / $combinedMaxMarks) * 100 : 0;
+
+				if ($existingResult) {
+
+					// Update LUG, KUS and kiswahili total
+					$updateSql = "
+						UPDATE exam_results 
+						SET LUG = ?, KUS = ?, kiswahili = ?
+						WHERE student_class_id = ? AND exam_id = ?
+					";
+
+					$stmt = $this->db->pdo->prepare($updateSql);
+
+					$stmt->execute([
+						$lugMarks,
+						$kusMarks,
+						$kiswahiliTotal,
+						intval($studentClassId),
+						intval($examId)
+					]);
+
+				} else {
+
+					// Insert new record
+					$insertSql = "
+						INSERT INTO exam_results 
+						(exam_id, student_id, student_class_id, LUG, KUS, kiswahili)
+						VALUES (?, ?, ?, ?, ?, ?)
+					";
+
+					$stmt = $this->db->pdo->prepare($insertSql);
+
+					$stmt->execute([
+						intval($examId),
+						intval($studentId),
+						intval($studentClassId),
+						$lugMarks,
+						$kusMarks,
+						$kiswahiliTotal
+					]);
+				}
+			} else {
+				// Handle regular subject
+				$percentage = ($marks/$maxMarks)*100;
+
 				// Escape subject column name for SQL
 				$columnName = in_array($subject, ['LS/SP', 'KUS/KUZ']) ? '`' . $subject . '`' : $subject;
 
@@ -211,24 +410,47 @@ class SubjectController
 					$stmt = $this->db->pdo->prepare($updateSql);
 					$stmt->execute([$percentage, intval($studentClassId), intval($examId)]);
 				} else {
-			// Record doesn't exist, INSERT it
-			$insertSql = "INSERT INTO exam_results (exam_id, student_id, student_class_id, " . $columnName . ") VALUES (?, ?, ?, ?)";
-			$stmt = $this->db->pdo->prepare($insertSql);
-			$stmt->execute([intval($examId), intval($studentId), intval($studentClassId), $percentage]);
+					// Record doesn't exist, INSERT it
+					$insertSql = "INSERT INTO exam_results (exam_id, student_id, student_class_id, " . $columnName . ") VALUES (?, ?, ?, ?)";
+					$stmt = $this->db->pdo->prepare($insertSql);
+					$stmt->execute([intval($examId), intval($studentId), intval($studentClassId), $percentage]);
 				}
+			}
 
 			// Recalculate total marks for this student
 			$this->recalculateTotalMarks(intval($studentClassId), intval($examId));
 
 			header('Content-Type: application/json');
-			echo json_encode([
-				'success' => true,
-				'message' => 'Marks updated successfully',
-				'subject' => $subject,
-				'exam_id' => intval($examId),
-				'student_class_id' => intval($studentClassId),
-				'marks' => $marks
-			]);
+			if ($subject === 'GRM') {
+				echo json_encode([
+					'success' => true,
+					'message' => 'Marks updated successfully',
+					'subject' => $subject,
+					'exam_id' => intval($examId),
+					'student_class_id' => intval($studentClassId),
+					'rdg_marks' => $rdgMarks,
+					'grm_marks' => $grmMarks
+				]);
+			} elseif ($subject === 'LUG') {
+				echo json_encode([
+					'success' => true,
+					'message' => 'Marks updated successfully',
+					'subject' => $subject,
+					'exam_id' => intval($examId),
+					'student_class_id' => intval($studentClassId),
+					'lug_marks' => $lugMarks,
+					'kus_marks' => $kusMarks
+				]);
+			} else {
+				echo json_encode([
+					'success' => true,
+					'message' => 'Marks updated successfully',
+					'subject' => $subject,
+					'exam_id' => intval($examId),
+					'student_class_id' => intval($studentClassId),
+					'marks' => $marks
+				]);
+			}
 
 		} catch (\Exception $e) {
 			http_response_code(500);
@@ -319,7 +541,8 @@ class SubjectController
 	private function recalculateTotalMarks(int $studentClassId, int $examId): void
 	{
 		try {
-			$subjects = ['Math', 'LS/SP', 'RDG', 'GRM', 'WRI', 'KUS/KUZ', 'KUS', 'LUG', 'KUA', 'Enviromental', 'Creative', 'Religious'];
+			//$subjects = ['Math', 'LS/SP', 'RDG', 'GRM', 'WRI', 'KUS/KUZ', 'KUS', 'LUG', 'KUA', 'Enviromental', 'Creative', 'Religious'];
+			$subjects = ['Math', 'RDG', 'GRM','KUS', 'LUG', 'Enviromental', 'Creative', 'Religious'];
 
 			$examResult = $this->db->get('exam_results', '*', [
 				'student_class_id' => $studentClassId,
@@ -339,6 +562,20 @@ class SubjectController
 					$totalMarks += floatval($examResult[$subject]);
 					$subjectCount++;
 				}
+			}
+
+			// If this is a combined RDG/GRM record, calculate English as RDG + GRM
+			if (isset($examResult['RDG']) && isset($examResult['GRM']) && $examResult['RDG'] !== null && $examResult['GRM'] !== null) {
+				$englishMarks = floatval($examResult['RDG']) + floatval($examResult['GRM']);
+				$totalMarks += $englishMarks;
+				$subjectCount++;
+			}
+
+			// If this is a combined LUG/KUS record, calculate Kiswahili as LUG + KUS
+			if (isset($examResult['LUG']) && isset($examResult['KUS']) && $examResult['LUG'] !== null && $examResult['KUS'] !== null) {
+				$kiswahiliMarks = floatval($examResult['LUG']) + floatval($examResult['KUS']);
+				$totalMarks += $kiswahiliMarks;
+				$subjectCount++;
 			}
 
 			// Calculate mean if we have marks

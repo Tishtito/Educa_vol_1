@@ -38,7 +38,7 @@ class SettingsController
 		}
 
 		$subject = $_GET['subject'] ?? 'Math';
-		$validSubjects = ['Math', 'LS/SP', 'RDG', 'GRM', 'WRI', 'KUS/KUZ', 'KUS', 'LUG', 'KUA', 'Enviromental', 'Creative', 'Religious'];
+		$validSubjects = ['Math', 'Kiswahili', 'English', 'RDG', 'GRM', 'KUS', 'LUG', 'Enviromental', 'Creative', 'Religious'];
 		
 		if (!in_array($subject, $validSubjects)) {
 			http_response_code(400);
@@ -91,7 +91,7 @@ class SettingsController
 		}
 
 		$subject = $payload['subject'] ?? 'Math';
-		$validSubjects = ['Math', 'LS/SP', 'RDG', 'GRM', 'WRI', 'KUS/KUZ', 'KUS', 'LUG', 'KUA', 'Enviromental', 'Creative', 'Religious'];
+		$validSubjects = ['Math', 'English', 'RDG', 'GRM','Kiswahili','KUS', 'LUG', 'Enviromental', 'Creative', 'Religious'];
 		
 		if (!in_array($subject, $validSubjects)) {
 			http_response_code(400);

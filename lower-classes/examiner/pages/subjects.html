@@ -43,6 +43,36 @@
        </div>
    </div>
 
+   <!-- Marks out of combined subjects - English (GRM/RDG)-->
+   <div class="marks-out-of" id="paperMarksOutOfSectionEnglish" style="display: none;">
+        <div class="paper-marks-container">
+            <div class="paper-input-group">
+                <label for="paper1OutOfEnglish">Grammer Out Of:</label>
+                <input type="number" id="paper1OutOfEnglish" min="1" max="100" placeholder="e.g., 50">
+            </div>
+            <div class="paper-input-group">
+                <label for="paper2OutOfEnglish">Reading Out Of:</label>
+                <input type="number" id="paper2OutOfEnglish" min="1" max="100" placeholder="e.g., 50">
+            </div>
+            <button type="button" id="setPaperBtnEnglish" class="paper-set-btn">Set Both</button>
+        </div>
+    </div>
+
+    <!-- Marks out of combined subjects - Kiswahili (LUG/KUS)-->
+    <div class="marks-out-of" id="paperMarksOutOfSectionKiswahili" style="display: none;">
+        <div class="paper-marks-container">
+            <div class="paper-input-group">
+                <label for="paper1OutOfKiswahili">Lugha Out Of:</label>
+                <input type="number" id="paper1OutOfKiswahili" min="1" max="100" placeholder="e.g., 50">
+            </div>
+            <div class="paper-input-group">
+                <label for="paper2OutOfKiswahili">Kusoma Out Of:</label>
+                <input type="number" id="paper2OutOfKiswahili" min="1" max="100" placeholder="e.g., 50">
+            </div>
+            <button type="button" id="setPaperBtnKiswahili" class="paper-set-btn">Set Both</button>
+        </div>
+    </div>
+
    <!-- Error Message -->
    <div id="errorMessage"></div>
 
@@ -54,7 +84,7 @@
    <!-- Students Table -->
    <div class="box-container" id="tableContainer" style="display: none;">
        <table class="content-table">
-           <thead>
+           <thead id="studentsTableHead">
                <tr>
                    <th>Student Name</th>
                    <th>Current Marks (%)</th>
@@ -75,8 +105,8 @@
             <h2>Edit Marks - <span id="studentNameInModal">Student</span></h2>
             <button class="modal-close" onclick="closeEditModal()">&times;</button>
         </div>
-        <form onsubmit="saveMarks(event)">
-            <div class="form-group">
+        <form onsubmit="saveMarks(event)" novalidate>
+            <div class="form-group" id="studentMarksGroup">
                 <label for="studentMarks">Marks (out of <span id="maxMarks">100</span>):</label>
                 <input 
                     type="number" 
@@ -84,7 +114,26 @@
                     min="0" 
                     step="0.01"
                     placeholder="Enter marks"
-                    required
+                >
+            </div>
+            <div class="form-group" id="studentRdgMarksGroup" style="display: none;">
+                <label for="studentRdgMarks">RDG Marks (out of <span id="maxMarksRdg">100</span>):</label>
+                <input 
+                    type="number" 
+                    id="studentRdgMarks" 
+                    min="0" 
+                    step="0.01"
+                    placeholder="Enter RDG marks"
+                >
+            </div>
+            <div class="form-group" id="studentGrmMarksGroup" style="display: none;">
+                <label for="studentGrmMarks">GRM Marks (out of <span id="maxMarksGrm">100</span>):</label>
+                <input 
+                    type="number" 
+                    id="studentGrmMarks" 
+                    min="0" 
+                    step="0.01"
+                    placeholder="Enter GRM marks"
                 >
             </div>
             <div class="modal-buttons">

@@ -13,6 +13,7 @@ const MarkList = (() => {
 
    // URL parameters
    let examId, grade, token;
+   const subjectsWithPl = ['Math', 'English', 'Jumla', 'Enviromental', 'Creative', 'Religious'];
 
    /**
     * Create subject alias map (same as backend)
@@ -142,14 +143,19 @@ const MarkList = (() => {
       // Build top header row
       let topHeaderHTML = '<th rowspan="2">Rank</th><th rowspan="2">Name</th>';
       subjects.forEach(subject => {
-         topHeaderHTML += `<th colspan="2">${escapeHtml(subject)}</th>`;
+         const hasPl = subjectsWithPl.includes(subject);
+         topHeaderHTML += hasPl ? `<th colspan="2">${escapeHtml(subject)}</th>` : `<th>${escapeHtml(subject)}</th>`;
       });
       topHeaderHTML += '<th rowspan="2">Total Marks</th>';
 
       // Build sub-header row
       let subHeaderHTML = '';
-      subjects.forEach(() => {
-         subHeaderHTML += '<th>Marks</th><th>PL</th>';
+      subjects.forEach(subject => {
+         const hasPl = subjectsWithPl.includes(subject);
+         subHeaderHTML += '<th>Marks</th>';
+         if (hasPl) {
+            subHeaderHTML += '<th>PL</th>';
+         }
       });
 
       headTopRow.innerHTML = topHeaderHTML;
@@ -174,8 +180,11 @@ const MarkList = (() => {
       subjects.forEach(subject => {
          const alias = aliasMap[subject];
          const mark = student[alias] ?? '-';
-         const pl = student[`PL_${alias}`] ?? '-';
-         row += `<td>${escapeHtml(String(mark))}</td><td>${escapeHtml(String(pl))}</td>`;
+         row += `<td>${escapeHtml(String(mark))}</td>`;
+         if (subjectsWithPl.includes(subject)) {
+            const pl = student[`PL_${alias}`] ?? '-';
+            row += `<td>${escapeHtml(String(pl))}</td>`;
+         }
       });
 
       row += `<td>${escapeHtml(String(student.total_marks ?? 0))}</td></tr>`;
@@ -202,7 +211,8 @@ const MarkList = (() => {
 
       data.subjects.forEach(subject => {
          const mean = data.mean_scores[subject] ?? 0;
-         row += `<td colspan="2">${escapeHtml(String(mean))}</td>`;
+         const hasPl = subjectsWithPl.includes(subject);
+         row += hasPl ? `<td colspan="2">${escapeHtml(String(mean))}</td>` : `<td>${escapeHtml(String(mean))}</td>`;
       });
 
       row += `<td colspan="2">${escapeHtml(String(data.total_mean))}</td></tr>`;
@@ -217,7 +227,8 @@ const MarkList = (() => {
 
       data.subjects.forEach(subject => {
          const prevMean = data.prev_mean_scores[subject] ?? '-';
-         row += `<td colspan="2">${escapeHtml(String(prevMean))}</td>`;
+         const hasPl = subjectsWithPl.includes(subject);
+         row += hasPl ? `<td colspan="2">${escapeHtml(String(prevMean))}</td>` : `<td>${escapeHtml(String(prevMean))}</td>`;
       });
 
       row += `<td colspan="2">${escapeHtml(String(data.prev_total_mean))}</td></tr>`;
@@ -233,7 +244,8 @@ const MarkList = (() => {
       data.subjects.forEach(subject => {
          const dev = data.deviation_scores[subject];
          const { color, display } = formatDeviationValue(dev);
-         row += `<td colspan="2" style="color: ${color}">${escapeHtml(display)}</td>`;
+         const hasPl = subjectsWithPl.includes(subject);
+         row += hasPl ? `<td colspan="2" style="color: ${color}">${escapeHtml(display)}</td>` : `<td style="color: ${color}">${escapeHtml(display)}</td>`;
       });
 
       const { color: totalColor, display: totalDisplay } = formatDeviationValue(data.total_mean_deviation);

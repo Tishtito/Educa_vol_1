@@ -19,6 +19,9 @@
 					<input type="text" class="settings-input" data-field="grade" data-id="${row.id}" value="${row.grade}" required>
 				</td>
 				<td>
+					<input type="text" class="settings-input" data-field="ab" data-id="${row.id}" value="${row.ab}" required>
+				</td>
+				<td>
 					<input type="number" class="settings-input" data-field="min_marks" data-id="${row.id}" value="${row.min_marks}" required>
 				</td>
 				<td>
@@ -94,7 +97,7 @@
 	// Cancel button
 	if (cancelBtn) {
 		cancelBtn.addEventListener('click', () => {
-			window.location.href = 'settings/settings.html';
+			window.location.href = 'settings.html';
 		});
 	}
 })();

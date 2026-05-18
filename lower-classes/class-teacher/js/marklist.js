@@ -101,6 +101,7 @@ function displayMarkList(data) {
    const subjectMeans = data.subjectMeans || {};
    const totalMean = data.totalMean || 0;
    const previousMeans = data.previousMeans || {};
+   const subjectsWithPl = ['Math', 'English', 'Kiswahili', 'Enviromental', 'Creative', 'Religious'];
 
    // Update total mean
    document.getElementById('totalMean').textContent = totalMean;
@@ -111,14 +112,19 @@ function displayMarkList(data) {
    html += '<th rowspan="2">Name</th>';
 
    subjects.forEach(subject => {
-      html += `<th colspan="2">${escapeHtml(subject)}</th>`;
+      const hasPl = subjectsWithPl.includes(subject);
+      html += hasPl ? `<th colspan="2">${escapeHtml(subject)}</th>` : `<th>${escapeHtml(subject)}</th>`;
    });
 
    html += '<th colspan="2">Total Marks</th>';
    html += '</tr><tr>';
 
-   subjects.forEach(() => {
-      html += '<th>Marks</th><th>PL</th>';
+   subjects.forEach(subject => {
+      const hasPl = subjectsWithPl.includes(subject);
+      html += '<th>Marks</th>';
+      if (hasPl) {
+         html += '<th>PL</th>';
+      }
    });
 
    html += '<th>TOTAL</th><th>PL</th>';
@@ -133,9 +139,11 @@ function displayMarkList(data) {
 
       subjects.forEach(subject => {
          const mark = student[subject] || '-';
-         const pl = student[`PL_${subject}`] || '-';
          html += `<td>${escapeHtml(String(mark))}</td>`;
-         html += `<td>${escapeHtml(String(pl))}</td>`;
+         if (subjectsWithPl.includes(subject)) {
+            const pl = student[`PL_${subject}`] || '-';
+            html += `<td>${escapeHtml(String(pl))}</td>`;
+         }
       });
 
       const totalMarks = student.total_marks || '-';
@@ -153,7 +161,8 @@ function displayMarkList(data) {
 
    subjects.forEach(subject => {
       const mean = subjectMeans[subject] || 0;
-      html += `<td colspan="2">${mean}</td>`;
+      const hasPl = subjectsWithPl.includes(subject);
+      html += hasPl ? `<td colspan="2">${mean}</td>` : `<td>${mean}</td>`;
    });
 
    html += `<td colspan="2">${totalMean}</td>`;
@@ -165,7 +174,8 @@ function displayMarkList(data) {
 
    subjects.forEach(subject => {
       const prevMean = previousMeans[subject] || 0;
-      html += `<td colspan="2">${prevMean}</td>`;
+      const hasPl = subjectsWithPl.includes(subject);
+      html += hasPl ? `<td colspan="2">${prevMean}</td>` : `<td>${prevMean}</td>`;
    });
 
    const prevTotalMean = previousMeans.total_mean || 0;
@@ -180,7 +190,8 @@ function displayMarkList(data) {
       const current = subjectMeans[subject] || 0;
       const previous = previousMeans[subject] || 0;
       const deviation = (current - previous).toFixed(2);
-      html += `<td colspan="2">${deviation}</td>`;
+      const hasPl = subjectsWithPl.includes(subject);
+      html += hasPl ? `<td colspan="2">${deviation}</td>` : `<td>${deviation}</td>`;
    });
 
    const totalDeviation = (totalMean - (previousMeans.total_mean || 0)).toFixed(2);

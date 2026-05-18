@@ -38,7 +38,7 @@ class SettingsController
 		}
 
 		try {
-			$rows = $this->db->select('point_boundaries', ['id', 'grade', 'min_marks', 'max_marks'], [
+			$rows = $this->db->select('point_boundaries', ['id', 'grade', 'min_marks', 'max_marks', 'ab'], [
 				'ORDER' => ['min_marks' => 'ASC'],
 			]);
 

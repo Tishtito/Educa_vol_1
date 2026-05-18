@@ -87,14 +87,16 @@ class MarkListController
 		// Map display names to SQL column names with proper escaping
 		$subjectInformation = [
 			'Math' => 'Math',
-			'LS/SP' => '`LS/SP`',
+			//'LS/SP' => '`LS/SP`',
 			'RDG' => 'RDG',
 			'GRM' => 'GRM',
-			'WRI' => 'WRI',
-			'KUS/KUZ' => '`KUS/KUZ`',
+			'English'=>'English',
+			//'WRI' => 'WRI',
+			//'KUS/KUZ' => '`KUS/KUZ`',
 			'KUS' => 'KUS',
 			'LUG' => 'LUG',
-			'KUA' => 'KUA',
+			'Jumla' => 'Kiswahili',
+			//'KUA' => 'KUA',
 			'Enviromental' => 'Enviromental',
 			'Creative' => 'Creative',
 			'Religious' => 'Religious'
@@ -104,12 +106,21 @@ class MarkListController
 		foreach ($subjectInformation as $displayName => $columnName) {
 			$aliasName = str_replace(['/', '-', ' '], '', $displayName);
 			$sql .= ", er." . $columnName . " AS " . $aliasName;
-			// Get abbreviation from point_boundaries matching both subject and marks range
-			$sql .= ", (SELECT ab FROM point_boundaries WHERE subject = '" . str_replace("'", "''", $displayName) . "' AND er." . $columnName . " BETWEEN min_marks AND max_marks LIMIT 1) AS PL_" . $aliasName;
+			// Get abbreviation from point_boundaries using the stored subject column name and marks range
+			$sql .= ", (SELECT ab FROM point_boundaries WHERE subject = '" . str_replace("'", "''", $columnName) . "' AND er." . $columnName . " BETWEEN min_marks AND max_marks LIMIT 1) AS PL_" . $aliasName;
 		}
+		$totalSubjects = [
+			'Math',
+			'English',
+			'Kiswahili',
+			'Enviromental',
+			'Creative',
+			'Religious'
+		];
+
 		$coalesceParts = array_map(function($columnName) {
-			return "COALESCE(er." . $columnName . ", 0)";
-		}, $subjectInformation);
+			return "COALESCE(er.`" . $columnName . "`, 0)";
+		}, $totalSubjects);
 		$sql .= ", (" . implode(" + ", $coalesceParts) . ") AS total_marks 
 			FROM students s
 			LEFT JOIN exam_results er ON s.student_id = er.student_id AND er.exam_id = :exam_id
@@ -262,11 +273,10 @@ class MarkListController
 				foreach ($prevStudents as $row) {
 					$studentTotal = 0;
 					foreach ($subjectInformation as $displayName => $columnName) {
-						// For SELECT *, column names are the original names
-						if (isset($row[$displayName]) && $row[$displayName] !== null) {
-							$prevTotals[$displayName] += (float)$row[$displayName];
+						if (isset($row[$columnName]) && $row[$columnName] !== null) {
+							$prevTotals[$displayName] += (float)$row[$columnName];
 							$prevCounts[$displayName]++;
-							$studentTotal += (float)$row[$displayName];
+							$studentTotal += (float)$row[$columnName];
 						}
 					}
 

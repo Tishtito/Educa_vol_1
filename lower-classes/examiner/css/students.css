@@ -234,6 +234,169 @@
             transform: translateY(0);
         }
 
+        .marks-out-of {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .marks-out-of input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 120px;
+            flex: 0 0 auto;
+        }
+
+        .marks-out-of button {
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            flex: 0 0 auto;
+        }
+
+        .marks-out-of button:hover {
+            background: #5568d3;
+        }
+
+        /* Paper Marks Input Container */
+        .paper-marks-container {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        .paper-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            flex: 1;
+            min-width: 140px;
+        }
+
+        .paper-input-group label {
+            font-weight: 600;
+            color: #333;
+            font-size: 13px;
+        }
+
+        .paper-input-group input {
+            padding: 10px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .paper-input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+
+        .paper-set-btn {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            height: fit-content;
+            transition: background 0.3s ease;
+        }
+
+        .paper-set-btn:hover {
+            background: #5568d3;
+        }
+
+        .paper-set-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Responsive Design for Smaller Screens */
+        @media (max-width: 768px) {
+            .marks-table {
+                padding: 15px;
+                font-size: 14px;
+            }
+
+            .paper-marks-container {
+                gap: 12px;
+            }
+
+            .paper-input-group {
+                flex: 1;
+                min-width: 130px;
+            }
+
+            .paper-set-btn {
+                padding: 10px 16px;
+                font-size: 13px;
+            }
+
+            .marks-out-of input {
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            .marks-out-of button {
+                padding: 10px 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .marks-table {
+                padding: 12px;
+                font-size: 13px;
+            }
+
+            .paper-marks-container {
+                gap: 10px;
+                align-items: stretch;
+            }
+
+            .paper-input-group {
+                flex: 1;
+                min-width: 100%;
+            }
+
+            .paper-set-btn {
+                width: 100%;
+                padding: 12px;
+                font-size: 13px;
+            }
+
+            .marks-out-of {
+                gap: 8px;
+                margin: 15px 0;
+            }
+
+            .marks-out-of input {
+                width: 100%;
+                padding: 10px;
+            }
+
+            .marks-out-of button {
+                width: 100%;
+                padding: 10px;
+            }
+
+            .marks-out-of label {
+                width: 100%;
+            }
+        }
+
         /* Table Styling */
         .box-container {
             background: white;
