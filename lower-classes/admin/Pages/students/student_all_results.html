@@ -1,0 +1,88 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>All Results</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/style.css">
+</head>
+
+<body>
+
+<!-- Sidebar -->
+<div id="sidebar-container" data-active="students"></div>
+
+<div class="content">
+
+    <!-- Navbar -->
+    <nav>
+        <i class='bx bx-menu'></i>
+        <form action="#">
+            <div class="form-input">
+                <input type="search" placeholder="Search...">
+                <button class="search-btn" type="submit">
+                    <i class='bx bx-search'></i>
+                </button>
+            </div>
+        </form>
+        <a href="#" class="profile">
+                <img src="../../images/logo.png">
+        </a>
+    </nav>
+
+    <main>
+
+        <div class="header">
+            <div class="left">
+                <h1 id="page-title">Exam Results</h1>
+                <ul class="breadcrumb">
+                    <li><a href="students_finished.html">Finished Students</a></li>
+                    /
+                    <li><a href="#" class="active" id="student-name">Student</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card">
+            <p><strong>Name:</strong> <span id="student-name-card">-</span></p>
+            <p><strong>Class:</strong> <span id="student-class">-</span></p>
+        </div>
+
+        <div class="bottom-data">
+                <div class="orders">
+                    <div class="header">
+                        <i class='bx bx-receipt'></i>
+                        <h3>List Of Results</h3>
+                        <i class='bx bx-filter'></i>
+                        <i class='bx bx-search'></i>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Exam</th>
+                                <th>Total Marks</th>
+                                <th>Position</th>
+                                <th>Stream Position</th>
+                                <th>Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results-body">
+                            <tr>
+                                <td colspan="7" style="text-align:center;">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+        </div>
+
+    </main>
+</div>
+
+    <script src="../../js/index.js"></script>
+    <script src="../../js/load-sidebar.js"></script>
+    <script src="../../js/students/all_results.js"></script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+   <link rel="stylesheet" href="../../css/style.css">
+   <link rel="stylesheet" href="../../css/graduate_classes.css">
+   <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+   <title>Graduate Class</title>
+</head>
+
+<body>
+   <div id="sidebar-container" data-active="settings"></div>
+
+   <div class="content">
+      <nav>
+         <i class='bx bx-menu'></i>
+         <form action="#">
+            <div class="form-input">
+               <input type="search" placeholder="Search...">
+               <button class="search-btn" type="submit"><i class='bx bx-search'></i></button>
+            </div>
+         </form>
+         <input type="checkbox" id="theme-toggle" hidden>
+         <label for="theme-toggle" class="theme-toggle"></label>
+         <a href="#" class="notif">
+            <i class='bx bx-bell'></i>
+            <span class="count">12</span>
+         </a>
+         <a href="#" class="profile">
+            <img src="../../images/logo.png">
+         </a>
+      </nav>
+
+      <main>
+         <div class="page-header">
+            <div>
+               <h1>Graduate Class</h1>
+               <p class="subtitle">Move an entire class to a new level or mark them as finished.</p>
+            </div>
+            <a href="settings.html" class="primary-btn">Back to Settings</a>
+         </div>
+
+         <div class="panel-grid">
+            <section class="panel">
+               <h2>Graduate a Class</h2>
+               <p>Select the class you want to graduate and where they should go next.</p>
+               <form id="graduateForm">
+                  <div class="form-row">
+                     <div>
+                        <label for="fromClass">From class</label>
+                        <select id="fromClass" required></select>
+                     </div>
+                     <div>
+                        <label for="targetClass">Graduate to</label>
+                        <select id="targetClass" required>
+                           <option value="FINISHED">Finished (End of JSS)</option>
+                        </select>
+                     </div>
+                  </div>
+                  <button class="primary-btn" type="submit">Graduate Entire Class</button>
+               </form>
+            </section>
+
+            <section class="panel">
+               <h2>Students Preview</h2>
+               <p class="subtitle">Showing students in the selected class.</p>
+               <div class="table-wrapper">
+                  <table>
+                     <thead>
+                        <tr>
+                           <th>Name</th>
+                           <th>Class</th>
+                           <th>Status</th>
+                        </tr>
+                     </thead>
+                     <tbody id="studentsTable">
+                        <tr>
+                           <td colspan="3" class="empty-state">Select a class to load students.</td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+            </section>
+         </div>
+      </main>
+   </div>
+
+   <script src="../../js/index.js"></script>
+   <script src="../../js/load-sidebar.js"></script>
+   <script src="../../js/settings/graduate_classes.js"></script>
+</body>
+
+</html>
+

@@ -1,0 +1,310 @@
+/* ========================================
+   MARKS OUT OF SECTION - GLASSMORPHISM STYLE
+   ======================================== */
+
+.marks-out-of {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 20px 30px;
+    margin: 30px auto;
+    max-width: 600px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.marks-out-of:hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    border-color: rgba(255, 255, 255, 0.8);
+}
+
+/* Label Styling */
+.marks-out-of label {
+    font-size: 17px;
+    font-weight: 600;
+    color: #2d3748;
+    margin: 0;
+    white-space: nowrap;
+    letter-spacing: 0.2px;
+}
+
+/* Input Field Styling */
+.marks-out-of input {
+    font-size: 15px;
+    padding: 11px 14px !important;
+    min-width: 110px;
+    border: 1.5px solid #e2e8f0 !important;
+    border-radius: 10px !important;
+    background-color: #f8fafc !important;
+    color: #1a202c !important;
+    transition: all 0.3s ease !important;
+    font-weight: 500;
+}
+
+.marks-out-of input:focus {
+    border-color: #6366f1 !important;
+    outline: none !important;
+    background-color: #ffffff !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1), inset 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.marks-out-of input::placeholder {
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+/* Button Styling */
+#setMarksBtn {
+    font-size: 15px;
+    font-weight: 600;
+    padding: 11px 24px !important;
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 10px !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.25) !important;
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+}
+
+#setMarksBtn:hover {
+    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%) !important;
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35) !important;
+    transform: translateY(-2px) !important;
+}
+
+#setMarksBtn:active {
+    transform: translateY(0) !important;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25) !important;
+}
+
+#setMarksBtn:disabled {
+    background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%) !important;
+    cursor: not-allowed !important;
+    box-shadow: none !important;
+    opacity: 0.6;
+}
+
+/* ========================================
+   MODAL STYLING - GLASSMORPHISM
+   ======================================== */
+
+.modal {
+    --bs-backdrop-bg: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(8px);
+}
+
+.modal-dialog {
+    animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Modal Content */
+.modal-content {
+    border: 1px solid rgba(255, 255, 255, 0.6) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25) !important;
+    background: rgba(255, 255, 255, 0.98) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    border: none !important;
+    border-radius: 15px 15px 0 0 !important;
+    padding: 28px !important;
+}
+
+.modal-title {
+    font-size: 24px !important;
+    font-weight: 700 !important;
+    color: white !important;
+    letter-spacing: 0.3px;
+}
+
+.btn-close {
+    opacity: 0.7;
+    filter: invert(1);
+}
+
+.btn-close:hover {
+    opacity: 1;
+}
+
+.modal-body {
+    padding: 35px !important;
+    font-size: 15px;
+}
+
+.modal-body .mb-3 label {
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    color: #2d3748 !important;
+    margin-bottom: 12px !important;
+    display: block !important;
+    letter-spacing: 0.2px;
+}
+
+.modal-body .form-control {
+    font-size: 15px !important;
+    padding: 12px 14px !important;
+    border: 1.5px solid #e2e8f0 !important;
+    border-radius: 10px !important;
+    background-color: #f8fafc !important;
+    color: #1a202c !important;
+    transition: all 0.3s ease !important;
+    font-weight: 500;
+}
+
+.modal-body .form-control:focus {
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1), inset 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+    outline: none !important;
+    background-color: #ffffff !important;
+}
+
+.modal-body .form-control:disabled,
+.modal-body .form-control[readonly] {
+    background-color: #f1f5f9 !important;
+    color: #64748b !important;
+    border-color: #e2e8f0 !important;
+}
+
+.modal-footer {
+    padding: 20px 35px !important;
+    border-top: 1px solid rgba(0, 0, 0, 0.05) !important;
+    background-color: transparent !important;
+    border-radius: 0 0 15px 15px !important;
+}
+
+.modal-footer .btn {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    padding: 11px 22px !important;
+    border-radius: 9px !important;
+    transition: all 0.3s ease !important;
+    letter-spacing: 0.3px;
+}
+
+.modal-footer .btn-secondary {
+    background-color: #e2e8f0 !important;
+    color: #2d3748 !important;
+    border: none !important;
+}
+
+.modal-footer .btn-secondary:hover {
+    background-color: #cbd5e1 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.modal-footer .btn-primary {
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+    color: white !important;
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.25) !important;
+}
+
+.modal-footer .btn-primary:hover {
+    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%) !important;
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35) !important;
+    transform: translateY(-1px);
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+@media (max-width: 768px) {
+    .marks-out-of {
+        flex-wrap: wrap;
+        gap: 10px;
+        max-width: 100%;
+        margin: 20px 10px;
+        padding: 18px 20px;
+    }
+
+    .marks-out-of label {
+        font-size: 15px;
+        flex-basis: 100%;
+        text-align: center;
+    }
+
+    .marks-out-of input,
+    #setMarksBtn {
+        flex: 1;
+        min-width: 100px;
+        font-size: 14px;
+    }
+
+    .modal-body {
+        padding: 25px !important;
+    }
+
+    .modal-title {
+        font-size: 20px !important;
+    }
+
+    .modal-header {
+        padding: 20px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .marks-out-of {
+        flex-direction: column;
+        padding: 15px 15px;
+    }
+
+    .marks-out-of label {
+        font-size: 14px;
+        width: 100%;
+    }
+
+    .marks-out-of input,
+    #setMarksBtn {
+        width: 100%;
+        font-size: 13px;
+        padding: 10px 12px !important;
+    }
+
+    .modal-title {
+        font-size: 18px !important;
+    }
+
+    .modal-body {
+        padding: 20px !important;
+    }
+
+    .modal-header {
+        padding: 18px !important;
+    }
+
+    .modal-footer {
+        flex-direction: column;
+        padding: 15px 20px !important;
+    }
+
+    .modal-footer .btn {
+        width: 100%;
+    }
+}

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Teacher Dashboard</title>
+   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css">
+   <link rel="stylesheet" href="../css/Tpanel.css">
+   <link rel="stylesheet" href="../css/sticky-footer.css">
+   <link rel="stylesheet" href="../css/responsive-navigation.css">
+   <link rel="stylesheet" href="../css/bottom-navigator.css">
+   <style>
+      .search-form {
+         display: none;
+      }
+
+      .box-link {
+         text-decoration: none;
+         color: inherit;
+         display: flex;
+         flex-direction: column;
+         cursor: pointer;
+         transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .box-link:hover {
+         transform: translateY(-5px);
+         box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      }
+   </style>
+</head>
+<body>
+
+<!-- Header Component Container -->
+<div id="headerContainer"></div>
+
+<!-- Sidebar Component Container -->
+<div id="sidebarContainer"></div>
+
+<section class="home-grid">
+
+   <h1 class="heading">Analysis</h1>
+
+   <div class="box-container">
+     <div class="box">
+         <h3 class="title">Learning Areas Mean</h3>
+         <p class="likes">English : <span id="englishMean">-</span></p>
+         <p class="likes">Kiswahili : <span id="kiswahiliMean">-</span></p>
+         <p class="likes">Math : <span id="mathMean">-</span></p>
+         <p class="likes">Creative Arts : <span id="creativeMean">-</span></p>
+         <p class="likes">Agriculture & Nutrition: <span id="agricnutriMean">-</span></p>
+         <p class="likes">Science & Technology: <span id="scitechMean">-</span></p>
+         <p class="likes">Social studies : <span id="sstMean">-</span></p>
+         <p class="likes">CRE : <span id="creMean">-</span></p>
+      </div>
+
+      <div class="box">
+         <h3 class="title">Mean Standard Score (MSS)</h3>
+         <p class="likes">MSS: <span id="mssMean">-</span></p>
+         <a href="../students.php" class="inline-btn">view Scores</a>
+      </div>
+
+   </div>
+
+</section>
+
+<section class="courses">
+
+   <h1 class="heading" id="classTitle">Class Dashboard</h1>
+
+   <div class="box-container">
+
+      <a href="subjects.html?subject=Kiswahili" class="box box-link">
+         <div class="thumb">
+            <img src="../photos/kiswahili.jpg" alt="">
+         </div>
+         <h3 class="title">Kiswahili</h3>
+      </a>
+
+      <a href="subjects.html?subject=Math" class="box box-link">
+         <div class="thumb">
+            <img src="../photos/math.png" alt="">
+         </div>
+         <h3 class="title">Math</h3>
+      </a>
+
+      <a href="subjects.html?subject=English" class="box box-link">
+         <div class="thumb">
+            <img src="../photos/english.jpg" alt="">
+         </div>
+         <h3 class="title">English</h3>
+      </a>
+
+      <a href="subjects.html?subject=Creative" class="box box-link">
+         <div class="thumb">
+            <img src="../photos/creative.jpg" alt="">
+         </div>
+         <h3 class="title">Creative Arts</h3>
+      </a>
+
+      <a href="subjects.html?subject=CRE" class="box box-link">
+         <div class="thumb">
+            <img src="../photos/religious.jpg" alt="">
+         </div>
+         <h3 class="title">CRE</h3>
+      </a>
+
+      <a href="subjects.html?subject=SciTech" class="box box-link">
+         <div class="thumb">
+            <img src="../photos/science.png" alt="">
+         </div>
+         <h3 class="title">Science & Technology</h3>
+      </a>
+
+      <a href="subjects.html?subject=SST" class="box box-link">
+         <div class="thumb">
+            <img src="../photos/sst.png" alt="">
+         </div>
+         <h3 class="title">Social Studies</h3>
+      </a>
+
+      <a href="subjects.html?subject=AgricNutri" class="box box-link">
+         <div class="thumb">
+            <img src="../photos/enviromental.jpg" alt="">
+         </div>
+         <h3 class="title">Agriculture & Nutrition</h3>
+      </a>
+
+   </div>
+
+   <div class="more-btn">
+      <a href="subjects.html" class="inline-option-btn">view all Learning Areas</a>
+   </div>
+
+</section>
+
+<!-- Bottom Navigator Container -->
+<div id="bottomNavContainer"></div>
+
+<!-- Footer Component Container -->
+<div id="footerContainer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="../js/teacher-data.js"></script>
+<script src="../js/script.js"></script>
+<script src="../js/header-init.js"></script>
+<script src="../js/home.js"></script>
+<script src="../js/bottom-nav-active.js"></script>
+
+</body>
+</html>

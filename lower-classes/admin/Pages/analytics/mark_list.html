@@ -1,0 +1,42 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mark List</title>
+    <style>
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid black; padding: 8px; text-align: center; }
+        th { background-color: #f2f2f2; }
+        .row { display: flex; }
+        .column { padding: 10px; }
+        .left { width: 80%; }
+        .right { width: 20%; }
+        @media print { button { display: none !important; } }
+    </style>
+</head>
+<body>
+    <button onclick="printPage()">Print</button>
+    <div class="container my-5">
+        <div class="row">
+            <div class="column left">
+                <h1 id="marklist-exam">Mark List</h1>
+                <h1 id="marklist-grade">Grade:</h1>
+                <h1 id="marklist-tutor">Tutor:</h1>
+            </div>
+            <div class="column right">
+                <img src="../../images/logo.png" alt="Logo" width="250" height="200">
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr id="marklist-head-top"></tr>
+                <tr id="marklist-head-sub"></tr>
+            </thead>
+            <tbody id="marklist-body"></tbody>
+            <tfoot id="marklist-foot"></tfoot>
+        </table>
+    </div>
+    <script src="../../js/analytics/mark_list.js"></script>
+</body>
+</html>

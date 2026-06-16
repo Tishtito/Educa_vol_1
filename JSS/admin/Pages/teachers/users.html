@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="../../css/users.css">
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <title>JSS Admin</title>
+
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <div id="sidebar-container" data-active="teachers"></div>
+    <!-- End of Sidebar -->
+
+    <!-- Main Content -->
+    <div class="content">
+        <!-- Navbar -->
+        <nav>
+            <i class='bx bx-menu'></i>
+            <form action="#">
+                <div class="form-input">
+                    <input type="search" placeholder="Search...">
+                    <button class="search-btn" type="submit"><i class='bx bx-search'></i></button>
+                </div>
+            </form>
+            <input type="checkbox" id="theme-toggle" hidden>
+            <label for="theme-toggle" class="theme-toggle"></label>
+            <a href="#" class="notif">
+                <i class='bx bx-bell'></i>
+                <span class="count">12</span>
+            </a>
+            <a href="#" class="profile">
+                <img src="../../images/logo.png">
+            </a>
+        </nav>
+
+        <!-- End of Navbar -->
+
+        <main>
+            <div class="header">
+                <div class="left">
+                    <h1>Teachers</h1>
+                    <ul class="breadcrumb">
+                        <li><a href="#">
+                                Analytics
+                            </a></li>
+                        /
+                        <li><a href="#" class="active">class</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!--Table for teachers-->
+            <div class="bottom-data">
+                <div class="orders">
+                    <div class="header">
+                        <i class='bx bx-receipt'></i>
+                        <h3>List Of Class Teachers</h3>
+                        <i class='bx bx-filter'></i>
+                        <i class='bx bx-search'></i>
+                    </div>
+                    <div class="table-loading" id="teachers-loading" style="display:block;">
+                        <span class="loader"></span>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Class Teacher</th>
+                                <th>Class</th>
+                                <th rowspan="2">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teachers-body"></tbody>
+                    </table>
+                </div>
+
+                <!-- Reminders -->
+                <div class="reminders">
+                    <div class="header">
+                        <i class='bx bx-note'></i>
+                        <h3>Add New Teacher</h3>
+                        <i class='bx bx-filter'></i>
+                        
+                    </div>
+    
+                    <ul class="task-list">
+                        <a href="#" id="add-teacher-open">
+                            <li class="completed">
+                                <div class="task-title">
+                                    <i class='bx bx-plus'></i>
+                                    <p>Add<span></span></p>
+                                </div>
+                                <i class='bx bx-dots-vertical-rounded'></i>
+                            </li>
+                        </a>
+                    </ul>
+                </div>
+                <!-- End of Reminders-->
+
+                <!-- Table for Examiners-->
+                <div class="orders">
+                    <div class="header">
+                        <i class='bx bx-receipt'></i>
+                        <h3>List Of Examiners</h3>
+                        <i class='bx bx-filter'></i>
+                        <i class='bx bx-search'></i>
+                    </div>
+                    <div class="table-loading" id="examiners-loading" style="display:block;">
+                        <span class="loader"></span>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Examiners</th>
+                                <th>Subjects</th>
+                                <th colspan="2">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="examiners-body"></tbody>
+                    </table>
+
+                </div>
+
+                <!-- Reminders -->
+                <div class="reminders">
+                    <div class="header">
+                        <i class='bx bx-note'></i>
+                        <h3>Add New Examiner</h3>
+                        <i class='bx bx-filter'></i>
+                        
+                    </div>
+    
+                    <ul class="task-list">
+                        <a href="#" id="add-examiner-open">
+                            <li class="completed">
+                                <div class="task-title">
+                                    <i class='bx bx-plus'></i>
+                                    <p>Add<span></span></p>
+                                </div>
+                                <i class='bx bx-dots-vertical-rounded'></i>
+                            </li>
+                        </a>
+                    </ul>
+                </div>
+
+            </div>
+
+        </main>
+
+    </div>
+
+    <div class="modal-overlay" id="edit-teacher-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Edit Teacher</div>
+                <button class="modal-close" type="button" id="edit-teacher-close">&times;</button>
+            </div>
+            <form id="edit-teacher-form" class="modal-body">
+                <input type="hidden" id="edit-teacher-id" name="id">
+
+                <label for="edit-teacher-name">Name</label>
+                <input type="text" id="edit-teacher-name" name="name" required>
+
+                <label for="edit-teacher-class">Class</label>
+                <select id="edit-teacher-class" name="class_assigned" required></select>
+
+                <label for="edit-teacher-password">New Password</label>
+                <input type="password" id="edit-teacher-password" name="password" placeholder="leave blank to keep current password">
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="edit-teacher-cancel">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="add-teacher-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Add Teacher</div>
+                <button class="modal-close" type="button" id="add-teacher-close">&times;</button>
+            </div>
+            <form id="add-teacher-form" class="modal-body">
+                <label for="add-teacher-name">Name</label>
+                <input type="text" id="add-teacher-name" name="name" required>
+
+                <label for="add-teacher-username">Username</label>
+                <input type="text" id="add-teacher-username" name="username" required>
+
+                <label for="add-teacher-class">Class</label>
+                <select id="add-teacher-class" name="class_assigned" required></select>
+
+                <label for="add-teacher-password">Password</label>
+                <input type="password" id="add-teacher-password" name="password" required>
+
+                <label for="add-teacher-confirm">Confirm Password</label>
+                <input type="password" id="add-teacher-confirm" name="confirm_password" required>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="add-teacher-cancel">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="edit-examiner-modal">
+        <div class="modal modal-large">
+            <div class="modal-header">
+                <div class="modal-title">Edit Examiner</div>
+                <button class="modal-close" type="button" id="edit-examiner-close">&times;</button>
+            </div>
+            <form id="edit-examiner-form" class="modal-body">
+                <input type="hidden" id="edit-examiner-id" name="examiner_id">
+
+                <label for="edit-examiner-name">Name</label>
+                <input type="text" id="edit-examiner-name" name="name" required>
+
+                <label for="edit-examiner-password">New Password</label>
+                <input type="password" id="edit-examiner-password" name="password" placeholder="leave blank to keep current password">
+
+                <div class="modal-section">
+                    <h4>Assign Subjects</h4>
+                    <div class="checkbox-grid" id="edit-examiner-subjects"></div>
+                </div>
+
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="edit-examiner-cancel">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="add-examiner-modal">
+        <div class="modal modal-large">
+            <div class="modal-header">
+                <div class="modal-title">Add Examiner</div>
+                <button class="modal-close" type="button" id="add-examiner-close">&times;</button>
+            </div>
+            <form id="add-examiner-form" class="modal-body">
+                <label for="add-examiner-name">Name</label>
+                <input type="text" id="add-examiner-name" name="name" required>
+
+                <label for="add-examiner-username">Username</label>
+                <input type="text" id="add-examiner-username" name="username" required>
+
+                <label for="add-examiner-password">Password</label>
+                <input type="password" id="add-examiner-password" name="password" required>
+
+                <label for="add-examiner-confirm">Confirm Password</label>
+                <input type="password" id="add-examiner-confirm" name="confirm_password" required>
+
+                <div class="modal-section">
+                    <h4>Assign Subjects</h4>
+                    <div class="checkbox-grid" id="add-examiner-subjects"></div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="add-examiner-cancel">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../../js/index.js"></script>
+    <script src="../../js/load-sidebar.js"></script>
+    <script src="../../js/teachers/users.js"></script>
+</body>
+
+</html>

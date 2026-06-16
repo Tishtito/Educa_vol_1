@@ -1,0 +1,180 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="../../css/style.css">
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <link rel="stylesheet" href="../../css/manage_exams.css">
+    <title>Manage Exams</title>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <div id="sidebar-container" data-active="settings"></div>
+    <!-- End of Sidebar -->
+
+    <!-- Main Content -->
+    <div class="content">
+        <!-- Navbar -->
+        <nav>
+            <i class='bx bx-menu'></i>
+            <form action="#">
+                <div class="form-input">
+                    <input type="search" placeholder="Search...">
+                    <button class="search-btn" type="submit"><i class='bx bx-search'></i></button>
+                </div>
+            </form>
+            <input type="checkbox" id="theme-toggle" hidden>
+            <label for="theme-toggle" class="theme-toggle"></label>
+            <a href="#" class="notif">
+                <i class='bx bx-bell'></i>
+                <span class="count">12</span>
+            </a>
+            <a href="#" class="profile">
+                <img src="../../images/logo.png">
+            </a>
+        </nav>
+
+        <!-- End of Navbar -->
+
+        <main>
+            <div class="header">
+                <div class="left">
+                    <h1>Exams</h1>
+                    <ul class="breadcrumb">
+                        <li><a href="#">
+                                Settings
+                            </a></li>
+                        /
+                        <li><a href="#" class="active">Exams</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!--Table for teachers-->
+            <div class="bottom-data">
+                <div class="orders">
+                    <div class="header">
+                        <i class='bx bx-receipt'></i>
+                        <h3>List Of Exams</h3>
+                        <i class='bx bx-filter'></i>
+                        <i class='bx bx-search'></i>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Exam</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="3" style="text-align:center;">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Reminders -->
+                <div class="reminders">
+                    <div class="header">
+                        <i class='bx bx-note'></i>
+                        <h3>Create New Exam</h3>
+                        <i class='bx bx-filter'></i>
+                        
+                    </div>
+    
+                    <ul class="task-list">
+                        <a href="#" id="createExamBtn">
+                            <li class="completed">
+                                <div class="task-title">
+                                    <i class='bx bx-plus'></i>
+                                    <p>Create<span></span></p>
+                                </div>
+                                <i class='bx bx-dots-vertical-rounded'></i>
+                            </li>
+                        </a>
+                    </ul>
+                </div>
+                <!-- End of Reminders-->
+            </div>
+        </main>
+
+    </div>
+
+    <div class="modal-overlay" id="createExamModal" aria-hidden="true">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Create New Exam</h3>
+                <button type="button" class="modal-close" id="closeExamModal">&times;</button>
+            </div>
+            <form class="modal-form" id="createExamForm">
+                <div class="field">
+                    <label for="examName">Name of Exam</label>
+                    <input type="text" id="examName" name="name" required>
+                </div>
+                <div class="field">
+                    <label for="examType">Exam Type</label>
+                    <select id="examType" name="exam_type" required>
+                        <option value="">-- Select Exam Type --</option>
+                        <option value="Opener">Opener</option>
+                        <option value="Mid-Term">Mid-Term</option>
+                        <option value="End-Term">End of Term</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="examTerm">Select Term</label>
+                    <select id="examTerm" name="term" required>
+                        <option value="">-- Select Term --</option>
+                        <option value="Term 1">Term 1</option>
+                        <option value="Term 2">Term 2</option>
+                        <option value="Term 3">Term 3</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn-primary">Create Exam</button>
+                    <button type="button" class="btn-secondary" id="cancelExam">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="editExamModal" aria-hidden="true">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Update Exam Status</h3>
+                <button type="button" class="modal-close" id="closeEditModal">&times;</button>
+            </div>
+            <form class="modal-form" id="editExamForm">
+                <div class="field">
+                    <label for="editExamName">Exam Name</label>
+                    <input type="text" id="editExamName" disabled style="background-color: #f3f4f6; cursor: not-allowed;">
+                </div>
+                <div class="field">
+                    <label for="editExamStatus">Status</label>
+                    <select id="editExamStatus" name="status" required>
+                        <option value="">-- Select Status --</option>
+                        <option value="Scheduled">Scheduled</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn-primary">Update Status</button>
+                    <button type="button" class="btn-secondary" id="cancelEdit">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../../js/index.js"></script>
+    <script src="../../js/load-sidebar.js"></script>
+    <script src="../../js/settings/manage_exams.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,128 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/style.css">
+    <title>Active Students</title>
+    <link rel="stylesheet" href="../../css/active_by_class.css">
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <div id="sidebar-container" data-active="students"></div>
+    <!-- End of Sidebar -->
+
+    <div class="content">
+        <!-- Navbar -->
+        <nav>
+            <i class='bx bx-menu'></i>
+            <form action="#">
+                <div class="form-input">
+                    <input type="search" placeholder="Search...">
+                    <button class="search-btn" type="submit">
+                        <i class='bx bx-search'></i>
+                    </button>
+                </div>
+            </form>
+            <a href="#" class="profile">
+                <img src="../../images/logo.png">
+            </a>
+        </nav>
+
+        <main>
+            <div class="header">
+                <div class="left">
+                    <h1>Active Students</h1>
+                    <ul class="breadcrumb">
+                        <li><a href="students_active.html">Active</a></li>
+                        /
+                        <li><a href="#" class="active" id="class-name">Class</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="bottom-data">
+                <div class="orders">
+                    <div class="header">
+                        <i class='bx bx-receipt'></i>
+                        <h3 id="table-title">Active Students</h3>
+                        <i class='bx bx-filter'></i>
+                        <i class='bx bx-search'></i>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Name</th>
+                                <th>Class</th>
+                                <th>Joined On</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="students-body">
+                            <tr>
+                                <td colspan="5" style="text-align:center;">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="student-profile-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" id="profile-title">Student Profile</div>
+                <button class="modal-close" type="button" id="profile-close">&times;</button>
+            </div>
+            <div class="profile-grid">
+                <div class="profile-card">
+                    <h4>Name</h4>
+                    <p id="profile-name">-</p>
+                </div>
+                <div class="profile-card">
+                    <h4>Class</h4>
+                    <p id="profile-class">-</p>
+                </div>
+                <div class="profile-card">
+                    <h4>Status</h4>
+                    <p id="profile-status">-</p>
+                </div>
+                <div class="profile-card">
+                    <h4>Joined</h4>
+                    <p id="profile-joined">-</p>
+                </div>
+                <div class="profile-card">
+                    <h4>Last Updated</h4>
+                    <p id="profile-updated">-</p>
+                </div>
+                <div class="profile-card">
+                    <h4>Results Count</h4>
+                    <p id="profile-results">-</p>
+                </div>
+                <div class="profile-card">
+                    <h4>Last Exam</h4>
+                    <p id="profile-last-exam">-</p>
+                </div>
+                <div class="profile-card">
+                    <h4>Last Exam Date</h4>
+                    <p id="profile-last-exam-date">-</p>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" type="button" id="profile-close-btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../js/index.js"></script>
+    <script src="../../js/load-sidebar.js"></script>
+    <script src="../../js/students/active_class.js"></script>
+</body>
+
+</html>

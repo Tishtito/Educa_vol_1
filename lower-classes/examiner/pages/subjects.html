@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subject Marks</title>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css">
+    <link rel="stylesheet" href="../css/Tpanel.css">
+    <link rel="stylesheet" href="../css/students.css">
+    <link rel="stylesheet" href="../css/sticky-footer.css">
+    <link rel="stylesheet" href="../css/bottom-navigator.css">
+    <link rel="stylesheet" href="../css/responsive-navigation.css">
+</head>
+<body>
+    
+<!-- Header Component Container -->
+<div id="headerContainer"></div>
+
+<!-- Sidebar Component Container -->
+<div id="sidebarContainer"></div>
+
+<!-- Bottom Navigator Container -->
+<div id="bottomNavContainer"></div>
+
+<section class="marks-table">
+   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+       <h1 class="heading" id="subjectTitle" style="margin-bottom: 0; font-size: 20px;">Subject Marks</h1>
+       <a href="home.html" class="back-btn" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.8rem 1.5rem; background: linear-gradient(135deg, #3493a4 0%, #2a7a8a 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; box-shadow: 0 4px 12px rgba(52, 147, 164, 0.3); transition: all 0.3s ease;">
+           <i class="fas fa-arrow-left"></i> Back to Dashboard
+       </a>
+   </div>
+
+   <!-- Marks Out Of Section -->
+   <div class="marks-out-of-section" id="marksOutOfSection" style="display: none;">
+       <h2>Configure Marks</h2>
+       <div class="marks-out-of-form">
+           <div class="form-group">
+               <label for="marksOutOf">Marks Out Of:</label>
+               <input type="number" id="marksOutOf" min="1" placeholder="e.g., 50" required>
+           </div>
+           <button type="button" onclick="setMarksOutOf()">Set Marks</button>
+       </div>
+   </div>
+
+   <!-- Marks out of combined subjects - English (GRM/RDG)-->
+   <div class="marks-out-of" id="paperMarksOutOfSectionEnglish" style="display: none;">
+        <div class="paper-marks-container">
+            <div class="paper-input-group">
+                <label for="paper1OutOfEnglish">Grammer Out Of:</label>
+                <input type="number" id="paper1OutOfEnglish" min="1" max="100" placeholder="e.g., 50">
+            </div>
+            <div class="paper-input-group">
+                <label for="paper2OutOfEnglish">Reading Out Of:</label>
+                <input type="number" id="paper2OutOfEnglish" min="1" max="100" placeholder="e.g., 50">
+            </div>
+            <button type="button" id="setPaperBtnEnglish" class="paper-set-btn">Set Both</button>
+        </div>
+    </div>
+
+    <!-- Marks out of combined subjects - Kiswahili (LUG/KUS)-->
+    <div class="marks-out-of" id="paperMarksOutOfSectionKiswahili" style="display: none;">
+        <div class="paper-marks-container">
+            <div class="paper-input-group">
+                <label for="paper1OutOfKiswahili">Lugha Out Of:</label>
+                <input type="number" id="paper1OutOfKiswahili" min="1" max="100" placeholder="e.g., 50">
+            </div>
+            <div class="paper-input-group">
+                <label for="paper2OutOfKiswahili">Kusoma Out Of:</label>
+                <input type="number" id="paper2OutOfKiswahili" min="1" max="100" placeholder="e.g., 50">
+            </div>
+            <button type="button" id="setPaperBtnKiswahili" class="paper-set-btn">Set Both</button>
+        </div>
+    </div>
+
+   <!-- Error Message -->
+   <div id="errorMessage"></div>
+
+   <!-- Loading State -->
+   <div id="loadingState" class="loading">
+       <p>Loading students...</p>
+   </div>
+
+   <!-- Students Table -->
+   <div class="box-container" id="tableContainer" style="display: none;">
+       <table class="content-table">
+           <thead id="studentsTableHead">
+               <tr>
+                   <th>Student Name</th>
+                   <th>Current Marks (%)</th>
+                   <th>Action</th>
+               </tr>
+           </thead>
+           <tbody id="studentsTableBody">
+               <!-- Students will be populated here -->
+           </tbody>
+       </table>
+   </div>
+</section>
+
+<!-- Edit Marks Modal -->
+<div id="editMarksModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Edit Marks - <span id="studentNameInModal">Student</span></h2>
+            <button class="modal-close" onclick="closeEditModal()">&times;</button>
+        </div>
+        <form onsubmit="saveMarks(event)" novalidate>
+            <div class="form-group" id="studentMarksGroup">
+                <label for="studentMarks">Marks (out of <span id="maxMarks">100</span>):</label>
+                <input 
+                    type="number" 
+                    id="studentMarks" 
+                    min="0" 
+                    step="0.01"
+                    placeholder="Enter marks"
+                >
+            </div>
+            <div class="form-group" id="studentRdgMarksGroup" style="display: none;">
+                <label for="studentRdgMarks">RDG Marks (out of <span id="maxMarksRdg">100</span>):</label>
+                <input 
+                    type="number" 
+                    id="studentRdgMarks" 
+                    min="0" 
+                    step="0.01"
+                    placeholder="Enter RDG marks"
+                >
+            </div>
+            <div class="form-group" id="studentGrmMarksGroup" style="display: none;">
+                <label for="studentGrmMarks">GRM Marks (out of <span id="maxMarksGrm">100</span>):</label>
+                <input 
+                    type="number" 
+                    id="studentGrmMarks" 
+                    min="0" 
+                    step="0.01"
+                    placeholder="Enter GRM marks"
+                >
+            </div>
+            <div class="modal-buttons">
+                <button type="button" class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+                <button type="submit" class="btn-save">Save Marks</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Footer Component Container -->
+<div id="footerContainer"></div>
+
+<script src="../js/examiner-data.js"></script>
+<script src="../js/script.js"></script>
+<script src="../js/header-init.js"></script>
+<script src="../js/subjects.js"></script>
+
+</body>
+</html>

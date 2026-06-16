@@ -1,0 +1,93 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="../../css/style.css">
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <link rel="stylesheet" href="../../css/send_marks.css">
+    <title>Send Marks | Lower Admin</title>
+</head>
+
+<body>
+    <div id="sidebar-container" data-active="settings"></div>
+
+    <div class="content">
+        <nav>
+            <i class='bx bx-menu'></i>
+            <form action="#">
+                <div class="form-input">
+                    <input type="search" placeholder="Search...">
+                    <button class="search-btn" type="submit"><i class='bx bx-search'></i></button>
+                </div>
+            </form>
+            <input type="checkbox" id="theme-toggle" hidden>
+            <label for="theme-toggle" class="theme-toggle"></label>
+            <a href="#" class="notif">
+                <i class='bx bx-bell'></i>
+                <span class="count">12</span>
+            </a>
+            <a href="#" class="profile">
+                <img src="../../images/logo.png">
+            </a>
+        </nav>
+
+        <main>
+            <div class="header">
+                <div class="left">
+                    <h1>Send Marks</h1>
+                    <ul class="breadcrumb">
+                        <li><a href="#">Settings</a></li>
+                        /
+                        <li><a href="#" class="active">Send Marks (SMS)</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <section class="sms-card" aria-labelledby="smsSectionTitle">
+                <div class="sms-header">
+                    <h2 id="smsSectionTitle">Send Marks via SMS</h2>
+                    <button type="button" class="sms-btn sms-btn-primary" id="smsSendAllBtn">Send All</button>
+                </div>
+                <div class="sms-filters">
+                    <select id="smsExamSelect">
+                        <option value="">-- Select Exam --</option>
+                    </select>
+                    <select id="smsClassSelect">
+                        <option value="">-- Select Class --</option>
+                    </select>
+                    <button type="button" class="sms-btn sms-btn-secondary" id="smsLoadBtn">Load Results</button>
+                </div>
+                <div class="sms-table-wrapper">
+                    <table class="sms-table" id="smsResultsTable">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Total</th>
+                                <th>Position</th>
+                                <th>Status</th>
+                                <th>Parent Phone</th>
+                                <th>SMS Message</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="7">Select an exam and class to view results.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="sms-note">Tip: update the phone number and message before sending. Messages are logged to the server for now.</p>
+            </section>
+        </main>
+    </div>
+
+    <script src="../../js/index.js"></script>
+    <script src="../../js/load-sidebar.js"></script>
+    <script src="../../js/settings/send_marks.js"></script>
+</body>
+
+</html>

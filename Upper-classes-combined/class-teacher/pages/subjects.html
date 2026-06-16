@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subject Marks</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css">
+    <link rel="stylesheet" href="../css/Tpanel.css">
+    <link rel="stylesheet" href="../css/subjects.css">
+    <link rel="stylesheet" href="../css/sticky-footer.css">
+    <link rel="stylesheet" href="../css/responsive-navigation.css">
+    <link rel="stylesheet" href="../css/bottom-navigator.css">
+</head>
+<body>
+
+<div id="headerContainer"></div>
+<div id="sidebarContainer"></div>
+
+<section class="marks-section">
+    <h1 class="page-heading">Subject Marks</h1>
+    
+    <div class="subject-selector">
+        <label for="subjectSelect">Filter by Subject:</label>
+        <select id="subjectSelect" onchange="loadSubjectMarks()">
+            <option value="">-- All Subjects --</option>
+            <option value="English">English</option>
+            <option value="Math">Math</option>
+            <option value="Kiswahili">Kiswahili</option>
+            <option value="Creative">Creative Arts</option>
+            <option value="CRE">CRE</option>
+            <option value="AgricNutri">Agriculture & Nutrition</option>
+            <option value="SST">Social Studies</option>
+            <option value="SciTech">Science & Technology</option>
+        </select>
+    </div>
+
+    <div id="tableContainer" class="table-responsive">
+        <p style="text-align: center; padding: 40px 20px;">Loading marks...</p>
+    </div>
+</section>
+
+<!-- Bottom Navigator Container -->
+<div id="bottomNavContainer"></div>
+
+<div id="footerContainer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="../js/teacher-data.js"></script>
+<script src="../js/script.js"></script>
+<script src="../js/header-init.js"></script>
+<script src="../js/subjects.js"></script>
+<script src="../js/bottom-nav-active.js"></script>
+
+</body>
+</html>

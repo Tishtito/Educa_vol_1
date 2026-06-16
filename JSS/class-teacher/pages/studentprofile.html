@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Student Profile</title>
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css">
+   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+   <link rel="stylesheet" href="../css/Tpanel.css">
+   <link rel="stylesheet" href="../css/sticky-footer.css">
+   <link rel="stylesheet" href="../css/responsive-navigation.css">
+   <link rel="stylesheet" href="../css/bottom-navigator.css">
+   <link rel="stylesheet" href="../css/studentprofile.css">
+</head>
+<body>
+
+<div id="headerContainer"></div>
+<div id="sidebarContainer"></div>
+
+<a href="students.html" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Students</a>
+
+<section class="teacher-profile">
+   <h1 class="heading">Student Performance</h1>
+   <div id="profileContainer">
+      <p class="loading">Loading student profile...</p>
+   </div>
+</section>
+
+<section class="marks" id="marksContainer" style="display: none;">
+   <h2 style="text-align: center; color: var(--text-color);">Subject Marks</h2>
+   <div class="box-container">
+      <div class="box" id="marksBox">
+         <!-- Marks will be populated here -->
+      </div>
+   </div>
+</section>
+
+<!-- Bottom Navigator Container -->
+<div id="bottomNavContainer"></div>
+
+<div id="footerContainer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="../js/teacher-data.js"></script>
+<script src="../js/script.js"></script>
+<script src="../js/header-init.js"></script>
+<script src="../js/studentprofile.js"></script>
+<script src="../js/bottom-nav-active.js"></script>
+
+</body>
+</html>

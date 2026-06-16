@@ -1,0 +1,112 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="../../css/style.css">
+    <title>Exam details</title>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <div id="sidebar-container" data-active="analysis"></div>
+    <!-- End of Sidebar -->
+
+    <!-- Main Content -->
+    <div class="content">
+        <!-- Navbar -->
+        <nav>
+            <i class='bx bx-menu'></i>
+            <form action="#">
+                <div class="form-input">
+                    <input type="search" placeholder="Search...">
+                    <button class="search-btn" type="submit"><i class='bx bx-search'></i></button>
+                </div>
+            </form>
+            <input type="checkbox" id="theme-toggle" hidden>
+            <label for="theme-toggle" class="theme-toggle"></label>
+            <a href="#" class="notif">
+                <i class='bx bx-bell'></i>
+                <span class="count">12</span>
+            </a>
+            <a href="#" class="profile">
+                <img src="../../images/logo.png">
+            </a>
+        </nav>
+
+        <!-- End of Navbar -->
+
+        <main>
+            <div class="header">
+                <div class="left">
+                    <h1>Marklists</h1>
+                    <ul class="breadcrumb">
+                        <li><a href="#">
+                                Analysis
+                            </a></li>
+                        /
+                        <li><a href="#" class="active">Select Class</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Insights -->
+            <ul class="insights" id="stream-grades"></ul>
+        </main>
+
+    </div>
+
+
+
+    <script src="../../js/index.js"></script>
+    <script src="../../js/load-sidebar.js"></script>
+    <script>
+        (async function () {
+            const baseUrl = "../../backend/public/index.php";
+            const params = new URLSearchParams(window.location.search);
+            const examId = params.get("exam_id");
+            const token = params.get("token");
+
+            try {
+                const authRes = await fetch(`${baseUrl}/auth/check`, { credentials: "include" });
+                const auth = await authRes.json();
+                if (!auth.authenticated) {
+                    window.location.replace("../login.html");
+                    return;
+                }
+
+                if (!examId || !token) {
+                    console.error("Exam ID not provided");
+                    return;
+                }
+
+                const gradesRes = await fetch(`${baseUrl}/analysis/grades?exam_id=${encodeURIComponent(examId)}&token=${encodeURIComponent(token)}`, { credentials: "include" });
+                const grades = await gradesRes.json();
+                if (grades.success) {
+                    const list = document.getElementById("stream-grades");
+                    list.innerHTML = "";
+                    grades.data.forEach((grade) => {
+                        const link = document.createElement("a");
+                        link.href = `streamlist.html?exam_id=${encodeURIComponent(examId)}&grade=${encodeURIComponent(grade.grade)}&token=${encodeURIComponent(grade.token)}`;
+                        link.innerHTML = `
+                            <li>
+                                <i class='bx bx-show-alt'></i>
+                                <span class="info-2">
+                                    <p>Grade - ${grade.grade}</p>
+                                </span>
+                            </li>
+                        `;
+                        list.appendChild(link);
+                    });
+                }
+            } catch (error) {
+                console.error("Stream details load failed", error);
+            }
+        })();
+    </script>
+</body>
+
+</html>

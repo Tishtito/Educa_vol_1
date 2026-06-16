@@ -1,0 +1,449 @@
+/* Modal Styling */
+        
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            padding: 2.5rem;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 450px;
+            animation: slideIn 0.3s ease;
+            border: 1px solid rgba(52, 147, 164, 0.1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid rgba(52, 147, 164, 0.2);
+            padding-bottom: 1rem;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 20px;
+            color: #1a3a42;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 2.5rem;
+            cursor: pointer;
+            color: #999;
+            transition: all 0.3s ease;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .modal-close:hover {
+            color: #e74c3c;
+            background-color: #fee;
+            transform: rotate(90deg);
+        }
+
+        .form-group {
+            margin-bottom: 1.8rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.7rem;
+            font-weight: 600;
+            color: #1a3a42;
+            font-size: 18px;
+            letter-spacing: 0.3px;
+        }
+
+        .form-group input {
+            width: 100%;
+            font-size: 20px;
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+            background-color: #f8f9fa;
+        }
+
+        .form-group input:hover {
+            border-color: #3493a4;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #3493a4;
+            background-color: white;
+            box-shadow: 0 0 0 4px rgba(52, 147, 164, 0.1);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .modal-buttons button {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-cancel {
+            background-color: #ecf0f1;
+            color: #555;
+            border: 2px solid transparent;
+        }
+
+        .btn-cancel:hover {
+            background-color: #d5dbdb;
+            transform: translateY(-2px);
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, #3493a4 0%, #2a7a8a 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(52, 147, 164, 0.3);
+            font-size: large;
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 147, 164, 0.4);
+        }
+
+        .btn-save:active {
+            transform: translateY(0);
+        }
+
+        /* Marks Out Of Section */
+        .marks-out-of-section {
+            background: linear-gradient(135deg, #ffffff 0%, #f0f7fa 100%);
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2.5rem;
+            border: 2px solid rgba(52, 147, 164, 0.2);
+            box-shadow: 0 4px 15px rgba(52, 147, 164, 0.08);
+        }
+
+        .marks-out-of-section h2 {
+            margin-top: 0;
+            margin-bottom: 16px;
+            color: #1a3a42;
+            font-size: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .marks-out-of-section h2:before {
+            content: '⚙️';
+            font-size: 1.5rem;
+        }
+
+        .marks-out-of-form {
+            display: flex;
+            gap: 1.5rem;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .marks-out-of-form .form-group {
+            margin: 0;
+            flex: 0 1 250px;
+        }
+
+        .marks-out-of-form .form-group label {
+            font-size: 14px;
+        }
+
+        .marks-out-of-form .form-group input {
+            font-size: 14px;
+        }
+
+        .marks-out-of-form button {
+            padding: 1rem 2.5rem;
+            background: linear-gradient(135deg, #3493a4 0%, #2a7a8a 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(52, 147, 164, 0.3);
+            letter-spacing: 0.5px;
+        }
+
+        .marks-out-of-form button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 147, 164, 0.4);
+        }
+
+        .marks-out-of-form button:active {
+            transform: translateY(0);
+        }
+
+        /* Table Styling */
+        .box-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e0e0e0;
+        }
+
+        .content-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .content-table thead {
+            background: linear-gradient(135deg, #3493a4 0%, #2a7a8a 100%);
+            color: white;
+        }
+
+        .content-table th {
+            padding: 0.8rem 0.4rem;
+            text-align: left;
+            font-weight: 700;
+            font-size: 18px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .content-table tbody tr {
+            border-bottom: 1px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .content-table tbody tr:hover {
+            background-color: #f0f7fa;
+            box-shadow: inset 3px 0 0 #3493a4;
+        }
+
+        .content-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .content-table td {
+            padding: 0.7rem 0.4rem;
+            color: #333;
+            font-size: 20px;
+        }
+
+        .content-table .option-btn {
+            background: linear-gradient(135deg, #3493a4 0%, #2a7a8a 100%);
+            color: white;
+            border: none;
+            padding: 0.7rem 1.3rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(52, 147, 164, 0.2);
+            letter-spacing: 0.3px;
+        }
+
+        .content-table .option-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(52, 147, 164, 0.3);
+        }
+
+        .content-table .option-btn:active {
+            transform: translateY(0);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: #666;
+            font-size: 1.1rem;
+            background: linear-gradient(135deg, #ffffff 0%, #f0f7fa 100%);
+        }
+
+        .loading:before {
+            content: '⏳ ';
+        }
+
+        .error-message {
+            background: linear-gradient(135deg, #fee 0%, #fdd 100%);
+            color: #c33;
+            padding: 1.2rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid #e74c3c;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-weight: 500;
+        }
+
+        .error-message:before {
+            content: '⚠️';
+            font-size: 1.3rem;
+        }
+
+        .heading {
+            color: #1a3a42;
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            letter-spacing: 0.5px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .modal-content {
+                max-width: 95%;
+                padding: 2rem;
+            }
+
+            .marks-out-of-form {
+                flex-direction: column;
+                font-size: 12px;
+            }
+
+            .marks-out-of-form .form-group {
+                flex: 1;
+                width: 100%;
+            }
+
+            .marks-out-of-form button {
+                width: 100%;
+            }
+
+            .box-container {
+                border-radius: 8px;
+                overflow-x: auto;
+            }
+
+            .content-table {
+                font-size: 0.95rem;
+            }
+
+            .content-table th {
+                padding: 0.7rem 0.3rem;
+                font-size: 12px;
+            }
+
+            .content-table td {
+                padding: 0.6rem 0.3rem;
+                font-size: 10px;
+            }
+
+            .content-table .option-btn {
+                padding: 0.6rem 0.9rem;
+                font-size: 12px;
+                white-space: nowrap;
+            }
+
+            .modal-buttons {
+                flex-direction: column-reverse;
+            }
+
+            .modal-buttons button {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .heading {
+                font-size: 1.5rem;
+                margin-bottom: 1rem;
+            }
+
+            .marks-out-of-section {
+                padding: 1.2rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .marks-out-of-section h2 {
+                font-size: 14px;
+                margin-bottom: 1rem;
+            }
+
+            .marks-out-of-form .form-group {
+                flex: 1;
+                width: 100%;
+            }
+
+            .marks-out-of-form .form-group label {
+                font-size: 20px;
+            }
+
+            .content-table th {
+                padding: 0.6rem 0.2rem;
+                font-size: 12px;
+            }
+
+            .content-table td {
+                padding: 0.6rem 0.2rem;
+                font-size: 15px;
+            }
+
+            .content-table .option-btn {
+                padding: 0.4rem 0.6rem;
+                font-size: 12px;
+            }
+
+            .modal-content {
+                padding: 1.5rem;
+                max-width: 100%;
+            }
+
+            .modal-header h2 {
+                font-size: 1.3rem;
+            }
+        }

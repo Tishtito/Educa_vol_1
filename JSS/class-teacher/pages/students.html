@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Students</title>
+   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css">
+   <link rel="stylesheet" href="../css/Tpanel.css">
+   <link rel="stylesheet" href="../css/students.css">
+   <link rel="stylesheet" href="../css/sticky-footer.css">
+   <link rel="stylesheet" href="../css/responsive-navigation.css">
+   <link rel="stylesheet" href="../css/bottom-navigator.css">
+</head>
+<body>
+
+<div id="headerContainer"></div>
+<div id="sidebarContainer"></div>
+
+<section class="home-grid">
+   <h1 class="heading">Option</h1>
+   <div class="box-container">
+      <div class="box">
+         <h3 class="title">New Student</h3>
+         <img src="../photos/add-user.png" alt=""><br>
+         <button id="add-student-btn" class="inline-btn">Add</button>
+      </div>
+   </div>
+</section>
+
+<h1 class="heading2">List of Students</h1>
+
+<section class="teachers">
+   <div class="box-container" id="students-container">
+      <p style="text-align: center;">Loading students...</p>
+   </div>
+</section>
+
+<!-- Add Student Modal -->
+<div id="addStudentModal" class="modal">
+   <div class="modal-content">
+      <div class="modal-header">
+         <h2>Add New Student</h2>
+         <button class="close-btn" id="close-modal">&times;</button>
+      </div>
+      <form id="add-student-form">
+         <div class="form-group">
+            <label for="student-name">Student Name *</label>
+            <input type="text" id="student-name" name="name" required>
+         </div>
+         <!-- <div class="form-group">
+            <label for="student-pno">Parent Phone Number *</label>
+            <input type="tel" id="student-pno" name="pno" required>
+         </div> -->
+         <div class="form-buttons">
+            <button type="button" class="btn-cancel" id="cancel-btn">Cancel</button>
+            <button type="submit" class="btn-submit">Add Student</button>
+         </div>
+      </form>
+   </div>
+</div>
+
+<!-- Bottom Navigator Container -->
+<div id="bottomNavContainer"></div>
+
+<!-- Footer Component Container -->
+<div id="footerContainer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="../js/teacher-data.js"></script>
+<script src="../js/script.js"></script>
+<script src="../js/header-init.js"></script>
+<script src="../js/students.js"></script>
+<script src="../js/bottom-nav-active.js"></script>
+
+</body>
+</html>

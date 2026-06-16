@@ -1,0 +1,92 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="../../css/style.css">
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <title>Move Class</title>
+    <link rel="stylesheet" href="../../css/move_classes.css">
+</head>
+
+<body>
+    <div id="sidebar-container" data-active="settings"></div>
+
+    <div class="content">
+        <nav>
+            <i class='bx bx-menu'></i>
+            <form action="#">
+                <div class="form-input">
+                    <input type="search" placeholder="Search...">
+                    <button class="search-btn" type="submit"><i class='bx bx-search'></i></button>
+                </div>
+            </form>
+            <input type="checkbox" id="theme-toggle" hidden>
+            <label for="theme-toggle" class="theme-toggle"></label>
+            <a href="#" class="notif">
+                <i class='bx bx-bell'></i>
+                <span class="count">12</span>
+            </a>
+            <a href="#" class="profile">
+                <img src="../../images/logo.png">
+            </a>
+        </nav>
+
+        <main>
+            <div class="page-header">
+                <div>
+                    <h1>Move Class</h1>
+                    <p class="subtitle">Transfer students between classes without graduating them.</p>
+                </div>
+                <a href="settings.html" class="primary-btn">Back to Settings</a>
+            </div>
+
+            <section class="panel">
+                <h2>Move all students</h2>
+                <p>Select the source class and the destination class.</p>
+                <form id="moveAllForm">
+                    <div class="form-grid">
+                        <div>
+                            <label for="fromClass">From class</label>
+                            <select id="fromClass" required></select>
+                        </div>
+                        <div>
+                            <label for="targetClass">To class</label>
+                            <select id="targetClass" required></select>
+                        </div>
+                    </div>
+                    <button class="primary-btn" type="submit">Move Entire Class</button>
+                </form>
+            </section>
+
+            <section class="panel">
+                <h2>Move individual students</h2>
+                <p class="subtitle">Pick a class above to load students, then move them one by one.</p>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Current Class</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsTable">
+                            <tr>
+                                <td colspan="3" class="empty-state">Select a class to load students.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="../../js/index.js"></script>
+    <script src="../../js/load-sidebar.js"></script>
+    <script src="../../js/settings/move_class.js"></script>
+</body>
+
+</html>

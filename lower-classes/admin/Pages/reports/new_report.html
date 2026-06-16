@@ -1,0 +1,91 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Form</title>
+    <link rel="stylesheet" href="../../css/new_report.css">
+</head>
+<body>
+    <div class="document-border">
+        <div class="report-container">
+            <div class="print-header no-print">
+                <h2>Student Report</h2>
+                <button onclick="window.print()" class="print-button">Print Report</button>
+            </div>
+
+            <div class="school-header-container">
+                <div class="logo-left">
+                    <img src="../../images/logo.png" alt="logo">
+                </div>
+
+                <div class="school-header">
+                    <div class="school-name">LIMURU MISSION JUNIOR SCHOOL</div>
+                    <div class="school-contact">P.O BOX 194-00217 LIMURU<br>Email: limurumissionschool@gmail.com</div>
+                </div>
+                
+                <div class="logo-right">
+                    <img src="../../images/logo.png" alt="logo">
+                </div>
+            </div>
+
+            <div class="report-title">REPORT FORM</div>
+            
+            <table class="info-table">
+                <tr>
+                    <td id="term-label">-</td>
+                    <td>Full Name : <b id="student-name">-</b></td>
+                </tr>
+                <tr>
+                    <td><b>End-Term</b></td>
+                    <td>Grade/Class : <b id="student-class">-</b> <span id="exam-year"></span></td>
+                </tr>
+            </table>
+            
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th>LEARNING AREA</th>
+                        <th colspan="2">Mid term out of 100</th>
+                        <th colspan="2">End-term out of 100</th>
+                        <th>%</th>
+                        <th>Grid</th>
+                        <th>Remarks</th>
+                    </tr>
+                </thead>
+                <tbody id="results-body"></tbody>
+            </table>
+            
+            <div class="words">
+                <div><strong>Total Marks Mid-Term:</strong> <span id="total-mid">0</span> (out of <span id="total-out-of">0</span>)</div>
+                <div><strong>Total Marks End-Term:</strong> <span id="total-end">0</span> (out of <span id="total-out-of-2">0</span>)</div>
+                <div><strong>Average Marks:</strong> <span id="average-marks">0</span>% (<span id="average-pl">-</span>)</div>
+            </div>
+            
+            <div class="signature-section">
+                <div><strong>GRADE TEACHER :</strong> <span id="tutor-name">-</span></div></div>
+                <div><strong>Signature:</strong> _________________________</div>
+                
+                <div class="comments"><strong>COMMENTS:</strong> <span id="teacher-comment">-</span></div>
+                
+                <div><strong>PRINCIPAL:</strong></div>
+                <div><strong>Signature:</strong> ___<u>Lucy Maina</u>_____________</div>
+                
+                <div class="comments"><strong>COMMENTS:</strong> <span id="principal-comment">-</span></div>
+                
+                <div><strong>Parent's Signatures:</strong> _________________________</div>
+            </div>
+            
+            <div class="footer">
+                <div><strong>Next Term Begins On:</strong> Monday, August 25th, 2025</div>
+                <div><strong>Print Date :</strong> <span id="print-date">-</span></div>
+            </div>
+            
+            <div class="motto">SCHOOL MOTTO: FORWARD EVER BACKWARD NEVER</div>
+            <div class="stamp-notice">Not valid if without an official school rubber stamp</div>
+        </div>
+    </div>
+
+    <script src="../../js/reports/new_report.js"></script>
+</body>
+</html>

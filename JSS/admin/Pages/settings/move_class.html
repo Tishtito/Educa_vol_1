@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="../../css/style.css">
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <title>Move Class</title>
+    <style>
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .page-header .subtitle {
+            color: #6b7280;
+            margin-top: 6px;
+        }
+
+        .panel {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 10px 26px rgba(0, 0, 0, 0.08);
+            padding: 18px 20px;
+            margin-top: 18px;
+        }
+
+        .panel h2 {
+            margin: 0 0 10px;
+            font-size: 18px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 14px;
+            margin-top: 12px;
+        }
+
+        label {
+            font-weight: 600;
+            color: #111827;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            background: #fff;
+        }
+
+        .primary-btn {
+            margin-top: 16px;
+            border: none;
+            background: #16a34a;
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .primary-btn:hover {
+            background: #15803d;
+        }
+
+        .table-wrapper {
+            margin-top: 12px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+        }
+
+        th {
+            background: #f9fafb;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .action-btn {
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .action-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .empty-state {
+            color: #6b7280;
+            padding: 12px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="sidebar-container" data-active="settings"></div>
+
+    <div class="content">
+        <nav>
+            <i class='bx bx-menu'></i>
+            <form action="#">
+                <div class="form-input">
+                    <input type="search" placeholder="Search...">
+                    <button class="search-btn" type="submit"><i class='bx bx-search'></i></button>
+                </div>
+            </form>
+            <input type="checkbox" id="theme-toggle" hidden>
+            <label for="theme-toggle" class="theme-toggle"></label>
+            <a href="#" class="notif">
+                <i class='bx bx-bell'></i>
+                <span class="count">12</span>
+            </a>
+            <a href="#" class="profile">
+                <img src="../../images/logo.png">
+            </a>
+        </nav>
+
+        <main>
+            <div class="page-header">
+                <div>
+                    <h1>Move Class</h1>
+                    <p class="subtitle">Transfer students between classes without graduating them.</p>
+                </div>
+                <a href="settings.html" class="primary-btn">Back to Settings</a>
+            </div>
+
+            <section class="panel">
+                <h2>Move all students</h2>
+                <p>Select the source class and the destination class.</p>
+                <form id="moveAllForm">
+                    <div class="form-grid">
+                        <div>
+                            <label for="fromClass">From class</label>
+                            <select id="fromClass" required></select>
+                        </div>
+                        <div>
+                            <label for="targetClass">To class</label>
+                            <select id="targetClass" required></select>
+                        </div>
+                    </div>
+                    <button class="primary-btn" type="submit">Move Entire Class</button>
+                </form>
+            </section>
+
+            <section class="panel">
+                <h2>Move individual students</h2>
+                <p class="subtitle">Pick a class above to load students, then move them one by one.</p>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Current Class</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsTable">
+                            <tr>
+                                <td colspan="3" class="empty-state">Select a class to load students.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="../../js/index.js"></script>
+    <script src="../../js/load-sidebar.js"></script>
+    <script src="../../js/settings/move_class.js"></script>
+</body>
+
+</html>
+

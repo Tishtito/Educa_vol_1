@@ -1,0 +1,307 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+   <link rel="stylesheet" href="../../css/style.css">
+   <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+   <title>Graduate Class</title>
+   <style>
+      .page-header {
+         display: flex;
+         align-items: center;
+         justify-content: space-between;
+         gap: 16px;
+         flex-wrap: wrap;
+      }
+
+      .page-header .subtitle {
+         color: #6b7280;
+         margin-top: 6px;
+      }
+
+      .panel-grid {
+         display: grid;
+         grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+         gap: 18px;
+         margin-top: 18px;
+      }
+
+      .panel {
+         background: #fff;
+         border-radius: 14px;
+         box-shadow: 0 10px 26px rgba(0, 0, 0, 0.08);
+         padding: 18px 20px;
+      }
+
+      .panel h2 {
+         margin: 0 0 10px;
+         font-size: 18px;
+      }
+
+      .form-row {
+         display: grid;
+         grid-template-columns: 1fr;
+         gap: 12px;
+         margin-top: 12px;
+      }
+
+      .form-row label {
+         font-weight: 600;
+         color: #111827;
+      }
+
+      .form-row select {
+         width: 100%;
+         padding: 10px 12px;
+         border-radius: 8px;
+         border: 1px solid #d1d5db;
+         background: #fff;
+      }
+
+      .primary-btn {
+         margin-top: 16px;
+         border: none;
+         background: #2563eb;
+         color: #fff;
+         padding: 10px 16px;
+         border-radius: 8px;
+         cursor: pointer;
+         font-weight: 600;
+         text-decoration: none;
+         display: inline-flex;
+         align-items: center;
+         justify-content: center;
+      }
+
+      .primary-btn:hover {
+         background: #1d4ed8;
+      }
+
+      .table-wrapper {
+         margin-top: 12px;
+         overflow-x: auto;
+      }
+
+      table {
+         width: 100%;
+         border-collapse: collapse;
+      }
+
+      th,
+      td {
+         padding: 10px 12px;
+         border-bottom: 1px solid #e5e7eb;
+         text-align: left;
+      }
+
+      th {
+         background: #f9fafb;
+         font-weight: 700;
+         color: #111827;
+      }
+
+      .empty-state {
+         color: #6b7280;
+         padding: 12px 0;
+      }
+
+      .status-pill {
+         display: inline-block;
+         padding: 4px 10px;
+         border-radius: 999px;
+         font-size: 12px;
+         font-weight: 600;
+         background: #e0f2fe;
+         color: #0369a1;
+      }
+   </style>
+</head>
+
+<body>
+   <div id="sidebar-container" data-active="settings"></div>
+
+   <div class="content">
+      <nav>
+         <i class='bx bx-menu'></i>
+         <form action="#">
+            <div class="form-input">
+               <input type="search" placeholder="Search...">
+               <button class="search-btn" type="submit"><i class='bx bx-search'></i></button>
+            </div>
+         </form>
+         <input type="checkbox" id="theme-toggle" hidden>
+         <label for="theme-toggle" class="theme-toggle"></label>
+         <a href="#" class="notif">
+            <i class='bx bx-bell'></i>
+            <span class="count">12</span>
+         </a>
+         <a href="#" class="profile">
+            <img src="../../images/logo.png">
+         </a>
+      </nav>
+
+      <main>
+         <div class="page-header">
+            <div>
+               <h1>Graduate Class</h1>
+               <p class="subtitle">Move an entire class to a new level or mark them as finished.</p>
+            </div>
+            <a href="settings.html" class="primary-btn">Back to Settings</a>
+         </div>
+
+         <div class="panel-grid">
+            <section class="panel">
+               <h2>Graduate a Class</h2>
+               <p>Select the class you want to graduate and where they should go next.</p>
+               <form id="graduateForm">
+                  <div class="form-row">
+                     <div>
+                        <label for="fromClass">From class</label>
+                        <select id="fromClass" required></select>
+                     </div>
+                     <div>
+                        <label for="targetClass">Graduate to</label>
+                        <select id="targetClass" required>
+                           <option value="FINISHED">Finished (End of Lower Class)</option>
+                        </select>
+                     </div>
+                  </div>
+                  <button class="primary-btn" type="submit">Graduate Entire Class</button>
+               </form>
+            </section>
+
+            <section class="panel">
+               <h2>Students Preview</h2>
+               <p class="subtitle">Showing students in the selected class.</p>
+               <div class="table-wrapper">
+                  <table>
+                     <thead>
+                        <tr>
+                           <th>Name</th>
+                           <th>Class</th>
+                           <th>Status</th>
+                        </tr>
+                     </thead>
+                     <tbody id="studentsTable">
+                        <tr>
+                           <td colspan="3" class="empty-state">Select a class to load students.</td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+            </section>
+         </div>
+      </main>
+   </div>
+
+   <script src="../../js/index.js"></script>
+   <script src="../../js/load-sidebar.js"></script>
+   <script>
+      const baseUrl = "../../backend/public/index.php";
+      const classesEndpoint = `${baseUrl}/settings/classes`;
+      const studentsEndpoint = `${baseUrl}/students/active-by-class`;
+      const graduateEndpoint = `${baseUrl}/settings/classes/graduate-all`;
+
+      const fromClass = document.getElementById('fromClass');
+      const targetClass = document.getElementById('targetClass');
+      const studentsTable = document.getElementById('studentsTable');
+      const graduateForm = document.getElementById('graduateForm');
+
+      function renderStudents(students) {
+         if (!students.length) {
+            studentsTable.innerHTML = '<tr><td colspan="3" class="empty-state">No students found in this class.</td></tr>';
+            return;
+         }
+         studentsTable.innerHTML = students.map((student) => `
+            <tr>
+               <td>${student.name}</td>
+               <td>${student.class}</td>
+               <td><span class="status-pill">${student.status || 'Active'}</span></td>
+            </tr>
+         `).join('');
+      }
+
+      async function loadStudents(className) {
+         if (!className) {
+            studentsTable.innerHTML = '<tr><td colspan="3" class="empty-state">Select a class to load students.</td></tr>';
+            return;
+         }
+         try {
+            const response = await fetch(`${studentsEndpoint}?class=${encodeURIComponent(className)}`);
+            const data = await response.json();
+            if (!data.success) {
+               throw new Error(data.message || 'Failed to load students');
+            }
+            renderStudents(data.data || []);
+         } catch (error) {
+            studentsTable.innerHTML = `<tr><td colspan="3" class="empty-state">${error.message}</td></tr>`;
+         }
+      }
+
+      async function loadClasses() {
+         try {
+            const response = await fetch(classesEndpoint);
+            const data = await response.json();
+            if (!data.success) {
+               throw new Error(data.message || 'Failed to load classes');
+            }
+
+            const classes = data.data || [];
+            fromClass.innerHTML = '<option value="">-- Select class --</option>';
+            targetClass.innerHTML = '<option value="FINISHED">Finished (End of Upper-classes-combined)</option>';
+
+            classes.forEach((cls) => {
+               const option = document.createElement('option');
+               option.value = cls.class_name;
+               option.textContent = cls.class_name;
+               fromClass.appendChild(option);
+
+               const targetOption = document.createElement('option');
+               targetOption.value = cls.class_name;
+               targetOption.textContent = cls.class_name;
+               targetClass.appendChild(targetOption);
+            });
+         } catch (error) {
+            swal('Error', error.message, 'error');
+         }
+      }
+
+      fromClass.addEventListener('change', (event) => {
+         loadStudents(event.target.value);
+      });
+
+      graduateForm.addEventListener('submit', async (event) => {
+         event.preventDefault();
+         const fromValue = fromClass.value;
+         const targetValue = targetClass.value;
+
+         if (!fromValue || !targetValue) {
+            swal('Missing data', 'Please select both classes.', 'warning');
+            return;
+         }
+
+         try {
+            const response = await fetch(graduateEndpoint, {
+               method: 'POST',
+               headers: { 'Content-Type': 'application/json' },
+               body: JSON.stringify({ from_class: fromValue, target_class: targetValue })
+            });
+            const data = await response.json();
+            if (!data.success) {
+               throw new Error(data.message || 'Failed to graduate class');
+            }
+            swal('Success', data.message || 'Class graduated successfully.', 'success');
+            loadStudents(fromValue);
+         } catch (error) {
+            swal('Error', error.message, 'error');
+         }
+      });
+
+      loadClasses();
+   </script>
+</body>
+
+</html>

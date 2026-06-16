@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mark List</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css">
+    <link rel="stylesheet" href="../css/sticky-footer.css">
+    <link rel="stylesheet" href="../css/responsive-navigation.css">
+    <link rel="stylesheet" href="../css/bottom-navigator.css">
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        .row {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        .column {
+            padding: 10px;
+        }
+
+        .left {
+            width: 80%;
+        }
+
+        .right {
+            width: 20%;
+        }
+
+        .row:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        .print-btn {
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .print-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .mean-row {
+            font-weight: bold;
+            background-color: #f9f9f9;
+        }
+
+        .deviation-row {
+            font-weight: bold;
+            background-color: #f2dede;
+        }
+
+        @media print {
+            .print-btn, .navbar {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Print Button -->
+<button class="print-btn" onclick="window.print()">Print</button>
+
+<div class="row">
+    <div class="column left">
+        <h2>Mark List - <span id="examName">Loading...</span></h2>
+        <h2>Grade <span id="classTitle">Loading...</span></h2>
+        <h2>Class Tutor: <span id="teacherName">Loading...</span></h2>
+        <p><strong>Total Mean Score:</strong> <span id="totalMean">0</span></p>
+    </div>
+
+    <div class="column right">
+        <img src="../photos/logo.png" alt="" width="250px" height="200px">
+    </div>
+</div>
+
+<div id="tableContainer">
+    <p style="text-align: center;">Loading mark list...</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="../js/teacher-data.js"></script>
+<script src="../js/script.js"></script>
+<script src="../js/marklist.js"></script>
+
+</body>
+</html>

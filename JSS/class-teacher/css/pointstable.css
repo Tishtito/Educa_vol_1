@@ -1,0 +1,242 @@
+/* Main section styling */
+        .points-section {
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .page-heading {
+            text-align: center;
+            font-size: 28px;
+            color: var(--text-color);
+            margin: 20px 0 15px 0;
+            font-weight: 600;
+        }
+
+        /* Responsive table wrapper */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Main content table styling */
+        .content-table {
+            width: auto;
+            border-collapse: collapse;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: visible;
+            min-width: 100%;
+        }
+
+        .content-table thead tr {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .content-table thead th {
+            padding: 14px 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .content-table tbody td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            font-size: 18px;
+        }
+
+        .content-table tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+        .content-table tbody tr:hover {
+            background-color: rgba(102, 126, 234, 0.05);
+        }
+
+        .content-table tbody tr:nth-of-type(even) {
+            background-color: #f9f9fa;
+        }
+
+        /* Grade cell styling */
+        .grade-cell {
+            padding: 8px 6px !important;
+            text-align: center;
+            position: relative;
+            min-width: 60px;
+        }
+
+        .grade-cell .grade {
+            font-weight: bold;
+            font-size: 14px;
+            line-height: 1.2;
+        }
+
+        .grade-cell .ab {
+            font-size: 11px;
+            color: var(--text-color);
+            opacity: 0.8;
+            margin-top: 2px;
+        }
+
+        /* Summary table styling */
+        .summary-section {
+            margin-bottom: 30px;
+        }
+
+        .summary-heading {
+            text-align: center;
+            font-size: 20px;
+            color: var(--text-color);
+            margin: 20px 0 15px 0;
+            font-weight: 600;
+        }
+
+        .summary-table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .summary-table {
+            width: auto;
+            border-collapse: collapse;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: visible;
+            min-width: 100%;
+        }
+
+        .summary-table thead tr {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .summary-table thead th {
+            padding: 12px 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .summary-table tbody td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+        }
+
+        .summary-table tbody tr:nth-of-type(even) {
+            background-color: #f9f9fa;
+        }
+
+        .summary-table tbody tr:hover {
+            background-color: rgba(102, 126, 234, 0.05);
+        }
+
+        /* Mobile responsive styles */
+        @media (max-width: 768px) {
+            .summary-section{
+                margin: 5px;
+                border-radius: 13px;
+            }
+
+            .points-section {
+                padding: 10px;
+            }
+
+            .page-heading {
+                font-size: 22px;
+                margin: 15px 0 12px 0;
+            }
+
+            .summary-heading {
+                font-size: 18px;
+                margin: 15px 0 12px 0;
+            }
+
+            .table-responsive,
+            .summary-table-responsive {
+                margin: 0 -10px;
+                padding: 0 10px;
+                border-radius: 8px;
+            }
+
+            .content-table,
+            .summary-table {
+                
+                min-width: 100%;
+            }
+
+            .content-table thead th,
+            .content-table tbody td,
+            .summary-table thead th,
+            .summary-table tbody td {
+                padding: 10px 6px;
+            }
+
+            .content-table thead th,
+            .summary-table thead th {
+                font-size: 11px;
+            }
+
+            .content-table tbody td,
+            .summary-table tbody td {
+                font-size: 10px;
+            }
+
+            .grade-cell .grade {
+                font-size: 12px;
+            }
+
+            .grade-cell .ab {
+                font-size: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .points-section {
+                padding: 8px;
+            }
+
+            .page-heading {
+                font-size: 20px;
+                margin: 12px 0 10px 0;
+            }
+
+            .summary-heading {
+                font-size: 16px;
+                margin: 12px 0 10px 0;
+            }
+
+            .content-table,
+            .summary-table {
+                font-size: 11px;
+            }
+
+            .content-table thead th,
+            .content-table tbody td,
+            .summary-table thead th,
+            .summary-table tbody td {
+                padding: 8px 4px;
+            }
+
+            .content-table thead th,
+            .summary-table thead th {
+                font-size: 10px;
+            }
+
+            .grade-cell .grade {
+                font-size: 11px;
+            }
+
+            .grade-cell .ab {
+                font-size: 9px;
+            }
+        }

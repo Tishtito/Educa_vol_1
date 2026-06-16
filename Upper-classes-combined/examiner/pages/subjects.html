@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subject Marks</title>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css">
+    <link rel="stylesheet" href="../css/Tpanel.css">
+    <link rel="stylesheet" href="../css/students.css">
+    <link rel="stylesheet" href="../css/sticky-footer.css">
+    <link rel="stylesheet" href="../css/bottom-navigator.css">
+    <link rel="stylesheet" href="../css/responsive-navigation.css">
+</head>
+<body>
+    
+<!-- Header Component Container -->
+<div id="headerContainer"></div>
+
+<!-- Sidebar Component Container -->
+<div id="sidebarContainer"></div>
+
+<!-- Bottom Navigator Container -->
+<div id="bottomNavContainer"></div>
+
+<section class="marks-table">
+   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+       <h1 class="heading" id="subjectTitle" style="margin-bottom: 0; font-size: 20px;">Subject Marks</h1>
+       <a href="home.html" class="back-btn" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.8rem 1.5rem; background: linear-gradient(135deg, #3493a4 0%, #2a7a8a 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; box-shadow: 0 4px 12px rgba(52, 147, 164, 0.3); transition: all 0.3s ease;">
+           <i class="fas fa-arrow-left"></i> Back to Dashboard
+       </a>
+   </div>
+
+   <!-- Marks Out Of Section -->
+   <div class="marks-out-of-section" id="marksOutOfSection" style="display: none;">
+       <h2>Configure Marks</h2>
+       
+       <!-- Single marks out of for regular subjects -->
+       <div class="marks-out-of-form" id="singleMarksOutOfForm">
+           <div class="form-group">
+               <label for="marksOutOf">Marks Out Of:</label>
+               <input type="number" id="marksOutOf" min="1" placeholder="e.g., 50" required>
+           </div>
+           <button type="button" onclick="setMarksOutOf()">Set Marks</button>
+       </div>
+
+       <!-- Separate marks out of for English (Gramma + Compo) -->
+       <div class="marks-out-of-form" id="englishMarksOutOfForm" style="display: none;">
+           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+               <div class="form-group">
+                   <label for="grammaMarksOutOf">Gramma - Marks Out Of:</label>
+                   <input type="number" id="grammaMarksOutOf" min="1" placeholder="e.g., 50" required>
+               </div>
+               <div class="form-group">
+                   <label for="compoMarksOutOf">Compo - Marks Out Of:</label>
+                   <input type="number" id="compoMarksOutOf" min="1" placeholder="e.g., 50" required>
+               </div>
+           </div>
+           <button type="button" onclick="setEnglishMarksOutOf()">Set Marks</button>
+       </div>
+
+       <!-- Separate marks out of for Kiswahili (Lugha + Insha) -->
+       <div class="marks-out-of-form" id="kiswahiliMarksOutOfForm" style="display: none;">
+           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+               <div class="form-group">
+                   <label for="lughaMarksOutOf">Lugha - Marks Out Of:</label>
+                   <input type="number" id="lughaMarksOutOf" min="1" placeholder="e.g., 50" required>
+               </div>
+               <div class="form-group">
+                   <label for="inshaMarksOutOf">Insha - Marks Out Of:</label>
+                   <input type="number" id="inshaMarksOutOf" min="1" placeholder="e.g., 50" required>
+               </div>
+           </div>
+           <button type="button" onclick="setKiswahiliMarksOutOf()">Set Marks</button>
+       </div>
+   </div>
+
+   <!-- Error Message -->
+   <div id="errorMessage"></div>
+
+   <!-- Loading State -->
+   <div id="loadingState" class="loading">
+       <p>Loading students...</p>
+   </div>
+
+   <!-- Students Table -->
+   <div class="box-container" id="tableContainer" style="display: none;">
+       <table class="content-table">
+           <thead>
+               <tr>
+                   <th>Student Name</th>
+                   <th>Current Marks (%)</th>
+                   <th>Action</th>
+               </tr>
+           </thead>
+           <tbody id="studentsTableBody">
+               <!-- Students will be populated here -->
+           </tbody>
+       </table>
+   </div>
+</section>
+
+<!-- Edit Marks Modal -->
+<div id="editMarksModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Edit Marks - <span id="studentNameInModal">Student</span></h2>
+            <button class="modal-close" onclick="closeEditModal()">&times;</button>
+        </div>
+        <form onsubmit="saveMarks(event)">
+            <!-- Single input for regular subjects -->
+            <div id="singleInputGroup" class="form-group" style="display: none;">
+                <label for="studentMarks">Marks (out of <span id="maxMarks">100</span>):</label>
+                <input 
+                    type="number" 
+                    id="studentMarks" 
+                    name="studentMarks"
+                    min="0" 
+                    step="0.01"
+                    placeholder="Enter marks"
+                >
+            </div>
+
+            <!-- Dual inputs for English (Gramma + Compo) -->
+            <div id="englishInputGroup" style="display: none;">
+                <div class="form-group">
+                    <label for="grammaMarks">Gramma (out of <span id="maxGramma">100</span>):</label>
+                    <input 
+                        type="number" 
+                        id="grammaMarks" 
+                        name="grammaMarks"
+                        min="0" 
+                        step="0.01"
+                        placeholder="Enter gramma marks"
+                    >
+                </div>
+                <div class="form-group">
+                    <label for="compoMarks">Compo (out of <span id="maxCompo">100</span>):</label>
+                    <input 
+                        type="number" 
+                        id="compoMarks" 
+                        name="compoMarks"
+                        min="0" 
+                        step="0.01"
+                        placeholder="Enter compo marks"
+                    >
+                </div>
+                <div class="form-group" style="background: #f0f8ff; padding: 10px; border-radius: 4px; margin-top: 10px;">
+                    <strong>English Total (percentage): <span id="englishTotalDisplay">-</span>%</strong>
+                </div>
+            </div>
+
+            <!-- Dual inputs for Kiswahili (Lugha + Insha) -->
+            <div id="kiswahiliInputGroup" style="display: none;">
+                <div class="form-group">
+                    <label for="lughaMarks">Lugha (out of <span id="maxLugha">100</span>):</label>
+                    <input 
+                        type="number" 
+                        id="lughaMarks" 
+                        name="lughaMarks"
+                        min="0" 
+                        step="0.01"
+                        placeholder="Enter lugha marks"
+                    >
+                </div>
+                <div class="form-group">
+                    <label for="inshaMarks">Insha (out of <span id="maxInsha">100</span>):</label>
+                    <input 
+                        type="number" 
+                        id="inshaMarks" 
+                        name="inshaMarks"
+                        min="0" 
+                        step="0.01"
+                        placeholder="Enter insha marks"
+                    >
+                </div>
+                <div class="form-group" style="background: #f0f8ff; padding: 10px; border-radius: 4px; margin-top: 10px;">
+                    <strong>Kiswahili Total (percentage): <span id="kiswahiliTotalDisplay">-</span>%</strong>
+                </div>
+            </div>
+
+            <div class="modal-buttons">
+                <button type="button" class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+                <button type="submit" class="btn-save">Save Marks</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Footer Component Container -->
+<div id="footerContainer"></div>
+
+<script src="../js/examiner-data.js"></script>
+<script src="../js/script.js"></script>
+<script src="../js/header-init.js"></script>
+<script src="../js/subjects.js"></script>
+
+</body>
+</html>

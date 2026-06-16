@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mark List</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .row {
+            display: flex;
+        }
+
+        .column {
+            float: left;
+            padding: 10px;
+        }
+
+        .left {
+            width: 80%;
+        }
+
+        .right {
+            width: 20%;
+        }
+
+        .row:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        @media print{
+            button{
+                display: none !important;
+            }
+        }
+    </style>
+    <script>
+        function printPage() {
+            window.print();
+        }
+    </script>
+</head>
+<body>
+    <!-- Print Button -->
+    <button onclick="printPage()" class="btn btn-secondary mb-3">Print</button>
+
+    <div class="container my-5">
+        <div class="row">
+            <div class="column left">
+                <h1 id="streamlist-exam">Mark List</h1>
+                <h1 id="streamlist-grade">Grade:</h1>
+            </div>
+
+            <div class="column right">
+                <img src="../../images/logo.png" alt="" width="250px" height="200px">
+            </div>
+        </div>
+        <table class="table table-bordered text-center">
+            <thead>
+                <tr id="streamlist-head-top"></tr>
+                <tr id="streamlist-head-sub"></tr>
+            </thead>
+            <tbody id="streamlist-body"></tbody>
+            <tfoot id="streamlist-foot"></tfoot>
+        </table>
+    </div>
+
+    <script src="../../js/analytics/streamlist.js"></script>
+</body>
+</html>
+

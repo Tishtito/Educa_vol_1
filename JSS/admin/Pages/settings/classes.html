@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="../../css/classes.css">
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <title>Manage Classes</title>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <div id="sidebar-container" data-active="settings"></div>
+    <!-- End of Sidebar -->
+
+    <!-- Main Content -->
+    <div class="content">
+        <!-- Navbar -->
+        <nav>
+            <i class='bx bx-menu'></i>
+            <form action="#">
+                <div class="form-input">
+                    <input type="search" placeholder="Search...">
+                    <button class="search-btn" type="submit"><i class='bx bx-search'></i></button>
+                </div>
+            </form>
+            <input type="checkbox" id="theme-toggle" hidden>
+            <label for="theme-toggle" class="theme-toggle"></label>
+            <a href="#" class="notif">
+                <i class='bx bx-bell'></i>
+                <span class="count">12</span>
+            </a>
+            <a href="#" class="profile">
+                <img src="../../images/logo.png">
+            </a>
+        </nav>
+
+        <!-- End of Navbar -->
+
+        <main>
+            <div class="header">
+                <div class="left">
+                    <h1>Classes</h1>
+                    <ul class="breadcrumb">
+                        <li><a href="#">
+                                Settings
+                            </a></li>
+                        /
+                        <li><a href="#" class="active">classes</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!--Table for teachers-->
+            <div class="bottom-data">
+                <div class="orders">
+                    <div class="header">
+                        <i class='bx bx-receipt'></i>
+                        <h3>List Of Classes</h3>
+                        <i class='bx bx-filter'></i>
+                        <i class='bx bx-search'></i>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Class</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="2" style="text-align:center;">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Reminders -->
+                <div class="reminders">
+                    <div class="header">
+                        <i class='bx bx-note'></i>
+                        <h3>Add New Class</h3>
+                        <i class='bx bx-filter'></i>
+                        
+                    </div>
+    
+                    <ul class="task-list">
+                        <a href="#" id="addClassBtn">
+                            <li class="completed">
+                                <div class="task-title">
+                                    <i class='bx bx-plus'></i>
+                                    <p>Add<span></span></p>
+                                </div>
+                                <i class='bx bx-dots-vertical-rounded'></i>
+                            </li>
+                        </a>
+                    </ul>
+                </div>
+                <!-- End of Reminders-->
+            </div>
+        </main>
+
+    </div>
+
+    <div class="modal-overlay" id="addClassModal" aria-hidden="true">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Create New Class</h3>
+                <button type="button" class="modal-close" id="closeClassModal">&times;</button>
+            </div>
+            <form class="modal-form" id="addClassForm">
+                <div class="field">
+                    <label for="className">Name of Class</label>
+                    <small>Include "_" e.g. 7_east</small>
+                    <input type="text" id="className" name="class_name" required>
+                </div>
+                <div class="field">
+                    <label for="classGrade">Grade</label>
+                    <select id="classGrade" name="grade" required>
+                        <option value="">-- Select Grade --</option>
+                        <option value="7">Grade 7</option>
+                        <option value="8">Grade 8</option>
+                        <option value="9">Grade 9</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn-primary">Create Class</button>
+                    <button type="button" class="btn-secondary" id="cancelClass">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script src="../../js/index.js"></script>
+    <script src="../../js/load-sidebar.js"></script>
+    <script src="../../js/settings/classes.js"></script>
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,229 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Form</title>
+    <link rel="stylesheet" href="../../css/new_report.css">
+</head>
+<body>
+    <div class="document-border">
+        <div class="report-container">
+            <div class="print-header no-print">
+                <h2>Student Report</h2>
+                <button onclick="window.print()" class="print-button">Print Report</button>
+            </div>
+
+            <div class="school-header-container">
+                <div class="logo-left">
+                    <img src="../../images/logo.png" alt="logo">
+                </div>
+
+                <div class="school-header">
+                    <div class="school-name">P.C.E.A MAI-A-IHII JUNIOR SCHOOL</div>
+                    <div class="school-contact">P.O. BOX 56-00902 KIKUYU<br>Email: pceamaiaihiijuniorsecondarysch@gmail.com</div>
+                </div>
+                
+                <div class="logo-right">
+                    <img src="../../images/logo.png" alt="logo">
+                </div>
+            </div>
+
+            <div class="report-title">REPORT FORM</div>
+            
+            <table class="info-table">
+                <tr>
+                    <td id="term-label">-</td>
+                    <td>Full Name : <b id="student-name">-</b></td>
+                </tr>
+                <tr>
+                    <td><b id="exam-type-label">-</b></td>
+                    <td>Grade/Class : <b id="student-class">-</b> <span id="exam-year"></span></td>
+                </tr>
+            </table>
+            
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th>LEARNING AREA</th>
+                        <th colspan="2" id="exam-header">Exam out of 100</th>
+                        <th colspan="2">End-term out of 100</th>
+                        <th>%</th>
+                        <th>Grid</th>
+                        <th>Remarks</th>
+                    </tr>
+                </thead>
+                <tbody id="results-body"></tbody>
+            </table>
+            
+            <div class="words">
+                <div><strong>Total Marks :</strong> <span id="total-marks">0</span> (out of <span id="total-out-of">0</span>)</div>
+                <div><strong>Average Marks :</strong> <span id="average-marks">0</span>% (<span id="average-pl">-</span>)</div>
+                <div><strong>Value Added :</strong></div>
+            </div>
+            
+            <div class="signature-section">
+                <div><strong>GRADE TEACHER :</strong> <span id="tutor-name">-</span></div></div>
+                <div><strong>Signature:</strong> _________________________</div>
+                
+                <div class="comments"><strong>COMMENTS:</strong> <span id="teacher-comment">-</span></div>
+                
+                <div><strong>PRINCIPAL:</strong></div>
+                <div><strong>Signature:</strong> _________________________</div>
+                
+                <div class="comments"><strong>COMMENTS:</strong> <span id="principal-comment">-</span></div>
+                
+                <div><strong>Parent's Signatures:</strong> _________________________</div>
+            </div>
+            
+            <div class="footer">
+                <div><strong>Next Term Begins On:</strong> Monday, April 28, 2025</div>
+                <div><strong>Print Date :</strong> <span id="print-date">-</span></div>
+            </div>
+            
+            <div class="motto">SCHOOL MOTTO: UNITY BRING SUCCESS</div>
+            <div class="stamp-notice">Not valid if without an official school rubber stamp</div>
+        </div>
+    </div>
+
+    <script>
+        (async function () {
+            const baseUrl = "../../backend/public/index.php";
+            const params = new URLSearchParams(window.location.search);
+            const studentId = params.get('student_id') || '';
+            const examId = params.get('exam_id') || '';
+            const token = params.get('token') || '';
+
+            function getPerformanceData(score, levels) {
+                if (score === null || score === undefined) {
+                    return { pl: '-', ab: '-' };
+                }
+                for (const level of levels) {
+                    if (score >= level.min_marks && score <= level.max_marks) {
+                        return { pl: level.pl, ab: level.ab };
+                    }
+                }
+                return { pl: 'UNKNOWN', ab: 'UNKNOWN' };
+            }
+
+            function commentForPercentage(percentage) {
+                let teacher = '';
+                let principal = '';
+
+                if (percentage >= 80) {
+                    teacher = "Excellent performance! You have demonstrated outstanding mastery of the subjects. Keep up the good work!";
+                } else if (percentage >= 70) {
+                    teacher = "Very good performance. You're doing well, but there's still room for improvement in some areas.";
+                } else if (percentage >= 60) {
+                    teacher = "Good effort. Continue working hard and pay more attention to the subjects where you scored lower.";
+                } else if (percentage >= 50) {
+                    teacher = "Average performance. You need to put in more effort, especially in your weaker subjects.";
+                } else {
+                    teacher = "Below average performance. Immediate improvement is needed. Please seek extra help from your teachers.";
+                }
+
+                if (percentage >= 85) {
+                    principal = "Exceptional work! You're a model student for the school. Maintain this excellent standard.";
+                } else if (percentage >= 75) {
+                    principal = "Commendable performance. With consistent effort, you can achieve even greater results.";
+                } else if (percentage >= 60) {
+                    principal = "Satisfactory performance. Focus on improving your weaker areas to reach your full potential.";
+                } else if (percentage >= 50) {
+                    principal = "Your results indicate you need to work harder. We believe you can do better with more dedication.";
+                } else {
+                    principal = "We're concerned about your performance. Please meet with your grade teacher to discuss improvement strategies.";
+                }
+
+                return { teacher, principal };
+            }
+
+            function formatPrintDate(date) {
+                const day = date.getDate();
+                const suffix = (d) => {
+                    if (d > 3 && d < 21) return 'th';
+                    switch (d % 10) {
+                        case 1: return 'st';
+                        case 2: return 'nd';
+                        case 3: return 'rd';
+                        default: return 'th';
+                    }
+                };
+                const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                return `${day}${suffix(day)} ${months[date.getMonth()]} ${date.getFullYear()}`;
+            }
+
+            if (!studentId || !examId || !token) {
+                return;
+            }
+
+            try {
+                const authRes = await fetch(`${baseUrl}/auth/check`, { credentials: "include" });
+                const auth = await authRes.json();
+                if (!auth.authenticated) {
+                    window.location.replace("Pages/login.html");
+                    return;
+                }
+
+                const dataRes = await fetch(`${baseUrl}/reports/report-single?student_id=${encodeURIComponent(studentId)}&exam_id=${encodeURIComponent(examId)}&token=${encodeURIComponent(token)}`, { credentials: "include" });
+                const payload = await dataRes.json();
+                if (!payload.success) {
+                    return;
+                }
+
+                const { student, tutor, exam, results, levels, subjects } = payload.data;
+
+                document.getElementById('term-label').textContent = exam.term || '-';
+                document.getElementById('student-name').textContent = student.name || '-';
+                document.getElementById('student-class').textContent = student.class || '-';
+                document.getElementById('exam-year').textContent = exam.exam_year ? ` ${exam.exam_year}` : '';
+                document.getElementById('exam-type-label').textContent = exam.exam_type || 'Exam';
+                document.getElementById('exam-header').textContent = `${exam.exam_type || 'Exam'} out of 100`;
+                document.getElementById('tutor-name').textContent = tutor || 'Not Assigned';
+                document.getElementById('print-date').textContent = formatPrintDate(new Date());
+
+                const resultsBody = document.getElementById('results-body');
+                resultsBody.innerHTML = '';
+
+                let totalMarks = 0;
+                const subjectKeys = Object.keys(subjects || {});
+                subjectKeys.forEach((key) => {
+                    const subjectName = subjects[key];
+                    const score = results[key];
+                    const performance = getPerformanceData(score, levels);
+                    if (score !== null && score !== undefined) {
+                        totalMarks += Number(score);
+                    }
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${subjectName}</td>
+                        <td>${score ?? '-'}</td>
+                        <td>${performance.ab}</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>${score !== null && score !== undefined ? `${score} %` : '-'}</td>
+                        <td>${performance.ab}</td>
+                        <td>${performance.pl}</td>
+                    `;
+                    resultsBody.appendChild(row);
+                });
+
+                const totalOutOf = subjectKeys.length * 100;
+                const percentage = totalOutOf > 0 ? (totalMarks / totalOutOf) * 100 : 0;
+                const formattedPercentage = percentage.toFixed(2);
+                const avgPerformance = getPerformanceData(percentage, levels);
+                const comments = commentForPercentage(percentage);
+
+                document.getElementById('total-marks').textContent = totalMarks;
+                document.getElementById('total-out-of').textContent = totalOutOf;
+                document.getElementById('average-marks').textContent = formattedPercentage;
+                document.getElementById('average-pl').textContent = avgPerformance.pl;
+                document.getElementById('teacher-comment').textContent = comments.teacher;
+                document.getElementById('principal-comment').textContent = comments.principal;
+            } catch (error) {
+                console.error('Failed to load report', error);
+            }
+        })();
+    </script>
+</body>
+</html>

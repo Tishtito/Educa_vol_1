@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Educa System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="../css/signup.css">
+</head>
+<body>
+
+<div class="signup-container">
+    <h1><i class="fas fa-graduation-cap"></i> Educa Sign Up</h1>
+    <p>Create a new account to get started</p>
+    
+    <form id="signupForm" onsubmit="handleSignup(event)">
+        
+        <!-- Full Name -->
+        <div class="form-group">
+            <label for="name"><i class="fas fa-user"></i> Full Name</label>
+            <input 
+                type="text" 
+                id="name" 
+                name="name" 
+                placeholder="Enter your full name"
+                required
+            >
+            <div class="error-message" id="nameError"></div>
+        </div>
+        
+        <!-- Username -->
+        <div class="form-group">
+            <label for="username"><i class="fas fa-at"></i> Username</label>
+            <input 
+                type="text" 
+                id="username" 
+                name="username" 
+                placeholder="Choose a username"
+                required
+            >
+            <div class="error-message" id="usernameError"></div>
+        </div>
+        
+        <!-- Role Selection -->
+        <div class="form-group">
+            <label><i class="fas fa-user-tag"></i> Role</label>
+            <div class="role-selector">
+                <div class="role-option">
+                    <input 
+                        type="radio" 
+                        id="roleClassTeacher" 
+                        name="role" 
+                        value="classTeacher"
+                    >
+                    <label for="roleClassTeacher">Class Teacher</label>
+                </div>
+                <div class="role-option">
+                    <input 
+                        type="radio" 
+                        id="roleExaminer" 
+                        name="role" 
+                        value="examiner"
+                    >
+                    <label for="roleExaminer">Examiner</label>
+                </div>
+                <div class="role-option">
+                    <input 
+                        type="radio" 
+                        id="roleBoth" 
+                        name="role" 
+                        value="both"
+                        checked
+                    >
+                    <label for="roleBoth">Both</label>
+                </div>
+            </div>
+            <div class="error-message" id="roleError"></div>
+        </div>
+        
+        <!-- Class Assignment -->
+        <div class="form-group">
+            <label for="classAssigned"><i class="fas fa-chalkboard-user"></i> Class Assigned</label>
+            <select id="classAssigned" name="classAssigned" required>
+                <option value="">Select a class...</option>
+            </select>
+            <div class="error-message" id="classError"></div>
+        </div>
+        
+        <!-- Password -->
+        <div class="form-group">
+            <label for="password"><i class="fas fa-lock"></i> Password</label>
+            <div class="password-group">
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    placeholder="Enter a strong password"
+                    required
+                    onchange="checkPasswordStrength()"
+                >
+                <span class="toggle-password" onclick="togglePasswordVisibility('password')">
+                    <i class="fas fa-eye"></i>
+                </span>
+            </div>
+            <div class="password-strength" id="passwordStrength"></div>
+            <div class="error-message" id="passwordError"></div>
+        </div>
+        
+        <!-- Confirm Password -->
+        <div class="form-group">
+            <label for="confirmPassword"><i class="fas fa-lock"></i> Confirm Password</label>
+            <div class="password-group">
+                <input 
+                    type="password" 
+                    id="confirmPassword" 
+                    name="confirmPassword" 
+                    placeholder="Confirm your password"
+                    required
+                >
+                <span class="toggle-password" onclick="togglePasswordVisibility('confirmPassword')">
+                    <i class="fas fa-eye"></i>
+                </span>
+            </div>
+            <div class="error-message" id="confirmError"></div>
+        </div>
+        
+        <!-- Terms and Conditions -->
+        <div class="terms-checkbox">
+            <input 
+                type="checkbox" 
+                id="terms" 
+                name="terms"
+                required
+            >
+            <label for="terms">
+                I agree to the <a href="#">Terms and Conditions</a>
+            </label>
+        </div>
+        
+        <!-- Submit Button -->
+        <button type="submit" class="signup-btn" id="signupBtn">
+            <span class="spinner"></span>
+            Create Account
+        </button>
+        
+        <!-- Login Link -->
+        <div class="login-link">
+            Already have an account? <a href="index.html">Login here</a>
+        </div>
+    </form>
+</div>
+
+<script src="../js/signup.js"></script>
+
+</body>
+</html>
